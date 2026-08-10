@@ -8,6 +8,7 @@ import academicRoutes from "./routes/academicRoutes";
 import peopleRoutes from "./routes/peopleRoutes";
 import academicOpsRoutes from "./routes/academicOpsRoutes";
 import extraRoutes from "./routes/extraRoutes";
+import miscRoutes from "./routes/miscRoutes";
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use("/api/academics", academicRoutes);
 app.use("/api/people", peopleRoutes);
 app.use("/api/ops", academicOpsRoutes);
 app.use("/api/extra", extraRoutes);
+app.use("/api/misc", miscRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)
