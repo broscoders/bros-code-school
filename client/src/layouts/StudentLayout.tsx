@@ -1,6 +1,7 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut } from "lucide-react";
+import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
   { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -25,9 +26,7 @@ export default function StudentLayout() {
     <div className="flex min-h-screen bg-canvas">
       <aside className="w-64 bg-primary-dark text-white flex flex-col">
         <div className="p-5 flex items-center gap-3 border-b border-white/10">
-          <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">
-            BC
-          </div>
+          <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">BC</div>
           <div>
             <h1 className="font-display font-semibold text-sm leading-tight">Bros Code School</h1>
             <p className="text-[11px] text-white/50 tracking-wide">Student Portal</p>
@@ -40,9 +39,7 @@ export default function StudentLayout() {
               to={item.to}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${
-                  isActive
-                    ? "bg-white/10 border-accent text-white font-medium"
-                    : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
+                  isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
                 }`
               }
             >
@@ -61,6 +58,7 @@ export default function StudentLayout() {
       </aside>
       <main className="flex-1 overflow-y-auto">
         <Outlet />
+        <AIChatWidget />
       </main>
     </div>
   );

@@ -9,15 +9,14 @@ import peopleRoutes from "./routes/peopleRoutes";
 import academicOpsRoutes from "./routes/academicOpsRoutes";
 import extraRoutes from "./routes/extraRoutes";
 import miscRoutes from "./routes/miscRoutes";
+import aiRoutes from "./routes/aiRoutes";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(",")
-  : "*";
+const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : "*";
 
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
@@ -33,6 +32,7 @@ app.use("/api/people", peopleRoutes);
 app.use("/api/ops", academicOpsRoutes);
 app.use("/api/extra", extraRoutes);
 app.use("/api/misc", miscRoutes);
+app.use("/api/ai", aiRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)
