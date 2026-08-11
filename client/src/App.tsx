@@ -14,6 +14,7 @@ import Admissions from "./pages/Admissions";
 import Academy from "./pages/Academy";
 import Operations from "./pages/Operations";
 import AuditLogs from "./pages/AuditLogs";
+import LeaveRequests from "./pages/LeaveRequests";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -22,6 +23,9 @@ import ParentHomework from "./pages/parent/ParentHomework";
 import ParentResults from "./pages/parent/ParentResults";
 import ParentFees from "./pages/parent/ParentFees";
 import ParentAnnouncements from "./pages/parent/ParentAnnouncements";
+import ParentMessages from "./pages/parent/ParentMessages";
+import ParentPTM from "./pages/parent/ParentPTM";
+import ParentLeave from "./pages/parent/ParentLeave";
 import StudentLayout from "./layouts/StudentLayout";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentAttendance from "./pages/student/StudentAttendance";
@@ -37,6 +41,9 @@ import TeacherHomework from "./pages/teacher/TeacherHomework";
 import TeacherAssignments from "./pages/teacher/TeacherAssignments";
 import TeacherMarks from "./pages/teacher/TeacherMarks";
 import TeacherAnnouncements from "./pages/teacher/TeacherAnnouncements";
+import TeacherMessages from "./pages/teacher/TeacherMessages";
+import TeacherPTM from "./pages/teacher/TeacherPTM";
+import TeacherStudyMaterial from "./pages/teacher/TeacherStudyMaterial";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import { useAuthStore } from "./store/authStore";
 
@@ -73,6 +80,7 @@ function App() {
           <Route path="/academy" element={<Academy />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
+          <Route path="/leave-requests" element={<LeaveRequests />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["PARENT"]}><ParentLayout /></RoleProtectedRoute>}>
@@ -81,6 +89,9 @@ function App() {
           <Route path="/parent/homework" element={<ParentHomework />} />
           <Route path="/parent/results" element={<ParentResults />} />
           <Route path="/parent/fees" element={<ParentFees />} />
+          <Route path="/parent/messages" element={<ParentMessages />} />
+          <Route path="/parent/ptm" element={<ParentPTM />} />
+          <Route path="/parent/leave" element={<ParentLeave />} />
           <Route path="/parent/announcements" element={<ParentAnnouncements />} />
         </Route>
 
@@ -100,6 +111,9 @@ function App() {
           <Route path="/teacher/homework" element={<TeacherHomework />} />
           <Route path="/teacher/assignments" element={<TeacherAssignments />} />
           <Route path="/teacher/marks" element={<TeacherMarks />} />
+          <Route path="/teacher/study-material" element={<TeacherStudyMaterial />} />
+          <Route path="/teacher/messages" element={<TeacherMessages />} />
+          <Route path="/teacher/ptm" element={<TeacherPTM />} />
           <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
         </Route>
 

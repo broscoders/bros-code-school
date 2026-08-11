@@ -8,6 +8,7 @@ export interface ITeacher extends Document {
   qualification?: string;
   subjects: mongoose.Types.ObjectId[];
   assignedClasses: mongoose.Types.ObjectId[];
+  communicationHours?: string;
 }
 
 const teacherSchema = new Schema<ITeacher>(
@@ -18,6 +19,7 @@ const teacherSchema = new Schema<ITeacher>(
     qualification: { type: String },
     subjects: [{ type: Schema.Types.ObjectId, ref: "Subject" }],
     assignedClasses: [{ type: Schema.Types.ObjectId, ref: "ClassModel" }],
+    communicationHours: { type: String },
   },
   { timestamps: true }
 );

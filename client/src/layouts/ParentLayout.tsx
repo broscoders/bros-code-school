@@ -1,7 +1,7 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useChildStore } from "../store/childStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, Award, Wallet, Megaphone, LogOut } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, Award, Wallet, Megaphone, LogOut, MessageSquare, Users, FileWarning } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
@@ -10,6 +10,9 @@ const navItems = [
   { to: "/parent/homework", label: "Homework", icon: ClipboardCheck },
   { to: "/parent/results", label: "Results", icon: Award },
   { to: "/parent/fees", label: "Fees", icon: Wallet },
+  { to: "/parent/messages", label: "Messages", icon: MessageSquare },
+  { to: "/parent/ptm", label: "PTM", icon: Users },
+  { to: "/parent/leave", label: "Leave Request", icon: FileWarning },
   { to: "/parent/announcements", label: "Announcements", icon: Megaphone },
 ];
 
@@ -34,17 +37,9 @@ export default function ParentLayout() {
             <p className="text-[11px] text-white/50 tracking-wide">Parent Portal</p>
           </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1 mt-2">
+        <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${
-                  isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
-                }`
-              }
-            >
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>

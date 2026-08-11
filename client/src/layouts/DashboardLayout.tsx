@@ -1,6 +1,6 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { to: "/admissions", label: "Admissions", icon: ClipboardList },
   { to: "/academy", label: "Academy", icon: Boxes },
   { to: "/fees", label: "Fees", icon: Wallet },
+  { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/operations", label: "Operations", icon: Boxes },
   { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
@@ -42,15 +43,7 @@ export default function DashboardLayout() {
         </div>
         <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${
-                  isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
-                }`
-              }
-            >
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>
