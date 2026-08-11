@@ -15,6 +15,8 @@ import Academy from "./pages/Academy";
 import Operations from "./pages/Operations";
 import AuditLogs from "./pages/AuditLogs";
 import LeaveRequests from "./pages/LeaveRequests";
+import Surveys from "./pages/Surveys";
+import Settings from "./pages/Settings";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -33,6 +35,7 @@ import StudentHomework from "./pages/student/StudentHomework";
 import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentResults from "./pages/student/StudentResults";
 import StudentAnnouncements from "./pages/student/StudentAnnouncements";
+import StudentStore from "./pages/student/StudentStore";
 import TeacherLayout from "./layouts/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import TeacherClasses from "./pages/teacher/TeacherClasses";
@@ -81,6 +84,8 @@ function App() {
           <Route path="/operations" element={<Operations />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/leave-requests" element={<LeaveRequests />} />
+          <Route path="/surveys" element={<Surveys />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["PARENT"]}><ParentLayout /></RoleProtectedRoute>}>
@@ -101,6 +106,7 @@ function App() {
           <Route path="/student/homework" element={<StudentHomework />} />
           <Route path="/student/assignments" element={<StudentAssignments />} />
           <Route path="/student/results" element={<StudentResults />} />
+          <Route path="/student/store" element={<StudentStore />} />
           <Route path="/student/announcements" element={<StudentAnnouncements />} />
         </Route>
 

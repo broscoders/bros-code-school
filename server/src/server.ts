@@ -13,6 +13,7 @@ import aiRoutes from "./routes/aiRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import auditRoutes from "./routes/auditRoutes";
 import communicationRoutes from "./routes/communicationRoutes";
+import storeRoutes from "./routes/storeRoutes";
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/audit", auditRoutes);
 app.use("/api/comm", communicationRoutes);
+app.use("/api/store", storeRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)

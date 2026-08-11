@@ -1,6 +1,6 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
@@ -9,6 +9,7 @@ const navItems = [
   { to: "/student/homework", label: "Homework", icon: ClipboardCheck },
   { to: "/student/assignments", label: "Assignments", icon: FileText },
   { to: "/student/results", label: "Results", icon: Award },
+  { to: "/student/store", label: "Notes Store", icon: ShoppingBag },
   { to: "/student/announcements", label: "Announcements", icon: Megaphone },
 ];
 
@@ -34,15 +35,7 @@ export default function StudentLayout() {
         </div>
         <nav className="flex-1 p-3 space-y-1 mt-2">
           {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${
-                  isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"
-                }`
-              }
-            >
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>
