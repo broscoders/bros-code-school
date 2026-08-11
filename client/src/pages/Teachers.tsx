@@ -47,42 +47,43 @@ export default function Teachers() {
     <div className="p-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Teachers</h1>
-          <p className="text-slate-500 mt-1">Manage all teachers of your school.</p>
+          <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>
+          <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Teachers</h1>
+          <p className="text-muted mt-1 text-sm">Manage all teachers of your school.</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="bg-blue-800 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-900">
+        <button onClick={() => setShowForm(!showForm)} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors">
           {showForm ? "Cancel" : "+ Add Teacher"}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
-          {error && <p className="text-red-500 text-sm col-span-2">{error}</p>}
-          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border rounded-md px-3 py-2" required />
-          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border rounded-md px-3 py-2" required />
-          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border rounded-md px-3 py-2" required />
-          <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} className="border rounded-md px-3 py-2" required />
-          <input placeholder="Qualification" value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} className="border rounded-md px-3 py-2 col-span-2" />
-          <button type="submit" className="bg-blue-800 text-white px-4 py-2 rounded-md col-span-2">Save Teacher</button>
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
+          {error && <p className="text-danger text-sm col-span-2">{error}</p>}
+          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Qualification" value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" />
+          <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">Save Teacher</button>
         </form>
       )}
 
-      <div className="bg-white rounded-lg shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-black/5 shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-slate-100 text-slate-600 text-left">
+          <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
-              <th className="p-3">Employee ID</th>
-              <th className="p-3">Name</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Qualification</th>
+              <th className="p-3 font-medium">Employee ID</th>
+              <th className="p-3 font-medium">Name</th>
+              <th className="p-3 font-medium">Email</th>
+              <th className="p-3 font-medium">Qualification</th>
             </tr>
           </thead>
           <tbody>
             {teachers.length === 0 ? (
-              <tr><td colSpan={4} className="p-4 text-center text-slate-400">No teachers yet.</td></tr>
+              <tr><td colSpan={4} className="p-6 text-center text-muted">No teachers yet — add your first one above.</td></tr>
             ) : (
               teachers.map((t) => (
-                <tr key={t._id} className="border-t">
+                <tr key={t._id} className="border-t border-black/5">
                   <td className="p-3">{t.employeeId}</td>
                   <td className="p-3">{t.userId?.name}</td>
                   <td className="p-3">{t.userId?.email}</td>

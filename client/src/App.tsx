@@ -7,6 +7,12 @@ import Academics from "./pages/Academics";
 import Fees from "./pages/Fees";
 import Announcements from "./pages/Announcements";
 import Attendance from "./pages/Attendance";
+import Homework from "./pages/Homework";
+import Assignments from "./pages/Assignments";
+import Exams from "./pages/Exams";
+import Admissions from "./pages/Admissions";
+import Academy from "./pages/Academy";
+import Operations from "./pages/Operations";
 import DashboardLayout from "./layouts/DashboardLayout";
 import { useAuthStore } from "./store/authStore";
 
@@ -34,6 +40,12 @@ function App() {
           <Route path="/fees" element={<Fees />} />
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/attendance" element={<Attendance />} />
+          <Route path="/homework" element={<Homework />} />
+          <Route path="/assignments" element={<Assignments />} />
+          <Route path="/exams" element={<Exams />} />
+          <Route path="/admissions" element={<Admissions />} />
+          <Route path="/academy" element={<Academy />} />
+          <Route path="/operations" element={<Operations />} />
         </Route>
         <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
