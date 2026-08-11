@@ -1,0 +1,38 @@
+﻿import { useEffect, useState } from "react";
+import api from "../../services/api";
+import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
+
+export default function StudentAttendance() {
+  const student = useMyStudentRecord();
+  const [records, setRecords] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (student?._id) api.get(`/ops/attendance?studentId=${student._id}`).then((res) => setRecords(res.data));
+  }, [student]);
+
+  return (
+    <div className="p-8">
+      <p className="text-xs uppercase tracking-wider text-accent font-semibold">My School Life</p>
+      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Attendance</h1>
+      <div className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden mt-6">
+        <table className="w-full text-sm">
+          <thead className="bg-primary/5 text-primary-dark text-left">
+            <tr><th className="p-3 font-medium">Date</th><th className="p-3 font-medium">Status</th></tr>
+          </thead>
+          <tbody>
+            {records.length === 0 ? (
+              <tr><td colSpan={2} className="p-6 text-center text-muted">No records yet.</td></tr>
+            ) : (
+              records.map((r) => (
+                <tr key={r._id} className="border-t border-black/5">
+                  <td className="p-3">{new Date(r.date).toLocaleDateString()}</td>
+                  <td className="p-3">{r.status}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
