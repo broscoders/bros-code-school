@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
+import FileUpload from "../components/FileUpload";
 
 export default function Homework() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -9,7 +10,7 @@ export default function Homework() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [list, setList] = useState<any[]>([]);
-  const [form, setForm] = useState({ classId: "", sectionId: "", subjectId: "", teacherId: "", title: "", description: "", dueDate: "" });
+  const [form, setForm] = useState({ classId: "", sectionId: "", subjectId: "", teacherId: "", title: "", description: "", dueDate: "", attachmentUrl: "" });
 
   useEffect(() => {
     if (schoolId) {
@@ -33,7 +34,7 @@ export default function Homework() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await api.post("/ops/homework", { ...form, schoolId });
-    setForm({ ...form, title: "", description: "", dueDate: "" });
+    setForm({ ...form, title: "", description: "", dueDate: "", attachmentUrl: "" });
     const res = await api.get(`/ops/homework?classId=${form.classId}`);
     setList(res.data);
   };
@@ -63,7 +64,8 @@ export default function Homework() {
         </select>
         <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required />
         <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" rows={2} />
-        <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required />
+        <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
+        <FileUpload folder="bros-code-school/homework" onUploaded={(url) => setForm({ ...form, attachmentUrl: url })} />
         <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">+ Assign Homework</button>
       </form>
 
@@ -76,6 +78,11 @@ export default function Homework() {
               <span className="text-xs text-muted">Due {new Date(h.dueDate).toLocaleDateString()}</span>
             </div>
             <p className="text-sm text-muted mt-1">{h.description}</p>
+            {h.attachmentUrl && (
+              <a href={h.attachmentUrl} target="_blank" rel="noreferrer" className="text-xs text-primary underline mt-2 inline-block">
+                View Attachment
+              </a>
+            )}
           </div>
         ))}
       </div>

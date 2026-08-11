@@ -13,6 +13,7 @@ import Exams from "./pages/Exams";
 import Admissions from "./pages/Admissions";
 import Academy from "./pages/Academy";
 import Operations from "./pages/Operations";
+import AuditLogs from "./pages/AuditLogs";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -71,6 +72,7 @@ function App() {
           <Route path="/admissions" element={<Admissions />} />
           <Route path="/academy" element={<Academy />} />
           <Route path="/operations" element={<Operations />} />
+          <Route path="/audit-logs" element={<AuditLogs />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["PARENT"]}><ParentLayout /></RoleProtectedRoute>}>

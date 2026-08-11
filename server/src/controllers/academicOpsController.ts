@@ -8,6 +8,8 @@ import Exam from "../models/Exam";
 import Result from "../models/Result";
 import FeeStructure from "../models/FeeStructure";
 import Invoice from "../models/Invoice";
+import { logAudit } from "../utils/auditLogger";
+import type { AuthRequest } from "../middleware/authMiddleware";
 
 // Attendance
 export const markAttendance = async (req: Request, res: Response) => {
@@ -111,14 +113,30 @@ export const getExams = async (req: Request, res: Response) => {
   }
 };
 
-// Result
-export const enterResult = async (req: Request, res: Response) => {
+// Result (with audit log)
+export const enterResult = async (req: AuthRequest, res: Response) => {
   try {
+    const existing = await Result.findOne({ examId: req.body.examId, studentId: req.body.studentId });
     const result = await Result.findOneAndUpdate(
       { examId: req.body.examId, studentId: req.body.studentId },
       req.body,
       { upsert: true, new: true }
     );
+
+    if (req.user) {
+      await logAudit({
+        schoolId: req.body.schoolId || "",
+        userId: req.user.userId,
+        userName: (req.body.enteredByName as string) || "Unknown",
+        userRole: req.user.role,
+        action: existing ? "Updated result" : "Entered result",
+        recordType: "Result",
+        recordId: result._id.toString(),
+        oldValue: existing ? { marksObtained: existing.marksObtained } : undefined,
+        newValue: { marksObtained: result.marksObtained },
+      });
+    }
+
     res.status(201).json(result);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -162,7 +180,7 @@ export const getInvoices = async (req: Request, res: Response) => {
   }
 };
 
-export const payInvoice = async (req: Request, res: Response) => {
+export const payInvoice = async (req: AuthRequest, res: Response) => {
   try {
     const invoice = await Invoice.findByIdAndUpdate(
       req.params.id,
@@ -170,6 +188,20 @@ export const payInvoice = async (req: Request, res: Response) => {
       { new: true }
     );
     if (!invoice) return res.status(404).json({ message: "Invoice not found" });
+
+    if (req.user) {
+      await logAudit({
+        schoolId: invoice.schoolId.toString(),
+        userId: req.user.userId,
+        userName: (req.body.markedByName as string) || "Unknown",
+        userRole: req.user.role,
+        action: "Marked invoice as paid",
+        recordType: "Invoice",
+        recordId: invoice._id.toString(),
+        newValue: { status: "PAID", amount: invoice.amount },
+      });
+    }
+
     res.json(invoice);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

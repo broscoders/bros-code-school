@@ -1,6 +1,6 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
   { to: "/fees", label: "Fees", icon: Wallet },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/operations", label: "Operations", icon: Boxes },
+  { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
 ];
 
 export default function DashboardLayout() {
