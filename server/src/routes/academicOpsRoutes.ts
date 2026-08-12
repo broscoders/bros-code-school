@@ -7,29 +7,31 @@ import {
   enterResult, getResults,
   createFeeStructure, createInvoice, getInvoices, payInvoice,
 } from "../controllers/academicOpsController";
+import { protect, requireRole } from "../middleware/authMiddleware";
+import { TEACHING_STAFF, ACADEMIC_STAFF, FINANCE_STAFF, EVERYONE, ROLES } from "../middleware/permissions";
 
 const router = Router();
 
-router.post("/attendance", markAttendance);
-router.get("/attendance", getAttendance);
+router.post("/attendance", protect, requireRole(...TEACHING_STAFF), markAttendance);
+router.get("/attendance", protect, requireRole(...EVERYONE), getAttendance);
 
-router.post("/homework", createHomework);
-router.get("/homework", getHomework);
-router.post("/homework/submit", submitHomework);
+router.post("/homework", protect, requireRole(...TEACHING_STAFF), createHomework);
+router.get("/homework", protect, requireRole(...EVERYONE), getHomework);
+router.post("/homework/submit", protect, requireRole(ROLES.STUDENT, ...TEACHING_STAFF), submitHomework);
 
-router.post("/assignments", createAssignment);
-router.get("/assignments", getAssignments);
-router.post("/assignments/submit", submitAssignment);
+router.post("/assignments", protect, requireRole(...TEACHING_STAFF), createAssignment);
+router.get("/assignments", protect, requireRole(...EVERYONE), getAssignments);
+router.post("/assignments/submit", protect, requireRole(ROLES.STUDENT, ...TEACHING_STAFF), submitAssignment);
 
-router.post("/exams", createExam);
-router.get("/exams", getExams);
+router.post("/exams", protect, requireRole(...ACADEMIC_STAFF), createExam);
+router.get("/exams", protect, requireRole(...EVERYONE), getExams);
 
-router.post("/results", enterResult);
-router.get("/results", getResults);
+router.post("/results", protect, requireRole(...TEACHING_STAFF), enterResult);
+router.get("/results", protect, requireRole(...EVERYONE), getResults);
 
-router.post("/fee-structures", createFeeStructure);
-router.post("/invoices", createInvoice);
-router.get("/invoices", getInvoices);
-router.put("/invoices/:id/pay", payInvoice);
+router.post("/fee-structures", protect, requireRole(...FINANCE_STAFF), createFeeStructure);
+router.post("/invoices", protect, requireRole(...FINANCE_STAFF), createInvoice);
+router.get("/invoices", protect, requireRole(...EVERYONE), getInvoices);
+router.put("/invoices/:id/pay", protect, requireRole(ROLES.PARENT, ...FINANCE_STAFF), payInvoice);
 
 export default router;

@@ -2,6 +2,17 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
+import {
+  sendMail,
+  generateSixDigitCode,
+  verificationEmailHtml,
+  loginAlertEmailHtml,
+  passwordResetEmailHtml,
+} from "../utils/mailer";
+
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const CODE_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
 export const registerUser = async (req: Request, res: Response) => {
   try {
@@ -17,6 +28,7 @@ export const registerUser = async (req: Request, res: Response) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const code = generateSixDigitCode();
 
     const user = await User.create({
       name,
@@ -24,11 +36,52 @@ export const registerUser = async (req: Request, res: Response) => {
       password: hashedPassword,
       role,
       schoolId,
+      isEmailVerified: false,
+      verificationCode: code,
+      verificationCodeExpires: new Date(Date.now() + CODE_EXPIRY_MS),
     });
+
+    await sendMail(email, "Verify your email", verificationEmailHtml(name, code));
+
+    res.status(201).json({
+      message: "Account created. Check your email for a verification code.",
+      email: user.email,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const verifyEmail = async (req: Request, res: Response) => {
+  try {
+    const { email, code } = req.body;
+    if (!email || !code) {
+      return res.status(400).json({ message: "Email and code are required" });
+    }
+
+    const user = await User.findOne({ email }).select("+verificationCode +verificationCodeExpires");
+    if (!user) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email is already verified" });
+    }
+    if (!user.verificationCode || user.verificationCode !== code) {
+      return res.status(400).json({ message: "Incorrect code, try again" });
+    }
+    if (!user.verificationCodeExpires || user.verificationCodeExpires.getTime() < Date.now()) {
+      return res.status(400).json({ message: "Code has expired, please request a new one" });
+    }
+
+    user.isEmailVerified = true;
+    user.verificationCode = undefined;
+    user.verificationCodeExpires = undefined;
+    await user.save();
 
     const token = generateToken(user.id.toString(), user.role, user.schoolId.toString());
 
-    res.status(201).json({
+    res.json({
+      message: "Email verified",
       user: {
         id: user.id,
         name: user.name,
@@ -43,6 +96,34 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
+export const resendVerificationCode = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email is already verified" });
+    }
+
+    const code = generateSixDigitCode();
+    user.verificationCode = code;
+    user.verificationCodeExpires = new Date(Date.now() + CODE_EXPIRY_MS);
+    await user.save();
+
+    await sendMail(email, "Verify your email", verificationEmailHtml(user.name, code));
+
+    res.json({ message: "Verification code resent" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -51,15 +132,59 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select(
+      "+failedLoginAttempts +lockUntil +passwordResetCode +passwordResetExpires"
+    );
     if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    // Account temporarily locked from too many failed attempts.
+    if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
+      const minutesLeft = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
+      return res.status(423).json({
+        message: `Too many failed attempts. Account locked for ${minutesLeft} more minute(s). Check your email to reset your password.`,
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+
+      if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+        // Lock the account and email the real owner a code so they can reset
+        // their password if this wasn't them.
+        user.lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
+        const code = generateSixDigitCode();
+        user.passwordResetCode = code;
+        user.passwordResetExpires = new Date(Date.now() + CODE_EXPIRY_MS);
+        user.failedLoginAttempts = 0;
+        await user.save();
+
+        await sendMail(user.email, "Multiple failed login attempts", loginAlertEmailHtml(user.name, code));
+
+        return res.status(423).json({
+          message: "Too many failed attempts. Your account has been locked for 15 minutes and a security code was emailed to you.",
+        });
+      }
+
+      await user.save();
       return res.status(401).json({ message: "Invalid email or password" });
     }
+
+    if (!user.isEmailVerified) {
+      return res.status(403).json({
+        message: "Please verify your email before logging in.",
+        email: user.email,
+        requiresVerification: true,
+      });
+    }
+
+    // Successful login — reset any failed-attempt tracking.
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
 
     const token = generateToken(user.id.toString(), user.role, user.schoolId.toString());
 
@@ -73,6 +198,64 @@ export const loginUser = async (req: Request, res: Response) => {
       },
       token,
     });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email });
+    // Always respond the same way whether or not the account exists, so
+    // this endpoint can't be used to find out which emails are registered.
+    if (user) {
+      const code = generateSixDigitCode();
+      user.passwordResetCode = code;
+      user.passwordResetExpires = new Date(Date.now() + CODE_EXPIRY_MS);
+      await user.save();
+      await sendMail(email, "Reset your password", passwordResetEmailHtml(user.name, code));
+    }
+
+    res.json({ message: "If that email is registered, a reset code has been sent." });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, code, newPassword } = req.body;
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ message: "Email, code and new password are required" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
+
+    const user = await User.findOne({ email }).select("+passwordResetCode +passwordResetExpires");
+    if (!user) {
+      return res.status(404).json({ message: "Account not found" });
+    }
+    if (!user.passwordResetCode || user.passwordResetCode !== code) {
+      return res.status(400).json({ message: "Incorrect code, try again" });
+    }
+    if (!user.passwordResetExpires || user.passwordResetExpires.getTime() < Date.now()) {
+      return res.status(400).json({ message: "Code has expired, please request a new one" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordResetCode = undefined;
+    user.passwordResetExpires = undefined;
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    res.json({ message: "Password reset. You can now log in." });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

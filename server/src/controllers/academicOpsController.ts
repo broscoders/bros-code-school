@@ -23,7 +23,7 @@ export const markAttendance = async (req: Request, res: Response) => {
 
 export const getAttendance = async (req: Request, res: Response) => {
   try {
-    const records = await Attendance.find({ studentId: req.query.studentId });
+    const records = await Attendance.find({ studentId: req.query.studentId as string });
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -42,7 +42,7 @@ export const createHomework = async (req: Request, res: Response) => {
 
 export const getHomework = async (req: Request, res: Response) => {
   try {
-    const list = await Homework.find({ classId: req.query.classId });
+    const list = await Homework.find({ classId: req.query.classId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -74,7 +74,7 @@ export const createAssignment = async (req: Request, res: Response) => {
 
 export const getAssignments = async (req: Request, res: Response) => {
   try {
-    const list = await Assignment.find({ classId: req.query.classId });
+    const list = await Assignment.find({ classId: req.query.classId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -106,7 +106,7 @@ export const createExam = async (req: Request, res: Response) => {
 
 export const getExams = async (req: Request, res: Response) => {
   try {
-    const list = await Exam.find({ classId: req.query.classId });
+    const list = await Exam.find({ classId: req.query.classId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -145,7 +145,7 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
 
 export const getResults = async (req: Request, res: Response) => {
   try {
-    const results = await Result.find({ studentId: req.query.studentId }).populate("examId");
+    const results = await Result.find({ studentId: req.query.studentId as string }).populate("examId");
     res.json(results);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -173,7 +173,7 @@ export const createInvoice = async (req: Request, res: Response) => {
 
 export const getInvoices = async (req: Request, res: Response) => {
   try {
-    const invoices = await Invoice.find({ studentId: req.query.studentId });
+    const invoices = await Invoice.find({ studentId: req.query.studentId as string });
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

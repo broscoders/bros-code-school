@@ -17,7 +17,8 @@ export const sendMessage = async (req: Request, res: Response) => {
 
 export const getThread = async (req: Request, res: Response) => {
   try {
-    const { userA, userB } = req.query;
+    const userA = req.query.userA as string;
+    const userB = req.query.userB as string;
     const msgs = await Message.find({
       $or: [
         { fromUserId: userA, toUserId: userB },
@@ -32,7 +33,7 @@ export const getThread = async (req: Request, res: Response) => {
 
 export const getInbox = async (req: Request, res: Response) => {
   try {
-    const msgs = await Message.find({ toUserId: req.query.userId }).populate("fromUserId").sort({ createdAt: -1 });
+    const msgs = await Message.find({ toUserId: req.query.userId as string }).populate("fromUserId").sort({ createdAt: -1 });
     res.json(msgs);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -62,7 +63,7 @@ export const createPTMSlot = async (req: Request, res: Response) => {
 
 export const getPTMSlotsByTeacher = async (req: Request, res: Response) => {
   try {
-    const slots = await PTMSlot.find({ teacherId: req.query.teacherId }).populate("parentId studentId");
+    const slots = await PTMSlot.find({ teacherId: req.query.teacherId as string }).populate("parentId studentId");
     res.json(slots);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -71,7 +72,7 @@ export const getPTMSlotsByTeacher = async (req: Request, res: Response) => {
 
 export const getAllTeacherSlots = async (req: Request, res: Response) => {
   try {
-    const slots = await PTMSlot.find({ schoolId: req.query.schoolId, isBooked: false }).populate("teacherId");
+    const slots = await PTMSlot.find({ schoolId: req.query.schoolId as string, isBooked: false }).populate("teacherId");
     res.json(slots);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -104,7 +105,7 @@ export const createLeaveRequest = async (req: Request, res: Response) => {
 
 export const getLeaveRequests = async (req: Request, res: Response) => {
   try {
-    const leaves = await LeaveRequest.find({ schoolId: req.query.schoolId }).populate("studentId teacherId requestedBy");
+    const leaves = await LeaveRequest.find({ schoolId: req.query.schoolId as string }).populate("studentId teacherId requestedBy");
     res.json(leaves);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -133,7 +134,7 @@ export const addStudyMaterial = async (req: Request, res: Response) => {
 
 export const getStudyMaterial = async (req: Request, res: Response) => {
   try {
-    const list = await StudyMaterial.find({ classId: req.query.classId }).populate("subjectId");
+    const list = await StudyMaterial.find({ classId: req.query.classId as string }).populate("subjectId");
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

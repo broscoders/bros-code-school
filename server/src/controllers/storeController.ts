@@ -16,7 +16,7 @@ export const createSurvey = async (req: Request, res: Response) => {
 
 export const getSurveys = async (req: Request, res: Response) => {
   try {
-    const surveys = await Survey.find({ schoolId: req.query.schoolId, isActive: true });
+    const surveys = await Survey.find({ schoolId: req.query.schoolId as string, isActive: true });
     res.json(surveys);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -53,7 +53,7 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
-    const products = await DigitalProduct.find({ schoolId: req.query.schoolId, status: "ACTIVE" });
+    const products = await DigitalProduct.find({ schoolId: req.query.schoolId as string, status: "ACTIVE" });
     res.json(products);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -71,7 +71,7 @@ export const purchaseProduct = async (req: Request, res: Response) => {
 
 export const getMyPurchases = async (req: Request, res: Response) => {
   try {
-    const purchases = await Purchase.find({ studentId: req.query.studentId }).populate("productId");
+    const purchases = await Purchase.find({ studentId: req.query.studentId as string }).populate("productId");
     res.json(purchases);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

@@ -1,5 +1,6 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useSchoolStore, DEFAULT_LOGO_URL } from "../store/schoolStore";
 import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
@@ -26,6 +27,7 @@ const navItems = [
 export default function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const school = useSchoolStore((s) => s.school);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -37,9 +39,20 @@ export default function DashboardLayout() {
     <div className="flex min-h-screen bg-canvas">
       <aside className="w-64 bg-primary-dark text-white flex flex-col">
         <div className="p-5 flex items-center gap-3 border-b border-white/10">
-          <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">BC</div>
+          {school?.logoUrl ? (
+            <img
+              src={school.logoUrl}
+              onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_LOGO_URL; }}
+              alt={school?.name || "School logo"}
+              className="w-10 h-10 rounded-full object-cover border border-white/20"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">
+              {(school?.name || "BC").slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <div>
-            <h1 className="font-display font-semibold text-sm leading-tight">Bros Code School</h1>
+            <h1 className="font-display font-semibold text-sm leading-tight">{school?.name || "Loading..."}</h1>
             <p className="text-[11px] text-white/50 tracking-wide">{user?.role}</p>
           </div>
         </div>

@@ -1,7 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
 export default function ParentMessages() {
   const user = useAuthStore((s) => s.user);

@@ -19,7 +19,7 @@ export const addBook = async (req: Request, res: Response) => {
 
 export const getBooks = async (req: Request, res: Response) => {
   try {
-    const books = await LibraryBook.find({ schoolId: req.query.schoolId });
+    const books = await LibraryBook.find({ schoolId: req.query.schoolId as string });
     res.json(books);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -63,7 +63,7 @@ export const addVehicle = async (req: Request, res: Response) => {
 
 export const getVehicles = async (req: Request, res: Response) => {
   try {
-    const vehicles = await Vehicle.find({ schoolId: req.query.schoolId });
+    const vehicles = await Vehicle.find({ schoolId: req.query.schoolId as string });
     res.json(vehicles);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -83,7 +83,7 @@ export const createComplaint = async (req: Request, res: Response) => {
 
 export const getComplaints = async (req: Request, res: Response) => {
   try {
-    const complaints = await Complaint.find({ schoolId: req.query.schoolId });
+    const complaints = await Complaint.find({ schoolId: req.query.schoolId as string });
     res.json(complaints);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -112,7 +112,7 @@ export const createEvent = async (req: Request, res: Response) => {
 
 export const getEvents = async (req: Request, res: Response) => {
   try {
-    const events = await Event.find({ schoolId: req.query.schoolId }).sort({ date: 1 });
+    const events = await Event.find({ schoolId: req.query.schoolId as string }).sort({ date: 1 });
     res.json(events);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -131,7 +131,7 @@ export const createPTMSlot = async (req: Request, res: Response) => {
 
 export const getPTMSlots = async (req: Request, res: Response) => {
   try {
-    const slots = await PTMSlot.find({ teacherId: req.query.teacherId });
+    const slots = await PTMSlot.find({ teacherId: req.query.teacherId as string });
     res.json(slots);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -164,7 +164,7 @@ export const addAchievement = async (req: Request, res: Response) => {
 
 export const getAchievements = async (req: Request, res: Response) => {
   try {
-    const list = await Achievement.find({ studentId: req.query.studentId });
+    const list = await Achievement.find({ studentId: req.query.studentId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

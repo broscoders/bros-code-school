@@ -1,5 +1,10 @@
 ﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
@@ -49,6 +54,7 @@ import TeacherPTM from "./pages/teacher/TeacherPTM";
 import TeacherStudyMaterial from "./pages/teacher/TeacherStudyMaterial";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import { useAuthStore } from "./store/authStore";
+import { useSchoolStore } from "./store/schoolStore";
 
 const ADMIN_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST", "LIBRARIAN", "TRANSPORT_MANAGER"];
 const TEACHER_ROLES = ["TEACHER", "ACADEMY_TEACHER"];
@@ -63,10 +69,23 @@ function HomeRedirect() {
 }
 
 function App() {
+  const user = useAuthStore((s) => s.user);
+  const fetchSchool = useSchoolStore((s) => s.fetchSchool);
+
+  useEffect(() => {
+    if (user?.schoolId) {
+      fetchSchool(user.schoolId);
+    }
+  }, [user?.schoolId, fetchSchool]);
+
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<RoleProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardLayout /></RoleProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />

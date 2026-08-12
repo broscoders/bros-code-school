@@ -15,7 +15,7 @@ export const createStudent = async (req: Request, res: Response) => {
 
 export const getStudents = async (req: Request, res: Response) => {
   try {
-    const students = await Student.find({ schoolId: req.query.schoolId }).populate("userId classId sectionId");
+    const students = await Student.find({ schoolId: req.query.schoolId as string }).populate("userId classId sectionId");
     res.json(students);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -44,7 +44,7 @@ export const createParent = async (req: Request, res: Response) => {
 
 export const getParents = async (req: Request, res: Response) => {
   try {
-    const parents = await Parent.find({ schoolId: req.query.schoolId }).populate("userId children");
+    const parents = await Parent.find({ schoolId: req.query.schoolId as string }).populate("userId children");
     res.json(parents);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -63,7 +63,7 @@ export const createTeacher = async (req: Request, res: Response) => {
 
 export const getTeachers = async (req: Request, res: Response) => {
   try {
-    const teachers = await Teacher.find({ schoolId: req.query.schoolId }).populate("userId subjects assignedClasses");
+    const teachers = await Teacher.find({ schoolId: req.query.schoolId as string }).populate("userId subjects assignedClasses");
     res.json(teachers);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

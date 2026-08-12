@@ -18,7 +18,7 @@ export const createAnnouncement = async (req: Request, res: Response) => {
 
 export const getAnnouncements = async (req: Request, res: Response) => {
   try {
-    const list = await Announcement.find({ schoolId: req.query.schoolId }).sort({ publishAt: -1 });
+    const list = await Announcement.find({ schoolId: req.query.schoolId as string }).sort({ publishAt: -1 });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -37,7 +37,7 @@ export const createAdmission = async (req: Request, res: Response) => {
 
 export const getAdmissions = async (req: Request, res: Response) => {
   try {
-    const list = await Admission.find({ schoolId: req.query.schoolId });
+    const list = await Admission.find({ schoolId: req.query.schoolId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -67,7 +67,7 @@ export const sendMessage = async (req: Request, res: Response) => {
 export const getMessages = async (req: Request, res: Response) => {
   try {
     const msgs = await Message.find({
-      $or: [{ fromUserId: req.query.userId }, { toUserId: req.query.userId }],
+      $or: [{ fromUserId: req.query.userId as string }, { toUserId: req.query.userId as string }],
     }).sort({ createdAt: -1 });
     res.json(msgs);
   } catch (err) {
@@ -87,7 +87,7 @@ export const createAcademyProgram = async (req: Request, res: Response) => {
 
 export const getAcademyPrograms = async (req: Request, res: Response) => {
   try {
-    const list = await AcademyProgram.find({ schoolId: req.query.schoolId });
+    const list = await AcademyProgram.find({ schoolId: req.query.schoolId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -105,7 +105,7 @@ export const createAcademyBatch = async (req: Request, res: Response) => {
 
 export const getAcademyBatches = async (req: Request, res: Response) => {
   try {
-    const list = await AcademyBatch.find({ programId: req.query.programId });
+    const list = await AcademyBatch.find({ programId: req.query.programId as string });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -123,7 +123,7 @@ export const enrollInAcademy = async (req: Request, res: Response) => {
 
 export const getAcademyEnrollments = async (req: Request, res: Response) => {
   try {
-    const list = await AcademyEnrollment.find({ studentId: req.query.studentId }).populate("batchId");
+    const list = await AcademyEnrollment.find({ studentId: req.query.studentId as string }).populate("batchId");
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

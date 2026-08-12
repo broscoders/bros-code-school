@@ -2,13 +2,14 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import AuditLog from "../models/AuditLog";
-import { protect } from "../middleware/authMiddleware";
+import { protect, requireRole } from "../middleware/authMiddleware";
+import { TOP_ADMIN, ROLES } from "../middleware/permissions";
 
 const router = Router();
 
-router.get("/", protect, async (req: AuthRequest, res: Response) => {
+router.get("/", protect, requireRole(...TOP_ADMIN, ROLES.HEAD), async (req: AuthRequest, res: Response) => {
   try {
-    const logs = await AuditLog.find({ schoolId: req.query.schoolId }).sort({ createdAt: -1 }).limit(100);
+    const logs = await AuditLog.find({ schoolId: req.query.schoolId as string }).sort({ createdAt: -1 }).limit(100);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

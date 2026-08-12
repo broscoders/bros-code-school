@@ -16,7 +16,7 @@ export const createSession = async (req: Request, res: Response) => {
 
 export const getSessions = async (req: Request, res: Response) => {
   try {
-    const sessions = await AcademicSession.find({ schoolId: req.query.schoolId });
+    const sessions = await AcademicSession.find({ schoolId: req.query.schoolId as string });
     res.json(sessions);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -35,7 +35,7 @@ export const createClass = async (req: Request, res: Response) => {
 
 export const getClasses = async (req: Request, res: Response) => {
   try {
-    const classes = await ClassModel.find({ schoolId: req.query.schoolId });
+    const classes = await ClassModel.find({ schoolId: req.query.schoolId as string });
     res.json(classes);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -54,7 +54,7 @@ export const createSection = async (req: Request, res: Response) => {
 
 export const getSections = async (req: Request, res: Response) => {
   try {
-    const sections = await Section.find({ classId: req.query.classId });
+    const sections = await Section.find({ classId: req.query.classId as string });
     res.json(sections);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -73,7 +73,7 @@ export const createSubject = async (req: Request, res: Response) => {
 
 export const getSubjects = async (req: Request, res: Response) => {
   try {
-    const subjects = await Subject.find({ classId: req.query.classId });
+    const subjects = await Subject.find({ classId: req.query.classId as string });
     res.json(subjects);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
