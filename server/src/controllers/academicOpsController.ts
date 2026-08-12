@@ -8,13 +8,31 @@ import Exam from "../models/Exam";
 import Result from "../models/Result";
 import FeeStructure from "../models/FeeStructure";
 import Invoice from "../models/Invoice";
+import Student from "../models/Student";
+import Parent from "../models/Parent";
 import { logAudit } from "../utils/auditLogger";
+import { notify } from "../utils/notifier";
 import type { AuthRequest } from "../middleware/authMiddleware";
 
 // Attendance
 export const markAttendance = async (req: Request, res: Response) => {
   try {
     const record = await Attendance.create(req.body);
+
+    if (req.body.status === "ABSENT" || req.body.status === "LATE") {
+      const student = await Student.findById(req.body.studentId).populate("userId");
+      const parent = await Parent.findOne({ children: req.body.studentId }).populate("userId");
+      if (parent && (parent.userId as any)?._id) {
+        await notify({
+          schoolId: req.body.schoolId,
+          userId: (parent.userId as any)._id.toString(),
+          title: req.body.status === "ABSENT" ? "Child marked absent" : "Child marked late",
+          message: `${(student?.userId as any)?.name || "Your child"} was marked ${req.body.status.toLowerCase()} today.`,
+          category: "ATTENDANCE",
+        });
+      }
+    }
+
     res.status(201).json(record);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -23,7 +41,7 @@ export const markAttendance = async (req: Request, res: Response) => {
 
 export const getAttendance = async (req: Request, res: Response) => {
   try {
-    const records = await Attendance.find({ studentId: req.query.studentId as string });
+    const records = await Attendance.find({ studentId: req.query.studentId });
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -42,7 +60,7 @@ export const createHomework = async (req: Request, res: Response) => {
 
 export const getHomework = async (req: Request, res: Response) => {
   try {
-    const list = await Homework.find({ classId: req.query.classId as string });
+    const list = await Homework.find({ classId: req.query.classId });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -74,7 +92,7 @@ export const createAssignment = async (req: Request, res: Response) => {
 
 export const getAssignments = async (req: Request, res: Response) => {
   try {
-    const list = await Assignment.find({ classId: req.query.classId as string });
+    const list = await Assignment.find({ classId: req.query.classId });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -106,14 +124,14 @@ export const createExam = async (req: Request, res: Response) => {
 
 export const getExams = async (req: Request, res: Response) => {
   try {
-    const list = await Exam.find({ classId: req.query.classId as string });
+    const list = await Exam.find({ classId: req.query.classId });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
 };
 
-// Result (with audit log)
+// Result (with audit + notification)
 export const enterResult = async (req: AuthRequest, res: Response) => {
   try {
     const existing = await Result.findOne({ examId: req.body.examId, studentId: req.body.studentId });
@@ -137,6 +155,20 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    if (!existing) {
+      const student = await Student.findById(req.body.studentId);
+      const parent = await Parent.findOne({ children: req.body.studentId }).populate("userId");
+      if (parent && (parent.userId as any)?._id && student) {
+        await notify({
+          schoolId: student.schoolId.toString(),
+          userId: (parent.userId as any)._id.toString(),
+          title: "New result published",
+          message: `A new exam result has been published for your child.`,
+          category: "ACADEMIC",
+        });
+      }
+    }
+
     res.status(201).json(result);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -145,7 +177,7 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
 
 export const getResults = async (req: Request, res: Response) => {
   try {
-    const results = await Result.find({ studentId: req.query.studentId as string }).populate("examId");
+    const results = await Result.find({ studentId: req.query.studentId }).populate("examId");
     res.json(results);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -165,6 +197,19 @@ export const createFeeStructure = async (req: Request, res: Response) => {
 export const createInvoice = async (req: Request, res: Response) => {
   try {
     const invoice = await Invoice.create(req.body);
+
+    const student = await Student.findById(req.body.studentId);
+    const parent = await Parent.findOne({ children: req.body.studentId }).populate("userId");
+    if (parent && (parent.userId as any)?._id && student) {
+      await notify({
+        schoolId: student.schoolId.toString(),
+        userId: (parent.userId as any)._id.toString(),
+        title: "New fee invoice",
+        message: `A new ${req.body.feeType} invoice of Rs. ${req.body.amount} has been generated.`,
+        category: "FINANCE",
+      });
+    }
+
     res.status(201).json(invoice);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -173,7 +218,7 @@ export const createInvoice = async (req: Request, res: Response) => {
 
 export const getInvoices = async (req: Request, res: Response) => {
   try {
-    const invoices = await Invoice.find({ studentId: req.query.studentId as string });
+    const invoices = await Invoice.find({ studentId: req.query.studentId });
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

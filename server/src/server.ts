@@ -15,6 +15,7 @@ import auditRoutes from "./routes/auditRoutes";
 import communicationRoutes from "./routes/communicationRoutes";
 import storeRoutes from "./routes/storeRoutes";
 import crmRoutes from "./routes/crmRoutes";
+import systemRoutes from "./routes/systemRoutes";
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/api/audit", auditRoutes);
 app.use("/api/comm", communicationRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/crm", crmRoutes);
+app.use("/api/system", systemRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)
