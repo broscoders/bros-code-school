@@ -1,7 +1,6 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { useSchoolStore, DEFAULT_LOGO_URL } from "../store/schoolStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
@@ -11,12 +10,12 @@ const navItems = [
   { to: "/student/assignments", label: "Assignments", icon: FileText },
   { to: "/student/results", label: "Results", icon: Award },
   { to: "/student/store", label: "Notes Store", icon: ShoppingBag },
+  { to: "/student/certificates", label: "Certificates", icon: BadgeCheck },
   { to: "/student/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 export default function StudentLayout() {
   const user = useAuthStore((s) => s.user);
-  const school = useSchoolStore((s) => s.school);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
 
@@ -29,13 +28,9 @@ export default function StudentLayout() {
     <div className="flex min-h-screen bg-canvas">
       <aside className="w-64 bg-primary-dark text-white flex flex-col">
         <div className="p-5 flex items-center gap-3 border-b border-white/10">
-          {school?.logoUrl ? (
-            <img src={school.logoUrl} onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_LOGO_URL; }} alt={school?.name || "School logo"} className="w-10 h-10 rounded-full object-cover border border-white/20" />
-          ) : (
-            <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">{(school?.name || "BC").slice(0, 2).toUpperCase()}</div>
-          )}
+          <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">BC</div>
           <div>
-            <h1 className="font-display font-semibold text-sm leading-tight">{school?.name || "Loading..."}</h1>
+            <h1 className="font-display font-semibold text-sm leading-tight">Bros Code School</h1>
             <p className="text-[11px] text-white/50 tracking-wide">Student Portal</p>
           </div>
         </div>
