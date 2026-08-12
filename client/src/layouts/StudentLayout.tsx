@@ -26,25 +26,25 @@ export default function StudentLayout() {
 
   return (
     <div className="flex min-h-screen bg-canvas">
-      <aside className="w-64 bg-primary-dark text-white flex flex-col">
-        <div className="p-5 flex items-center gap-3 border-b border-white/10">
-          <div className="w-10 h-10 rounded-full bg-accent text-primary-dark flex items-center justify-center font-display font-bold text-sm">BC</div>
+      <aside className="w-64 bg-surface border-r border-black/5 flex flex-col">
+        <div className="p-5 flex items-center gap-3 border-b border-black/5">
+          <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-display font-bold text-sm">BC</div>
           <div>
-            <h1 className="font-display font-semibold text-sm leading-tight">Bros Code School</h1>
-            <p className="text-[11px] text-white/50 tracking-wide">Student Portal</p>
+            <h1 className="font-display font-semibold text-sm leading-tight text-ink">Bros Code School</h1>
+            <p className="text-[11px] text-muted tracking-wide">Student Portal</p>
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1 mt-2">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm border-l-2 transition-colors ${isActive ? "bg-white/10 border-accent text-white font-medium" : "border-transparent text-white/60 hover:bg-white/5 hover:text-white"}`}>
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? "bg-primary text-white font-medium shadow-sm" : "text-muted hover:bg-canvas hover:text-ink"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-white/10">
-          <p className="px-3 text-xs text-white/40 mb-2">{user?.name}</p>
-          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm text-white/60 hover:bg-white/5 hover:text-white w-full">
+        <div className="p-3 border-t border-black/5">
+          <p className="px-3 text-xs text-muted mb-2">{user?.name}</p>
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:bg-canvas hover:text-ink w-full">
             <LogOut size={17} />
             Logout
           </button>

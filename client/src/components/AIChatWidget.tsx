@@ -24,7 +24,9 @@ export default function AIChatWidget({ extraBody }: Props) {
       const res = await api.post("/ai/chat", { message: userMsg, ...extraBody });
       setMessages((m) => [...m, { role: "assistant", content: res.data.reply }]);
     } catch (err: any) {
-      setMessages((m) => [...m, { role: "assistant", content: err.response?.data?.message || "Something went wrong." }]);
+      const detail = err.response?.data?.message || err.message || "Unknown error";
+      const extra = err.response?.data?.error ? ` (${JSON.stringify(err.response.data.error).slice(0, 200)})` : "";
+      setMessages((m) => [...m, { role: "assistant", content: `Error: ${detail}${extra}` }]);
     } finally {
       setLoading(false);
     }
@@ -33,8 +35,8 @@ export default function AIChatWidget({ extraBody }: Props) {
   return (
     <>
       {open && (
-        <div className="fixed bottom-20 right-6 w-80 h-96 bg-surface rounded-xl shadow-xl border border-black/10 flex flex-col z-50">
-          <div className="bg-primary-dark text-white p-3 rounded-t-xl flex justify-between items-center">
+        <div className="fixed bottom-20 right-6 w-80 h-96 bg-surface rounded-2xl shadow-xl border border-black/10 flex flex-col z-50">
+          <div className="bg-primary text-white p-3 rounded-t-2xl flex justify-between items-center">
             <span className="font-display text-sm font-semibold">Ask Assistant</span>
             <button onClick={() => setOpen(false)}><X size={16} /></button>
           </div>
@@ -52,9 +54,9 @@ export default function AIChatWidget({ extraBody }: Props) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="Type a question..."
-              className="flex-1 border border-black/10 rounded-md px-2 py-1.5 text-sm"
+              className="flex-1 border border-black/10 rounded-lg px-2 py-1.5 text-sm"
             />
-            <button onClick={send} className="bg-primary text-white p-2 rounded-md">
+            <button onClick={send} className="bg-primary text-white p-2 rounded-lg">
               <Send size={14} />
             </button>
           </div>
@@ -62,7 +64,7 @@ export default function AIChatWidget({ extraBody }: Props) {
       )}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-accent text-primary-dark flex items-center justify-center shadow-lg z-50 hover:scale-105 transition-transform"
+        className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-accent text-white flex items-center justify-center shadow-lg z-50 hover:scale-105 transition-transform"
       >
         <MessageCircle size={20} />
       </button>
