@@ -25,6 +25,7 @@ import financeRoutes from "./routes/financeRoutes";
 import hrRoutes from "./routes/hrRoutes";
 import hostelRoutes from "./routes/hostelRoutes";
 import assetsRoutes from "./routes/assetsRoutes";
+import healthRoutes from "./routes/healthRoutes";
 
 dotenv.config();
 
@@ -63,6 +64,7 @@ app.use("/api/finance", financeRoutes);
 app.use("/api/hr", hrRoutes);
 app.use("/api/hostel", hostelRoutes);
 app.use("/api/assets", assetsRoutes);
+app.use("/api/health", healthRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)

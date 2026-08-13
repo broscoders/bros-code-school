@@ -30,6 +30,8 @@ import Payroll from "./pages/Payroll";
 import Hostel from "./pages/Hostel";
 import InventoryAssets from "./pages/InventoryAssets";
 import Maintenance from "./pages/Maintenance";
+import Visitors from "./pages/Visitors";
+import Health from "./pages/Health";
 import RolesPermissions from "./pages/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
@@ -109,6 +111,8 @@ function App() {
           <Route path="/hostel" element={<Hostel />} />
           <Route path="/inventory-assets" element={<InventoryAssets />} />
           <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/visitors" element={<Visitors />} />
+          <Route path="/health" element={<Health />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/audit-logs" element={<AuditLogs />} />

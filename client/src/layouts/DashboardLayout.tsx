@@ -28,6 +28,8 @@ const navItems = [
   { to: "/hostel", label: "Hostel", icon: Boxes },
   { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes },
   { to: "/maintenance", label: "Maintenance", icon: AlertTriangle },
+  { to: "/visitors", label: "Visitors", icon: Users },
+  { to: "/health", label: "Health & Medical", icon: AlertTriangle },
   { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
   { to: "/calendar", label: "Calendar", icon: Calendar },
