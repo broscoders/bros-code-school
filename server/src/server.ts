@@ -22,6 +22,8 @@ import dashboardRoutes from "./routes/dashboardRoutes";
 import bulkRoutes from "./routes/bulkRoutes";
 import reportsRoutes from "./routes/reportsRoutes";
 import financeRoutes from "./routes/financeRoutes";
+import hrRoutes from "./routes/hrRoutes";
+import hostelRoutes from "./routes/hostelRoutes";
 
 dotenv.config();
 
@@ -57,6 +59,8 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/bulk", bulkRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/finance", financeRoutes);
+app.use("/api/hr", hrRoutes);
+app.use("/api/hostel", hostelRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)

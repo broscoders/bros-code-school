@@ -25,6 +25,9 @@ import CalendarPage from "./pages/CalendarPage";
 import ReportCards from "./pages/ReportCards";
 import Reports from "./pages/Reports";
 import Accounting from "./pages/Accounting";
+import HRManagement from "./pages/HRManagement";
+import Payroll from "./pages/Payroll";
+import Hostel from "./pages/Hostel";
 import RolesPermissions from "./pages/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
@@ -99,6 +102,9 @@ function App() {
           <Route path="/report-cards" element={<ReportCards />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/accounting" element={<Accounting />} />
+          <Route path="/hr" element={<HRManagement />} />
+          <Route path="/payroll" element={<Payroll />} />
+          <Route path="/hostel" element={<Hostel />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
