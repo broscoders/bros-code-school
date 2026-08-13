@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -21,6 +21,7 @@ import permissionRoutes from "./routes/permissionRoutes";
 import dashboardRoutes from "./routes/dashboardRoutes";
 import bulkRoutes from "./routes/bulkRoutes";
 import reportsRoutes from "./routes/reportsRoutes";
+import financeRoutes from "./routes/financeRoutes";
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use("/api/permissions", permissionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/bulk", bulkRoutes);
 app.use("/api/reports", reportsRoutes);
+app.use("/api/finance", financeRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)

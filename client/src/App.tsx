@@ -24,6 +24,7 @@ import IDCards from "./pages/IDCards";
 import CalendarPage from "./pages/CalendarPage";
 import ReportCards from "./pages/ReportCards";
 import Reports from "./pages/Reports";
+import Accounting from "./pages/Accounting";
 import RolesPermissions from "./pages/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
@@ -97,6 +98,7 @@ function App() {
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/report-cards" element={<ReportCards />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/accounting" element={<Accounting />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/audit-logs" element={<AuditLogs />} />

@@ -22,6 +22,7 @@ const navItems = [
   { to: "/id-cards", label: "ID Cards", icon: IdCard },
   { to: "/discipline", label: "Discipline", icon: AlertTriangle },
   { to: "/fees", label: "Fees", icon: Wallet },
+  { to: "/accounting", label: "Accounting", icon: Wallet },
   { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
   { to: "/calendar", label: "Calendar", icon: Calendar },
