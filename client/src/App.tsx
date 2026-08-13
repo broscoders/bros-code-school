@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
+import Parents from "./pages/Parents";
 import Academics from "./pages/Academics";
 import Fees from "./pages/Fees";
 import Announcements from "./pages/Announcements";
@@ -89,6 +90,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/students" element={<Students />} />
           <Route path="/teachers" element={<Teachers />} />
+          <Route path="/parents" element={<Parents />} />
           <Route path="/academics" element={<Academics />} />
           <Route path="/fees" element={<Fees />} />
           <Route path="/announcements" element={<Announcements />} />

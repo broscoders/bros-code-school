@@ -10,6 +10,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/students", label: "Students", icon: Users },
   { to: "/teachers", label: "Teachers", icon: GraduationCap },
+  { to: "/parents", label: "Parents", icon: Users },
   { to: "/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/academics", label: "Academics", icon: BookOpen },
   { to: "/homework", label: "Homework", icon: ClipboardCheck },
