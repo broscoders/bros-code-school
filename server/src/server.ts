@@ -18,6 +18,9 @@ import crmRoutes from "./routes/crmRoutes";
 import systemRoutes from "./routes/systemRoutes";
 import searchRoutes from "./routes/searchRoutes";
 import permissionRoutes from "./routes/permissionRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
+import bulkRoutes from "./routes/bulkRoutes";
+import reportsRoutes from "./routes/reportsRoutes";
 
 dotenv.config();
 
@@ -49,6 +52,9 @@ app.use("/api/crm", crmRoutes);
 app.use("/api/system", systemRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/permissions", permissionRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/bulk", bulkRoutes);
+app.use("/api/reports", reportsRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI as string)

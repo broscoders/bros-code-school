@@ -2,6 +2,7 @@
 import { useAuthStore } from "../store/authStore";
 import api from "../services/api";
 import { Users, GraduationCap, ClipboardList, Bell } from "lucide-react";
+import ActivityFeed from "../components/ActivityFeed";
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
@@ -54,11 +55,14 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-6">
-        <h2 className="font-display font-semibold text-ink mb-1">Needs Attention</h2>
-        <p className="text-sm text-muted">
-          {counts.admissions > 0 ? `${counts.admissions} admission applications waiting.` : "No pending items right now."}
-        </p>
+      <div className="grid grid-cols-2 gap-4 mt-6">
+        <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+          <h2 className="font-display font-semibold text-ink mb-1">Needs Attention</h2>
+          <p className="text-sm text-muted">
+            {counts.admissions > 0 ? `${counts.admissions} admission applications waiting.` : "No pending items right now."}
+          </p>
+        </div>
+        <ActivityFeed />
       </div>
     </div>
   );

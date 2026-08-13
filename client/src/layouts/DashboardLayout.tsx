@@ -1,9 +1,10 @@
-﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard, Lock } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard, Lock, Calendar } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
+import { FileBarChart } from "lucide-react";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +24,9 @@ const navItems = [
   { to: "/fees", label: "Fees", icon: Wallet },
   { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
+  { to: "/calendar", label: "Calendar", icon: Calendar },
+  { to: "/report-cards", label: "Report Cards", icon: FileBarChart },
+  { to: "/reports", label: "Reports & Analytics", icon: FileBarChart },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/operations", label: "Operations", icon: Boxes },
   { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },

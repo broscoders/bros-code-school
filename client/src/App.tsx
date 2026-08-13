@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Students from "./pages/Students";
@@ -21,6 +21,9 @@ import CRM from "./pages/CRM";
 import Certificates from "./pages/Certificates";
 import Discipline from "./pages/Discipline";
 import IDCards from "./pages/IDCards";
+import CalendarPage from "./pages/CalendarPage";
+import ReportCards from "./pages/ReportCards";
+import Reports from "./pages/Reports";
 import RolesPermissions from "./pages/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
@@ -91,6 +94,9 @@ function App() {
           <Route path="/certificates" element={<Certificates />} />
           <Route path="/id-cards" element={<IDCards />} />
           <Route path="/discipline" element={<Discipline />} />
+          <Route path="/calendar" element={<CalendarPage />} />
+          <Route path="/report-cards" element={<ReportCards />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
