@@ -1,8 +1,9 @@
 ﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard, Lock } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
+import GlobalSearch from "../components/GlobalSearch";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -24,6 +25,7 @@ const navItems = [
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/operations", label: "Operations", icon: Boxes },
+  { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },
   { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
 ];
@@ -65,7 +67,7 @@ export default function DashboardLayout() {
       </aside>
       <div className="flex-1 flex flex-col">
         <header className="h-16 bg-surface border-b border-black/5 flex items-center justify-between px-6">
-          <div className="text-sm text-muted">Welcome back, <span className="text-ink font-medium">{user?.name}</span></div>
+          <GlobalSearch />
           <div className="flex items-center gap-3">
             <NotificationBell />
             <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-display font-semibold text-xs">

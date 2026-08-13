@@ -21,6 +21,7 @@ import CRM from "./pages/CRM";
 import Certificates from "./pages/Certificates";
 import Discipline from "./pages/Discipline";
 import IDCards from "./pages/IDCards";
+import RolesPermissions from "./pages/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -91,6 +92,7 @@ function App() {
           <Route path="/id-cards" element={<IDCards />} />
           <Route path="/discipline" element={<Discipline />} />
           <Route path="/operations" element={<Operations />} />
+          <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/leave-requests" element={<LeaveRequests />} />
           <Route path="/surveys" element={<Surveys />} />
