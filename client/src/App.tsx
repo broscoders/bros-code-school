@@ -28,6 +28,8 @@ import Accounting from "./pages/Accounting";
 import HRManagement from "./pages/HRManagement";
 import Payroll from "./pages/Payroll";
 import Hostel from "./pages/Hostel";
+import InventoryAssets from "./pages/InventoryAssets";
+import Maintenance from "./pages/Maintenance";
 import RolesPermissions from "./pages/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
@@ -105,6 +107,8 @@ function App() {
           <Route path="/hr" element={<HRManagement />} />
           <Route path="/payroll" element={<Payroll />} />
           <Route path="/hostel" element={<Hostel />} />
+          <Route path="/inventory-assets" element={<InventoryAssets />} />
+          <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/audit-logs" element={<AuditLogs />} />

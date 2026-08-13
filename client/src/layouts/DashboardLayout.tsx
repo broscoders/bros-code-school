@@ -26,6 +26,8 @@ const navItems = [
   { to: "/hr", label: "HR / Staff", icon: Users },
   { to: "/payroll", label: "Payroll", icon: Wallet },
   { to: "/hostel", label: "Hostel", icon: Boxes },
+  { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes },
+  { to: "/maintenance", label: "Maintenance", icon: AlertTriangle },
   { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
   { to: "/calendar", label: "Calendar", icon: Calendar },
