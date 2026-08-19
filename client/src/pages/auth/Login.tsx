@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import AuthShell from "../../components/AuthShell";
@@ -12,6 +13,13 @@ export default function Login() {
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
 
+  const redirectByRole = (role: string) => {
+    if (role === "PARENT") navigate("/parent/dashboard");
+    else if (role === "STUDENT") navigate("/student/dashboard");
+    else if (role === "TEACHER" || role === "ACADEMY_TEACHER") navigate("/teacher/dashboard");
+    else navigate("/dashboard");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -19,11 +27,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data.user, res.data.token);
-      const role = res.data.user.role;
-      if (role === "PARENT") navigate("/parent/dashboard");
-      else if (role === "STUDENT") navigate("/student/dashboard");
-      else if (role === "TEACHER" || role === "ACADEMY_TEACHER") navigate("/teacher/dashboard");
-      else navigate("/dashboard");
+      redirectByRole(res.data.user.role);
     } catch (err: any) {
       if (err.response?.data?.requiresVerification) {
         navigate("/verify-email", { state: { email: err.response.data.email || email } });
@@ -32,6 +36,17 @@ export default function Login() {
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setError("");
+    try {
+      const res = await api.post("/auth/google", { credential: credentialResponse.credential });
+      login(res.data.user, res.data.token);
+      redirectByRole(res.data.user.role);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Google sign-in failed");
     }
   };
 
@@ -87,6 +102,22 @@ export default function Login() {
           {loading && <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" />}
           {loading ? "Signing in..." : "Sign in"}
         </button>
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-white/30 text-xs">or</span>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+
+        <div className="flex justify-center">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => setError("Google sign-in failed")}
+            theme="filled_black"
+            shape="pill"
+            width="280"
+          />
+        </div>
       </form>
     </AuthShell>
   );
