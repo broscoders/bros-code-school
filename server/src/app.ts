@@ -1,0 +1,88 @@
+﻿import express from "express";
+import cors from "cors";
+import authRoutes from "./routes/authRoutes";
+import schoolRoutes from "./routes/schoolRoutes";
+import academicRoutes from "./routes/academicRoutes";
+import peopleRoutes from "./routes/peopleRoutes";
+import academicOpsRoutes from "./routes/academicOpsRoutes";
+import announcementRoutes from "./routes/announcementRoutes";
+import admissionRoutes from "./routes/admissionRoutes";
+import academyRoutes from "./routes/academyRoutes";
+import libraryRoutes from "./routes/libraryRoutes";
+import transportRoutes from "./routes/transportRoutes";
+import complaintRoutes from "./routes/complaintRoutes";
+import eventRoutes from "./routes/eventRoutes";
+import achievementRoutes from "./routes/achievementRoutes";
+import timetableRoutes from "./routes/timetableRoutes";
+import platformRoutes from "./routes/platformRoutes";
+import quizRoutes from "./routes/quizRoutes";
+import documentRoutes from "./routes/documentRoutes";
+import automationRoutes from "./routes/automationRoutes";
+import lmsRoutes from "./routes/lmsRoutes";
+import aiRoutes from "./routes/aiRoutes";
+import uploadRoutes from "./routes/uploadRoutes";
+import auditRoutes from "./routes/auditRoutes";
+import communicationRoutes from "./routes/communicationRoutes";
+import storeRoutes from "./routes/storeRoutes";
+import crmRoutes from "./routes/crmRoutes";
+import systemRoutes from "./routes/systemRoutes";
+import searchRoutes from "./routes/searchRoutes";
+import permissionRoutes from "./routes/permissionRoutes";
+import dashboardRoutes from "./routes/dashboardRoutes";
+import bulkRoutes from "./routes/bulkRoutes";
+import reportsRoutes from "./routes/reportsRoutes";
+import financeRoutes from "./routes/financeRoutes";
+import hrRoutes from "./routes/hrRoutes";
+import hostelRoutes from "./routes/hostelRoutes";
+import assetsRoutes from "./routes/assetsRoutes";
+import healthRoutes from "./routes/healthRoutes";
+
+const app = express();
+
+const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : "*";
+
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ message: "Bros Code School API is running" });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/schools", schoolRoutes);
+app.use("/api/academics", academicRoutes);
+app.use("/api/people", peopleRoutes);
+app.use("/api/ops", academicOpsRoutes);
+app.use("/api/announcements", announcementRoutes);
+app.use("/api/admissions", admissionRoutes);
+app.use("/api/academy", academyRoutes);
+app.use("/api/library", libraryRoutes);
+app.use("/api/transport", transportRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/achievements", achievementRoutes);
+app.use("/api/timetable", timetableRoutes);
+app.use("/api/platform", platformRoutes);
+app.use("/api/quizzes", quizRoutes);
+app.use("/api/documents", documentRoutes);
+app.use("/api/automation", automationRoutes);
+app.use("/api/lms", lmsRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/audit", auditRoutes);
+app.use("/api/comm", communicationRoutes);
+app.use("/api/store", storeRoutes);
+app.use("/api/crm", crmRoutes);
+app.use("/api/system", systemRoutes);
+app.use("/api/search", searchRoutes);
+app.use("/api/permissions", permissionRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/bulk", bulkRoutes);
+app.use("/api/reports", reportsRoutes);
+app.use("/api/finance", financeRoutes);
+app.use("/api/hr", hrRoutes);
+app.use("/api/hostel", hostelRoutes);
+app.use("/api/assets", assetsRoutes);
+app.use("/api/health", healthRoutes);
+
+export default app;
