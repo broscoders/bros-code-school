@@ -9,6 +9,8 @@ export interface IDiscount extends Document {
   percentage?: number;
   fixedAmount?: number;
   isActive: boolean;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  approvedBy?: mongoose.Types.ObjectId;
 }
 
 const discountSchema = new Schema<IDiscount>(
@@ -20,6 +22,8 @@ const discountSchema = new Schema<IDiscount>(
     percentage: { type: Number },
     fixedAmount: { type: Number },
     isActive: { type: Boolean, default: true },
+    status: { type: String, enum: ["PENDING", "APPROVED", "REJECTED"], default: "PENDING" },
+    approvedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

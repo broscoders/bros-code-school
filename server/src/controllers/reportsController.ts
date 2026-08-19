@@ -1,12 +1,13 @@
-﻿import type { Request, Response } from "express";
+﻿import type { Response } from "express";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
 import Result from "../models/Result";
 import Attendance from "../models/Attendance";
 import School from "../models/School";
 
-export const getReportCardData = async (req: Request, res: Response) => {
+export const getReportCardData = async (req: AuthRequest, res: Response) => {
   try {
-    const student = await Student.findById(req.params.studentId).populate("userId classId sectionId");
+    const student = await Student.findOne({ _id: req.params.studentId, schoolId: req.user!.schoolId }).populate("userId classId sectionId");
     if (!student) return res.status(404).json({ message: "Student not found" });
 
     const school = await School.findById(student.schoolId);
@@ -37,9 +38,9 @@ export const getReportCardData = async (req: Request, res: Response) => {
   }
 };
 
-export const getReportsSummary = async (req: Request, res: Response) => {
+export const getReportsSummary = async (req: AuthRequest, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user!.schoolId;
     const students = await Student.find({ schoolId }).populate("classId");
     const results = await Result.find().populate({ path: "studentId", match: { schoolId } });
 

@@ -1,4 +1,4 @@
-{
+﻿{
   "compilerOptions": {
     "target": "es2020",
     "module": "commonjs",
@@ -12,8 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "types": ["node"],
-    "ignoreDeprecations": "6.0"
+    "types": ["node"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

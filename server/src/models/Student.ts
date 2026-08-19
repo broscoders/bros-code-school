@@ -1,6 +1,15 @@
 ﻿import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
+export type StudentStatus = "ACTIVE" | "ON_LEAVE" | "SUSPENDED" | "TRANSFERRED" | "WITHDRAWN" | "GRADUATED" | "ALUMNI";
+
+export interface IClassTransferRecord {
+  classId: mongoose.Types.ObjectId;
+  sectionId: mongoose.Types.ObjectId;
+  fromDate: Date;
+  toDate?: Date;
+}
+
 export interface IStudent extends Document {
   schoolId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -12,7 +21,23 @@ export interface IStudent extends Document {
   gender?: string;
   address?: string;
   admissionDate: Date;
+  status: StudentStatus;
+  statusReason?: string;
+  statusChangedAt?: Date;
+  classHistory: IClassTransferRecord[];
+  createdAt: Date;
+  updatedAt: Date;
 }
+
+const classTransferRecordSchema = new Schema<IClassTransferRecord>(
+  {
+    classId: { type: Schema.Types.ObjectId, ref: "ClassModel", required: true },
+    sectionId: { type: Schema.Types.ObjectId, ref: "Section", required: true },
+    fromDate: { type: Date, required: true },
+    toDate: { type: Date },
+  },
+  { _id: false }
+);
 
 const studentSchema = new Schema<IStudent>(
   {
@@ -26,6 +51,14 @@ const studentSchema = new Schema<IStudent>(
     gender: { type: String },
     address: { type: String },
     admissionDate: { type: Date, default: Date.now },
+    status: {
+      type: String,
+      enum: ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI"],
+      default: "ACTIVE",
+    },
+    statusReason: { type: String },
+    statusChangedAt: { type: Date },
+    classHistory: { type: [classTransferRecordSchema], default: [] },
   },
   { timestamps: true }
 );

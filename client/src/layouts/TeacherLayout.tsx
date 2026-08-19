@@ -1,15 +1,19 @@
-﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen } from "lucide-react";
+import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen, ListChecks, BookOpen, GraduationCap } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
   { to: "/teacher/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/teacher/classes", label: "My Classes", icon: Users },
+  { to: "/teacher/timetable", label: "Timetable", icon: Calendar },
   { to: "/teacher/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/teacher/homework", label: "Homework", icon: ClipboardCheck },
   { to: "/teacher/assignments", label: "Assignments", icon: FileText },
   { to: "/teacher/marks", label: "Marks", icon: Award },
+  { to: "/teacher/quizzes", label: "Quizzes", icon: ListChecks },
+  { to: "/teacher/courses", label: "Courses", icon: BookOpen },
+  { to: "/teacher/academy", label: "Academy", icon: GraduationCap },
   { to: "/teacher/study-material", label: "Study Material", icon: FolderOpen },
   { to: "/teacher/messages", label: "Messages", icon: MessageSquare },
   { to: "/teacher/ptm", label: "PTM & Hours", icon: Calendar },
@@ -59,3 +63,7 @@ export default function TeacherLayout() {
     </div>
   );
 }
+
+
+
+

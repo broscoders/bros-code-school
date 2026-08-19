@@ -1,12 +1,13 @@
-﻿import type { Request, Response } from "express";
+﻿import type { Response } from "express";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import Event from "../models/Event";
 import Exam from "../models/Exam";
 import PTMSlot from "../models/PTMSlot";
 import AuditLog from "../models/AuditLog";
 
-export const getUnifiedCalendar = async (req: Request, res: Response) => {
+export const getUnifiedCalendar = async (req: AuthRequest, res: Response) => {
   try {
-    const { schoolId } = req.query;
+    const schoolId = req.user!.schoolId;
 
     const [events, exams, ptmSlots] = await Promise.all([
       Event.find({ schoolId }),
@@ -27,9 +28,9 @@ export const getUnifiedCalendar = async (req: Request, res: Response) => {
   }
 };
 
-export const getActivityFeed = async (req: Request, res: Response) => {
+export const getActivityFeed = async (req: AuthRequest, res: Response) => {
   try {
-    const logs = await AuditLog.find({ schoolId: req.query.schoolId }).sort({ createdAt: -1 }).limit(10);
+    const logs = await AuditLog.find({ schoolId: req.user!.schoolId }).sort({ createdAt: -1 }).limit(10);
     res.json(logs);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

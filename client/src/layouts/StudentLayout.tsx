@@ -1,14 +1,18 @@
-﻿import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck, Calendar, ListChecks, BookOpen, GraduationCap } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 
 const navItems = [
   { to: "/student/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/student/attendance", label: "Attendance", icon: CalendarCheck },
+  { to: "/student/timetable", label: "Timetable", icon: Calendar },
   { to: "/student/homework", label: "Homework", icon: ClipboardCheck },
   { to: "/student/assignments", label: "Assignments", icon: FileText },
   { to: "/student/results", label: "Results", icon: Award },
+  { to: "/student/quizzes", label: "Quizzes", icon: ListChecks },
+  { to: "/student/courses", label: "Courses", icon: BookOpen },
+  { to: "/student/academy", label: "Academy", icon: GraduationCap },
   { to: "/student/store", label: "Notes Store", icon: ShoppingBag },
   { to: "/student/certificates", label: "Certificates", icon: BadgeCheck },
   { to: "/student/announcements", label: "Announcements", icon: Megaphone },
@@ -57,3 +61,7 @@ export default function StudentLayout() {
     </div>
   );
 }
+
+
+
+

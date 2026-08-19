@@ -1,5 +1,6 @@
-﻿import type { Request, Response } from "express";
+﻿import type { Response } from "express";
 import bcrypt from "bcryptjs";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
 import Student from "../models/Student";
 
@@ -11,9 +12,10 @@ interface RowInput {
   sectionId: string;
 }
 
-export const bulkImportStudents = async (req: Request, res: Response) => {
+export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
   try {
-    const { rows, schoolId } = req.body as { rows: RowInput[]; schoolId: string };
+    const { rows } = req.body as { rows: RowInput[] };
+    const schoolId = req.user!.schoolId;
 
     if (!rows || !Array.isArray(rows)) {
       return res.status(400).json({ message: "rows array is required" });
@@ -29,10 +31,17 @@ export const bulkImportStudents = async (req: Request, res: Response) => {
           continue;
         }
 
-        const existing = await User.findOne({ email: row.email });
-        if (existing) {
+        const existingUser = await User.findOne({ email: row.email });
+        if (existingUser) {
           results.skipped++;
-          results.errors.push(`Skipped ${row.email}: already exists`);
+          results.errors.push(`Skipped ${row.email}: email already exists`);
+          continue;
+        }
+
+        const existingAdmission = await Student.findOne({ schoolId, admissionNumber: row.admissionNumber });
+        if (existingAdmission) {
+          results.skipped++;
+          results.errors.push(`Skipped ${row.email}: admission number ${row.admissionNumber} already in use`);
           continue;
         }
 
@@ -51,6 +60,7 @@ export const bulkImportStudents = async (req: Request, res: Response) => {
           admissionNumber: row.admissionNumber,
           classId: row.classId,
           sectionId: row.sectionId,
+          classHistory: [{ classId: row.classId, sectionId: row.sectionId, fromDate: new Date() }],
         });
 
         results.created++;

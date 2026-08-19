@@ -6,7 +6,7 @@ import User from "../models/User";
 dotenv.config();
 
 const run = async () => {
-  await mongoose.connect(process.env.MONGO_URI as string);
+  await mongoose.connect(process.env.MONGODB_URI as string);
 
   const email = "thedaniinfo@gmail.com";
   const password = "1234";

@@ -1,14 +1,15 @@
-﻿import type { Request, Response } from "express";
+﻿import type { Response } from "express";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
 import Teacher from "../models/Teacher";
 import Lead from "../models/Lead";
 import LibraryBook from "../models/LibraryBook";
-import Invoice from "../models/Invoice";
 
-export const globalSearch = async (req: Request, res: Response) => {
+export const globalSearch = async (req: AuthRequest, res: Response) => {
   try {
-    const { q, schoolId } = req.query;
-    if (!q || !schoolId) return res.json({ students: [], teachers: [], leads: [], books: [] });
+    const { q } = req.query;
+    const schoolId = req.user!.schoolId;
+    if (!q) return res.json({ students: [], teachers: [], leads: [], books: [] });
 
     const regex = new RegExp(String(q), "i");
 

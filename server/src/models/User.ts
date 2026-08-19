@@ -11,6 +11,8 @@ export type UserRole =
   | "RECEPTIONIST"
   | "LIBRARIAN"
   | "TRANSPORT_MANAGER"
+  | "NURSE"
+  | "HOSTEL_WARDEN"
   | "TEACHER"
   | "ACADEMY_TEACHER"
   | "PARENT"
@@ -51,6 +53,8 @@ const userSchema = new Schema<IUser>(
         "RECEPTIONIST",
         "LIBRARIAN",
         "TRANSPORT_MANAGER",
+        "NURSE",
+        "HOSTEL_WARDEN",
         "TEACHER",
         "ACADEMY_TEACHER",
         "PARENT",

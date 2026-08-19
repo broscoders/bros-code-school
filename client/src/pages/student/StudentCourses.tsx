@@ -1,0 +1,115 @@
+﻿import { useEffect, useState } from "react";
+import api from "../../services/api";
+import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
+
+export default function StudentCourses() {
+  const student = useMyStudentRecord();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [activeCourse, setActiveCourse] = useState<any>(null);
+  const [lessons, setLessons] = useState<any[]>([]);
+  const [activeLesson, setActiveLesson] = useState<any>(null);
+
+  const load = async () => {
+    const classId = student?.classId?._id || student?.classId;
+    if (!classId) return;
+    const res = await api.get(`/lms/courses/class?classId=${classId}`);
+    setCourses(res.data);
+  };
+
+  useEffect(() => {
+    if (student) load();
+  }, [student]);
+
+  const openCourse = async (course: any) => {
+    setActiveCourse(course);
+    setActiveLesson(null);
+    const res = await api.get(`/lms/lessons?courseId=${course._id}&studentId=${student._id}`);
+    setLessons(res.data);
+  };
+
+  const openLesson = async (lesson: any) => {
+    setActiveLesson(lesson);
+    if (lesson.myStatus === "NOT_STARTED") {
+      await api.post("/lms/progress", { lessonId: lesson._id, courseId: activeCourse._id, studentId: student._id, status: "IN_PROGRESS" });
+      openCourse(activeCourse);
+    }
+  };
+
+  const markComplete = async () => {
+    if (!activeLesson) return;
+    await api.post("/lms/progress", { lessonId: activeLesson._id, courseId: activeCourse._id, studentId: student._id, status: "COMPLETED" });
+    openCourse(activeCourse);
+    setActiveLesson(null);
+  };
+
+  const statusBadge = (status: string) => {
+    if (status === "COMPLETED") return <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full font-medium">Completed</span>;
+    if (status === "IN_PROGRESS") return <span className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full font-medium">In Progress</span>;
+    return <span className="text-xs bg-canvas text-muted px-2 py-0.5 rounded-full font-medium">Not Started</span>;
+  };
+
+  if (activeCourse && activeLesson) {
+    return (
+      <div className="p-8 max-w-2xl">
+        <button onClick={() => setActiveLesson(null)} className="text-primary text-sm underline mb-4">&larr; Back to Lessons</button>
+        <h1 className="font-display text-xl font-bold text-primary-dark">{activeLesson.title}</h1>
+
+        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4">
+          {activeLesson.contentType === "TEXT" && <p className="text-sm text-ink whitespace-pre-wrap">{activeLesson.textContent}</p>}
+          {activeLesson.contentType === "VIDEO" && (
+            <a href={activeLesson.contentUrl} target="_blank" rel="noreferrer" className="text-primary underline text-sm">Watch video</a>
+          )}
+          {activeLesson.contentType === "PDF" && (
+            <a href={activeLesson.contentUrl} target="_blank" rel="noreferrer" className="text-primary underline text-sm">Open file</a>
+          )}
+          {activeLesson.contentType === "LINK" && (
+            <a href={activeLesson.contentUrl} target="_blank" rel="noreferrer" className="text-primary underline text-sm">Open link</a>
+          )}
+        </div>
+
+        {activeLesson.myStatus !== "COMPLETED" && (
+          <button onClick={markComplete} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium mt-4 hover:bg-primary-dark transition-colors">
+            Mark as Complete
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (activeCourse) {
+    return (
+      <div className="p-8">
+        <button onClick={() => setActiveCourse(null)} className="text-primary text-sm underline mb-4">&larr; Back to Courses</button>
+        <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
+        <div className="mt-4 space-y-2">
+          {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
+          {lessons.map((l: any, i: number) => (
+            <button key={l._id} onClick={() => openLesson(l)} className="w-full bg-surface rounded-xl border border-black/5 shadow-sm p-4 flex justify-between items-center text-left hover:border-primary/30 transition-colors">
+              <span className="text-sm">{i + 1}. {l.title}</span>
+              {statusBadge(l.myStatus)}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8">
+      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Learning</p>
+      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">My Courses</h1>
+      <p className="text-muted mt-1 text-sm">Structured lessons for your class.</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+        {courses.length === 0 && <p className="text-muted text-sm">No courses available right now.</p>}
+        {courses.map((c: any) => (
+          <button key={c._id} onClick={() => openCourse(c)} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 text-left hover:border-primary/30 transition-colors">
+            <p className="font-display font-semibold text-ink">{c.title}</p>
+            <p className="text-muted text-xs mt-1">{c.subjectId?.name}</p>
+            <p className="text-muted text-xs mt-2">{c.description}</p>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

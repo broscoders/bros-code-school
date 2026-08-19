@@ -4,16 +4,18 @@ import {
   createRoom, getRooms,
   allocateRoom, getAllocations,
 } from "../controllers/hostelController";
+import { protect, requireRole } from "../middleware/authMiddleware";
+import { HOSTEL_STAFF, ANY_ADMIN_STAFF } from "../middleware/permissions";
 
 const router = Router();
 
-router.post("/buildings", createBuilding);
-router.get("/buildings", getBuildings);
+router.post("/buildings", protect, requireRole(...HOSTEL_STAFF), createBuilding);
+router.get("/buildings", protect, requireRole(...ANY_ADMIN_STAFF), getBuildings);
 
-router.post("/rooms", createRoom);
-router.get("/rooms", getRooms);
+router.post("/rooms", protect, requireRole(...HOSTEL_STAFF), createRoom);
+router.get("/rooms", protect, requireRole(...ANY_ADMIN_STAFF), getRooms);
 
-router.post("/allocate", allocateRoom);
-router.get("/allocations", getAllocations);
+router.post("/allocate", protect, requireRole(...HOSTEL_STAFF), allocateRoom);
+router.get("/allocations", protect, requireRole(...ANY_ADMIN_STAFF), getAllocations);
 
 export default router;

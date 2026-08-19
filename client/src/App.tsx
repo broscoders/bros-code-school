@@ -1,39 +1,45 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Students from "./pages/Students";
-import Teachers from "./pages/Teachers";
-import Parents from "./pages/Parents";
-import Academics from "./pages/Academics";
-import Fees from "./pages/Fees";
-import Announcements from "./pages/Announcements";
-import Attendance from "./pages/Attendance";
-import Homework from "./pages/Homework";
-import Assignments from "./pages/Assignments";
-import Exams from "./pages/Exams";
-import Admissions from "./pages/Admissions";
-import Academy from "./pages/Academy";
-import Operations from "./pages/Operations";
-import AuditLogs from "./pages/AuditLogs";
-import LeaveRequests from "./pages/LeaveRequests";
-import Surveys from "./pages/Surveys";
-import Settings from "./pages/Settings";
-import CRM from "./pages/CRM";
-import Certificates from "./pages/Certificates";
-import Discipline from "./pages/Discipline";
-import IDCards from "./pages/IDCards";
-import CalendarPage from "./pages/CalendarPage";
-import ReportCards from "./pages/ReportCards";
-import Reports from "./pages/Reports";
-import Accounting from "./pages/Accounting";
-import HRManagement from "./pages/HRManagement";
-import Payroll from "./pages/Payroll";
-import Hostel from "./pages/Hostel";
-import InventoryAssets from "./pages/InventoryAssets";
-import Maintenance from "./pages/Maintenance";
-import Visitors from "./pages/Visitors";
-import Health from "./pages/Health";
-import RolesPermissions from "./pages/RolesPermissions";
+import Login from "./pages/auth/Login";
+import VerifyEmail from "./pages/auth/VerifyEmail";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
+import Dashboard from "./pages/school/Dashboard";
+import Students from "./pages/school/Students";
+import Teachers from "./pages/school/Teachers";
+import Parents from "./pages/school/Parents";
+import Academics from "./pages/school/Academics";
+import Timetable from "./pages/school/Timetable";
+import Documents from "./pages/school/Documents";
+import Automation from "./pages/school/Automation";
+import Fees from "./pages/school/Fees";
+import Announcements from "./pages/school/Announcements";
+import Attendance from "./pages/school/Attendance";
+import Homework from "./pages/school/Homework";
+import Assignments from "./pages/school/Assignments";
+import Exams from "./pages/school/Exams";
+import Admissions from "./pages/school/Admissions";
+import Academy from "./pages/school/Academy";
+import Operations from "./pages/school/Operations";
+import AuditLogs from "./pages/school/AuditLogs";
+import LeaveRequests from "./pages/school/LeaveRequests";
+import Surveys from "./pages/school/Surveys";
+import Settings from "./pages/school/Settings";
+import CRM from "./pages/school/CRM";
+import Certificates from "./pages/school/Certificates";
+import Discipline from "./pages/school/Discipline";
+import IDCards from "./pages/school/IDCards";
+import CalendarPage from "./pages/school/CalendarPage";
+import ReportCards from "./pages/school/ReportCards";
+import Reports from "./pages/school/Reports";
+import Accounting from "./pages/school/Accounting";
+import HRManagement from "./pages/school/HRManagement";
+import Payroll from "./pages/school/Payroll";
+import Hostel from "./pages/school/Hostel";
+import InventoryAssets from "./pages/school/InventoryAssets";
+import Maintenance from "./pages/school/Maintenance";
+import Visitors from "./pages/school/Visitors";
+import Health from "./pages/school/Health";
+import RolesPermissions from "./pages/school/RolesPermissions";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -48,6 +54,10 @@ import ParentLeave from "./pages/parent/ParentLeave";
 import StudentLayout from "./layouts/StudentLayout";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentAttendance from "./pages/student/StudentAttendance";
+import StudentTimetable from "./pages/student/StudentTimetable";
+import StudentQuizzes from "./pages/student/StudentQuizzes";
+import StudentCourses from "./pages/student/StudentCourses";
+import StudentAcademy from "./pages/student/StudentAcademy";
 import StudentHomework from "./pages/student/StudentHomework";
 import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentResults from "./pages/student/StudentResults";
@@ -57,6 +67,10 @@ import StudentCertificates from "./pages/student/StudentCertificates";
 import TeacherLayout from "./layouts/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import TeacherClasses from "./pages/teacher/TeacherClasses";
+import TeacherTimetable from "./pages/teacher/TeacherTimetable";
+import TeacherQuizzes from "./pages/teacher/TeacherQuizzes";
+import TeacherCourses from "./pages/teacher/TeacherCourses";
+import TeacherAcademy from "./pages/teacher/TeacherAcademy";
 import TeacherAttendance from "./pages/teacher/TeacherAttendance";
 import TeacherHomework from "./pages/teacher/TeacherHomework";
 import TeacherAssignments from "./pages/teacher/TeacherAssignments";
@@ -66,6 +80,11 @@ import TeacherMessages from "./pages/teacher/TeacherMessages";
 import TeacherPTM from "./pages/teacher/TeacherPTM";
 import TeacherStudyMaterial from "./pages/teacher/TeacherStudyMaterial";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import PlatformProtectedRoute from "./components/PlatformProtectedRoute";
+import PlatformLayout from "./layouts/PlatformLayout";
+import PlatformLogin from "./pages/platform/PlatformLogin";
+import PlatformDashboard from "./pages/platform/PlatformDashboard";
+import PlatformOrganizations from "./pages/platform/PlatformOrganizations";
 import { useAuthStore } from "./store/authStore";
 
 const ADMIN_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST", "LIBRARIAN", "TRANSPORT_MANAGER"];
@@ -85,6 +104,15 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/platform/login" element={<PlatformLogin />} />
+
+        <Route element={<PlatformProtectedRoute><PlatformLayout /></PlatformProtectedRoute>}>
+          <Route path="/platform/dashboard" element={<PlatformDashboard />} />
+          <Route path="/platform/organizations" element={<PlatformOrganizations />} />
+        </Route>
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<RoleProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardLayout /></RoleProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -92,6 +120,9 @@ function App() {
           <Route path="/teachers" element={<Teachers />} />
           <Route path="/parents" element={<Parents />} />
           <Route path="/academics" element={<Academics />} />
+          <Route path="/timetable" element={<Timetable />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/automation" element={<Automation />} />
           <Route path="/fees" element={<Fees />} />
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/attendance" element={<Attendance />} />
@@ -138,6 +169,10 @@ function App() {
         <Route element={<RoleProtectedRoute allowedRoles={["STUDENT"]}><StudentLayout /></RoleProtectedRoute>}>
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/attendance" element={<StudentAttendance />} />
+          <Route path="/student/timetable" element={<StudentTimetable />} />
+          <Route path="/student/quizzes" element={<StudentQuizzes />} />
+          <Route path="/student/courses" element={<StudentCourses />} />
+          <Route path="/student/academy" element={<StudentAcademy />} />
           <Route path="/student/homework" element={<StudentHomework />} />
           <Route path="/student/assignments" element={<StudentAssignments />} />
           <Route path="/student/results" element={<StudentResults />} />
@@ -149,6 +184,10 @@ function App() {
         <Route element={<RoleProtectedRoute allowedRoles={TEACHER_ROLES}><TeacherLayout /></RoleProtectedRoute>}>
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
+          <Route path="/teacher/timetable" element={<TeacherTimetable />} />
+          <Route path="/teacher/quizzes" element={<TeacherQuizzes />} />
+          <Route path="/teacher/courses" element={<TeacherCourses />} />
+          <Route path="/teacher/academy" element={<TeacherAcademy />} />
           <Route path="/teacher/attendance" element={<TeacherAttendance />} />
           <Route path="/teacher/homework" element={<TeacherHomework />} />
           <Route path="/teacher/assignments" element={<TeacherAssignments />} />
@@ -166,3 +205,13 @@ function App() {
 }
 
 export default App;
+
+
+
+
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -7,7 +7,7 @@ export default function StudentAnnouncements() {
   const [list, setList] = useState<any[]>([]);
 
   useEffect(() => {
-    if (schoolId) api.get(`/extra/announcements?schoolId=${schoolId}`).then((res) => setList(res.data));
+    if (schoolId) api.get(`/announcements?schoolId=${schoolId}`).then((res) => setList(res.data));
   }, [schoolId]);
 
   return (
@@ -26,3 +26,4 @@ export default function StudentAnnouncements() {
     </div>
   );
 }
+

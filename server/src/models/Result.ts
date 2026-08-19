@@ -7,6 +7,8 @@ export interface IResult extends Document {
   marksObtained: number;
   grade?: string;
   remarks?: string;
+  isPublished: boolean;
+  publishedAt?: Date;
 }
 
 const resultSchema = new Schema<IResult>(
@@ -16,6 +18,8 @@ const resultSchema = new Schema<IResult>(
     marksObtained: { type: Number, required: true },
     grade: { type: String },
     remarks: { type: String },
+    isPublished: { type: Boolean, default: false },
+    publishedAt: { type: Date },
   },
   { timestamps: true }
 );

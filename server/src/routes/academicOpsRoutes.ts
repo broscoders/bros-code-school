@@ -1,10 +1,10 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import {
   markAttendance, getAttendance,
   createHomework, getHomework, submitHomework,
   createAssignment, getAssignments, submitAssignment,
   createExam, getExams,
-  enterResult, getResults,
+  enterResult, getResults, publishResults,
   createFeeStructure, createInvoice, getInvoices, payInvoice,
 } from "../controllers/academicOpsController";
 import { protect, requireRole } from "../middleware/authMiddleware";
@@ -28,6 +28,7 @@ router.get("/exams", protect, requireRole(...EVERYONE), getExams);
 
 router.post("/results", protect, requireRole(...TEACHING_STAFF), enterResult);
 router.get("/results", protect, requireRole(...EVERYONE), getResults);
+router.put("/results/:examId/publish", protect, requireRole(...ACADEMIC_STAFF), publishResults);
 
 router.post("/fee-structures", protect, requireRole(...FINANCE_STAFF), createFeeStructure);
 router.post("/invoices", protect, requireRole(...FINANCE_STAFF), createInvoice);
@@ -35,3 +36,4 @@ router.get("/invoices", protect, requireRole(...EVERYONE), getInvoices);
 router.put("/invoices/:id/pay", protect, requireRole(ROLES.PARENT, ...FINANCE_STAFF), payInvoice);
 
 export default router;
+

@@ -1,6 +1,7 @@
 ﻿import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/User";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import { generateToken } from "../utils/generateToken";
 import {
   sendMail,
@@ -11,14 +12,15 @@ import {
 } from "../utils/mailer";
 
 const MAX_FAILED_ATTEMPTS = 5;
-const LOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
-const CODE_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+const LOCK_DURATION_MS = 15 * 60 * 1000;
+const CODE_EXPIRY_MS = 15 * 60 * 1000;
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, password, role, schoolId } = req.body;
+    const { name, email, password, role } = req.body;
+    const schoolId = req.user!.schoolId;
 
-    if (!name || !email || !password || !role || !schoolId) {
+    if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -139,7 +141,6 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Account temporarily locked from too many failed attempts.
     if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
       const minutesLeft = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
       return res.status(423).json({
@@ -153,8 +154,6 @@ export const loginUser = async (req: Request, res: Response) => {
       user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
 
       if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
-        // Lock the account and email the real owner a code so they can reset
-        // their password if this wasn't them.
         user.lockUntil = new Date(Date.now() + LOCK_DURATION_MS);
         const code = generateSixDigitCode();
         user.passwordResetCode = code;
@@ -181,7 +180,6 @@ export const loginUser = async (req: Request, res: Response) => {
       });
     }
 
-    // Successful login — reset any failed-attempt tracking.
     user.failedLoginAttempts = 0;
     user.lockUntil = undefined;
     await user.save();
@@ -211,8 +209,6 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     const user = await User.findOne({ email });
-    // Always respond the same way whether or not the account exists, so
-    // this endpoint can't be used to find out which emails are registered.
     if (user) {
       const code = generateSixDigitCode();
       user.passwordResetCode = code;

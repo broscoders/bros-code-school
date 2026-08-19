@@ -12,6 +12,8 @@ export const ROLES = {
   RECEPTIONIST: "RECEPTIONIST",
   LIBRARIAN: "LIBRARIAN",
   TRANSPORT_MANAGER: "TRANSPORT_MANAGER",
+  NURSE: "NURSE",
+  HOSTEL_WARDEN: "HOSTEL_WARDEN",
   TEACHER: "TEACHER",
   ACADEMY_TEACHER: "ACADEMY_TEACHER",
   PARENT: "PARENT",
@@ -33,6 +35,8 @@ export const ANY_ADMIN_STAFF = [
   ROLES.RECEPTIONIST,
   ROLES.LIBRARIAN,
   ROLES.TRANSPORT_MANAGER,
+  ROLES.NURSE,
+  ROLES.HOSTEL_WARDEN,
 ];
 
 // Academic structure: sessions, classes, sections, subjects, exams, results.
@@ -55,6 +59,15 @@ export const TRANSPORT_STAFF = [...TOP_ADMIN, ROLES.TRANSPORT_MANAGER];
 
 // Front desk: complaints, general enquiries, visitor-facing tasks.
 export const FRONT_DESK_STAFF = [...TOP_ADMIN, ROLES.RECEPTIONIST, ROLES.HEAD];
+
+// Health records, medical incidents, visitor check-in.
+export const MEDICAL_STAFF = [...TOP_ADMIN, ROLES.HEAD, ROLES.NURSE];
+
+// Hostel buildings, rooms, allocations.
+export const HOSTEL_STAFF = [...TOP_ADMIN, ROLES.HEAD, ROLES.HOSTEL_WARDEN];
+
+// HR records + payroll (salary data - kept tight, top management only).
+export const HR_MANAGERS = [...TOP_ADMIN, ROLES.HEAD];
 
 // Paid academy programs/batches/enrollments/store.
 export const ACADEMY_STAFF = [...TOP_ADMIN, ROLES.ACADEMY_TEACHER];

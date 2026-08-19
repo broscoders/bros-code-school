@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard, Lock, Calendar } from "lucide-react";
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
@@ -13,6 +13,9 @@ const navItems = [
   { to: "/parents", label: "Parents", icon: Users },
   { to: "/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/academics", label: "Academics", icon: BookOpen },
+  { to: "/timetable", label: "Timetable", icon: Calendar },
+  { to: "/documents", label: "Documents", icon: FolderOpen },
+  { to: "/automation", label: "Automation", icon: Zap },
   { to: "/homework", label: "Homework", icon: ClipboardCheck },
   { to: "/assignments", label: "Assignments", icon: FileText },
   { to: "/exams", label: "Exams & Results", icon: Award },
@@ -96,3 +99,6 @@ export default function DashboardLayout() {
     </div>
   );
 }
+
+
+

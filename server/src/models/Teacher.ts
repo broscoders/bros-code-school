@@ -1,6 +1,8 @@
 ﻿import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
+export type TeacherEmploymentStatus = "ACTIVE" | "ON_LEAVE" | "TRANSFERRED" | "RESIGNED" | "TERMINATED";
+
 export interface ITeacher extends Document {
   schoolId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -9,6 +11,10 @@ export interface ITeacher extends Document {
   subjects: mongoose.Types.ObjectId[];
   assignedClasses: mongoose.Types.ObjectId[];
   communicationHours?: string;
+  joiningDate: Date;
+  employmentStatus: TeacherEmploymentStatus;
+  statusReason?: string;
+  leavingDate?: Date;
 }
 
 const teacherSchema = new Schema<ITeacher>(
@@ -20,6 +26,10 @@ const teacherSchema = new Schema<ITeacher>(
     subjects: [{ type: Schema.Types.ObjectId, ref: "Subject" }],
     assignedClasses: [{ type: Schema.Types.ObjectId, ref: "ClassModel" }],
     communicationHours: { type: String },
+    joiningDate: { type: Date, default: Date.now },
+    employmentStatus: { type: String, enum: ["ACTIVE", "ON_LEAVE", "TRANSFERRED", "RESIGNED", "TERMINATED"], default: "ACTIVE" },
+    statusReason: { type: String },
+    leavingDate: { type: Date },
   },
   { timestamps: true }
 );

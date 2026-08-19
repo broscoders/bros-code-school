@@ -4,17 +4,19 @@ import {
   upsertHealthProfile, getHealthProfile,
   createMedicalIncident, getMedicalIncidents,
 } from "../controllers/healthController";
+import { protect, requireRole } from "../middleware/authMiddleware";
+import { FRONT_DESK_STAFF, MEDICAL_STAFF } from "../middleware/permissions";
 
 const router = Router();
 
-router.post("/visitors", checkInVisitor);
-router.get("/visitors", getVisitors);
-router.put("/visitors/:id/checkout", checkOutVisitor);
+router.post("/visitors", protect, requireRole(...FRONT_DESK_STAFF), checkInVisitor);
+router.get("/visitors", protect, requireRole(...FRONT_DESK_STAFF), getVisitors);
+router.put("/visitors/:id/checkout", protect, requireRole(...FRONT_DESK_STAFF), checkOutVisitor);
 
-router.post("/health-profile", upsertHealthProfile);
-router.get("/health-profile", getHealthProfile);
+router.post("/health-profile", protect, requireRole(...MEDICAL_STAFF), upsertHealthProfile);
+router.get("/health-profile", protect, requireRole(...MEDICAL_STAFF), getHealthProfile);
 
-router.post("/medical-incidents", createMedicalIncident);
-router.get("/medical-incidents", getMedicalIncidents);
+router.post("/medical-incidents", protect, requireRole(...MEDICAL_STAFF), createMedicalIncident);
+router.get("/medical-incidents", protect, requireRole(...MEDICAL_STAFF), getMedicalIncidents);
 
 export default router;

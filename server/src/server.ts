@@ -7,8 +7,20 @@ import schoolRoutes from "./routes/schoolRoutes";
 import academicRoutes from "./routes/academicRoutes";
 import peopleRoutes from "./routes/peopleRoutes";
 import academicOpsRoutes from "./routes/academicOpsRoutes";
-import extraRoutes from "./routes/extraRoutes";
-import miscRoutes from "./routes/miscRoutes";
+import announcementRoutes from "./routes/announcementRoutes";
+import admissionRoutes from "./routes/admissionRoutes";
+import academyRoutes from "./routes/academyRoutes";
+import libraryRoutes from "./routes/libraryRoutes";
+import transportRoutes from "./routes/transportRoutes";
+import complaintRoutes from "./routes/complaintRoutes";
+import eventRoutes from "./routes/eventRoutes";
+import achievementRoutes from "./routes/achievementRoutes";
+import timetableRoutes from "./routes/timetableRoutes";
+import platformRoutes from "./routes/platformRoutes";
+import quizRoutes from "./routes/quizRoutes";
+import documentRoutes from "./routes/documentRoutes";
+import automationRoutes from "./routes/automationRoutes";
+import lmsRoutes from "./routes/lmsRoutes";
 import aiRoutes from "./routes/aiRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import auditRoutes from "./routes/auditRoutes";
@@ -46,8 +58,20 @@ app.use("/api/schools", schoolRoutes);
 app.use("/api/academics", academicRoutes);
 app.use("/api/people", peopleRoutes);
 app.use("/api/ops", academicOpsRoutes);
-app.use("/api/extra", extraRoutes);
-app.use("/api/misc", miscRoutes);
+app.use("/api/announcements", announcementRoutes);
+app.use("/api/admissions", admissionRoutes);
+app.use("/api/academy", academyRoutes);
+app.use("/api/library", libraryRoutes);
+app.use("/api/transport", transportRoutes);
+app.use("/api/complaints", complaintRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/achievements", achievementRoutes);
+app.use("/api/timetable", timetableRoutes);
+app.use("/api/platform", platformRoutes);
+app.use("/api/quizzes", quizRoutes);
+app.use("/api/documents", documentRoutes);
+app.use("/api/automation", automationRoutes);
+app.use("/api/lms", lmsRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/audit", auditRoutes);
@@ -67,7 +91,7 @@ app.use("/api/assets", assetsRoutes);
 app.use("/api/health", healthRoutes);
 
 mongoose
-  .connect(process.env.MONGO_URI as string)
+  .connect(process.env.MONGODB_URI as string)
   .then(() => {
     console.log("MongoDB connected");
     app.listen(PORT, () => {
@@ -77,3 +101,10 @@ mongoose
   .catch((err) => {
     console.error("MongoDB connection error:", err);
   });
+
+
+
+
+
+
+
