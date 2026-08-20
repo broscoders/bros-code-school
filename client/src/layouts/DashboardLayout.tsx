@@ -1,30 +1,29 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone, LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck, AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap } from "lucide-react";
+import {
+  LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
+  LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
+  FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
+  AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
+  Library, Bus, ShoppingCart, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
+} from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
-import { FileBarChart } from "lucide-react";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/admissions", label: "Admissions", icon: ClipboardList },
   { to: "/students", label: "Students", icon: Users },
-  { to: "/teachers", label: "Teachers", icon: GraduationCap },
   { to: "/parents", label: "Parents", icon: Users },
-  { to: "/attendance", label: "Attendance", icon: CalendarCheck },
+  { to: "/teachers", label: "Teachers", icon: GraduationCap },
   { to: "/academics", label: "Academics", icon: BookOpen },
   { to: "/timetable", label: "Timetable", icon: Calendar },
-  { to: "/documents", label: "Documents", icon: FolderOpen },
-  { to: "/automation", label: "Automation", icon: Zap },
+  { to: "/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/homework", label: "Homework", icon: ClipboardCheck },
   { to: "/assignments", label: "Assignments", icon: FileText },
   { to: "/exams", label: "Exams & Results", icon: Award },
-  { to: "/admissions", label: "Admissions", icon: ClipboardList },
-  { to: "/crm", label: "Leads / CRM", icon: Phone },
-  { to: "/academy", label: "Academy", icon: Boxes },
-  { to: "/certificates", label: "Certificates", icon: BadgeCheck },
-  { to: "/id-cards", label: "ID Cards", icon: IdCard },
-  { to: "/discipline", label: "Discipline", icon: AlertTriangle },
+  { to: "/report-cards", label: "Report Cards", icon: FileBarChart },
   { to: "/fees", label: "Fees", icon: Wallet },
   { to: "/accounting", label: "Accounting", icon: Wallet },
   { to: "/hr", label: "HR / Staff", icon: Users },
@@ -32,18 +31,35 @@ const navItems = [
   { to: "/hostel", label: "Hostel", icon: Boxes },
   { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes },
   { to: "/maintenance", label: "Maintenance", icon: AlertTriangle },
+  { to: "/discipline", label: "Discipline", icon: AlertTriangle },
   { to: "/visitors", label: "Visitors", icon: Users },
   { to: "/health", label: "Health & Medical", icon: AlertTriangle },
   { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
+  { to: "/crm", label: "Leads / CRM", icon: Phone },
+  { to: "/academy", label: "Academy", icon: Boxes },
+  { to: "/certificates", label: "Certificates", icon: BadgeCheck },
+  { to: "/id-cards", label: "ID Cards", icon: IdCard },
+  { to: "/documents", label: "Documents", icon: FolderOpen },
+  { to: "/automation", label: "Automation", icon: Zap },
+  { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
   { to: "/calendar", label: "Calendar", icon: Calendar },
-  { to: "/report-cards", label: "Report Cards", icon: FileBarChart },
-  { to: "/reports", label: "Reports & Analytics", icon: FileBarChart },
-  { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/operations", label: "Operations", icon: Boxes },
+  { to: "/reports", label: "Reports & Analytics", icon: FileBarChart },
   { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },
   { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
+];
+
+const comingSoonItems = [
+  { label: "Library", icon: Library },
+  { label: "Transport", icon: Bus },
+  { label: "Procurement", icon: ShoppingCart },
+  { label: "LMS", icon: LMSIcon },
+  { label: "Online Exams", icon: MonitorCheck },
+  { label: "Website CMS", icon: Globe },
+  { label: "Integrations", icon: Plug },
+  { label: "Mobile Apps", icon: Smartphone },
 ];
 
 export default function DashboardLayout() {
@@ -58,35 +74,69 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-canvas">
-      <aside className="w-64 bg-surface border-r border-black/5 flex flex-col">
-        <div className="p-5 flex items-center gap-3 border-b border-black/5">
-          <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-display font-bold text-sm">BC</div>
+      <aside className="w-64 bg-surface border-r border-border flex flex-col">
+        <div className="p-5 flex items-center gap-3 border-b border-border">
+          <div className="w-10 h-10 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shadow-[0_0_20px_-4px_rgba(30,159,224,0.6)]">
+            BC
+          </div>
           <div>
             <h1 className="font-display font-semibold text-sm leading-tight text-ink">Bros Code School</h1>
             <p className="text-[11px] text-muted tracking-wide">{user?.role}</p>
           </div>
         </div>
-        <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? "bg-primary text-white font-medium shadow-sm" : "text-muted hover:bg-canvas hover:text-ink"}`}>
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                  isActive
+                    ? "bg-[#1e9fe0]/15 text-[#1e9fe0] font-medium border border-[#1e9fe0]/20"
+                    : "text-ink-soft hover:bg-white/5 hover:text-ink"
+                }`
+              }
+            >
               <item.icon size={17} />
               {item.label}
             </NavLink>
           ))}
+
+          <div className="pt-4 mt-4 border-t border-border">
+            <p className="px-3 text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">
+              Coming Soon
+            </p>
+            {comingSoonItems.map((item) => (
+              <div
+                key={item.label}
+                title="Coming soon"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted/50 cursor-not-allowed select-none"
+              >
+                <item.icon size={17} />
+                <span className="flex-1">{item.label}</span>
+                <span className="text-[9px] uppercase tracking-wide bg-white/5 border border-border rounded-full px-1.5 py-0.5">
+                  Soon
+                </span>
+              </div>
+            ))}
+          </div>
         </nav>
-        <div className="p-3 border-t border-black/5">
-          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:bg-canvas hover:text-ink w-full">
+        <div className="p-3 border-t border-border">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ink-soft hover:bg-white/5 hover:text-ink w-full"
+          >
             <LogOut size={17} />
             Logout
           </button>
         </div>
       </aside>
       <div className="flex-1 flex flex-col">
-        <header className="h-16 bg-surface border-b border-black/5 flex items-center justify-between px-6">
+        <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-6">
           <GlobalSearch />
           <div className="flex items-center gap-3">
             <NotificationBell />
-            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-display font-semibold text-xs">
+            <div className="w-8 h-8 rounded-full bg-[#1e9fe0]/15 text-[#1e9fe0] flex items-center justify-center font-display font-semibold text-xs">
               {user?.name?.charAt(0)}
             </div>
           </div>
@@ -99,6 +149,3 @@ export default function DashboardLayout() {
     </div>
   );
 }
-
-
-

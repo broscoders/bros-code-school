@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
+import { OAuth2Client } from "google-auth-library";
 import User from "../models/User";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import { generateToken } from "../utils/generateToken";
@@ -14,6 +15,7 @@ import {
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 const CODE_EXPIRY_MS = 15 * 60 * 1000;
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const registerUser = async (req: AuthRequest, res: Response) => {
   try {
@@ -144,7 +146,7 @@ export const loginUser = async (req: Request, res: Response) => {
     if (user.lockUntil && user.lockUntil.getTime() > Date.now()) {
       const minutesLeft = Math.ceil((user.lockUntil.getTime() - Date.now()) / 60000);
       return res.status(423).json({
-        message: `Too many failed attempts. Account locked for ${minutesLeft} more minute(s). Check your email to reset your password.`,
+        message: "Too many failed attempts. Account locked for " + minutesLeft + " more minute(s). Check your email to reset your password.",
       });
     }
 
@@ -198,6 +200,61 @@ export const loginUser = async (req: Request, res: Response) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const googleLogin = async (req: Request, res: Response) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload || !payload.email) {
+      return res.status(400).json({ message: "Could not verify Google account" });
+    }
+
+    const user = await User.findOne({ email: payload.email }).select(
+      "+failedLoginAttempts +lockUntil"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        message: "No account found with this email. Contact your school administrator.",
+      });
+    }
+
+    if (!payload.email_verified) {
+      return res.status(403).json({ message: "Your Google email is not verified" });
+    }
+
+    if (!user.isEmailVerified) {
+      user.isEmailVerified = true;
+    }
+    user.failedLoginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    const token = generateToken(user.id.toString(), user.role, user.schoolId.toString());
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        schoolId: user.schoolId,
+      },
+      token,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Google sign-in failed", error: (err as Error).message });
   }
 };
 
