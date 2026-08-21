@@ -331,9 +331,22 @@ export const getInvoices = async (req: AuthRequest, res: Response) => {
 
 export const payInvoice = async (req: AuthRequest, res: Response) => {
   try {
+    const existing = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existing) return res.status(404).json({ message: "Invoice not found" });
+
+    const paymentNow = Number(req.body.amount) || 0;
+    if (paymentNow <= 0) return res.status(400).json({ message: "Payment amount must be greater than zero" });
+
+    const newPaidAmount = (existing.paidAmount || 0) + paymentNow;
+    const newStatus = newPaidAmount >= existing.amount ? "PAID" : "PARTIAL";
+
     const invoice = await Invoice.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
-      { status: "PAID", paidDate: new Date(), paidAmount: req.body.paidAmount },
+      {
+        status: newStatus,
+        paidAmount: newPaidAmount,
+        paidDate: newStatus === "PAID" ? new Date() : existing.paidDate,
+      },
       { new: true }
     );
     if (!invoice) return res.status(404).json({ message: "Invoice not found" });

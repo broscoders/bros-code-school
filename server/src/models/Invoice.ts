@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IInvoice extends Document {
@@ -7,7 +7,7 @@ export interface IInvoice extends Document {
   feeType: string;
   amount: number;
   dueDate: Date;
-  status: "PENDING" | "PAID" | "OVERDUE";
+  status: "PENDING" | "PARTIAL" | "PAID" | "OVERDUE" | "CANCELLED";
   paidDate?: Date;
   paidAmount?: number;
 }
@@ -19,7 +19,7 @@ const invoiceSchema = new Schema<IInvoice>(
     feeType: { type: String, required: true },
     amount: { type: Number, required: true },
     dueDate: { type: Date, required: true },
-    status: { type: String, enum: ["PENDING", "PAID", "OVERDUE"], default: "PENDING" },
+    status: { type: String, enum: ["PENDING", "PARTIAL", "PAID", "OVERDUE", "CANCELLED"], default: "PENDING" },
     paidDate: { type: Date },
     paidAmount: { type: Number },
   },
