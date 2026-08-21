@@ -4,7 +4,7 @@ import {
   createHomework, getHomework, submitHomework,
   createAssignment, getAssignments, submitAssignment,
   createExam, getExams,
-  enterResult, getResults, publishResults,
+  enterResult, getResults, getResultsByExam, publishResults,
   createFeeStructure, createInvoice, getInvoices, payInvoice,
 } from "../controllers/academicOpsController";
 import { protect, requireRole } from "../middleware/authMiddleware";
@@ -29,6 +29,7 @@ router.get("/exams", protect, requireRole(...EVERYONE), getExams);
 
 router.post("/results", protect, requireRole(...TEACHING_STAFF), enterResult);
 router.get("/results", protect, requireRole(...EVERYONE), getResults);
+router.get("/results/by-exam/:examId", protect, requireRole(...TEACHING_STAFF), getResultsByExam);
 router.put("/results/:examId/publish", protect, requireRole(...ACADEMIC_STAFF), publishResults);
 
 router.post("/fee-structures", protect, requireRole(...FINANCE_STAFF), createFeeStructure);

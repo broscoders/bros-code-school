@@ -182,6 +182,14 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
     const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
     if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
 
+    const marksObtained = Number(req.body.marksObtained);
+    if (Number.isNaN(marksObtained) || marksObtained < 0) {
+      return res.status(400).json({ message: "Marks obtained must be a valid non-negative number" });
+    }
+    if (marksObtained > exam.totalMarks) {
+      return res.status(400).json({ message: `Marks obtained (${marksObtained}) cannot exceed total marks (${exam.totalMarks})` });
+    }
+
     const existing = await Result.findOne({ examId: req.body.examId, studentId: req.body.studentId });
 
     if (existing?.isPublished) {
@@ -283,6 +291,21 @@ export const getResults = async (req: AuthRequest, res: Response) => {
     if (["PARENT", "STUDENT"].includes(req.user!.role)) filter.isPublished = true;
 
     const results = await Result.find(filter).populate("examId");
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const getResultsByExam = async (req: AuthRequest, res: Response) => {
+  try {
+    const exam = await Exam.findOne({ _id: req.params.examId, schoolId: req.user!.schoolId });
+    if (!exam) return res.status(404).json({ message: "Exam not found" });
+
+    const results = await Result.find({ examId: req.params.examId }).populate({
+      path: "studentId",
+      populate: { path: "userId", select: "name" },
+    });
     res.json(results);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
