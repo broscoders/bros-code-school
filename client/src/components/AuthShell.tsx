@@ -1,4 +1,6 @@
-﻿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
 interface AuthShellProps {
   eyebrow?: string;
@@ -9,34 +11,54 @@ interface AuthShellProps {
 }
 
 export default function AuthShell({ eyebrow, title, subtitle, children, footer }: AuthShellProps) {
+  const [brandLogo, setBrandLogo] = useState<string | null>(null);
+
+  useEffect(() => {
+    api
+      .get("/schools/public/branding")
+      .then((res) => setBrandLogo(res.data?.logoUrl || null))
+      .catch(() => {});
+  }, []);
+
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#05060d] flex items-center justify-center px-5 py-10">
-      {/* Decorative blurred blobs — pure CSS, no image asset needed */}
-      <div className="pointer-events-none absolute -top-32 -left-24 w-[26rem] h-[26rem] rounded-full bg-[#1e9fe0] opacity-40 blur-[90px] animate-[pulse_8s_ease-in-out_infinite]" />
-      <div className="pointer-events-none absolute top-1/3 -right-32 w-[22rem] h-[22rem] rounded-full bg-[#5b2a86] opacity-50 blur-[100px] animate-[pulse_10s_ease-in-out_infinite]" />
-      <div className="pointer-events-none absolute -bottom-40 left-1/4 w-[30rem] h-[30rem] rounded-full bg-[#3a1660] opacity-60 blur-[110px]" />
-      {/* Faint grid texture for depth */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "28px 28px" }}
-      />
+    <div
+      className="min-h-screen relative flex items-center justify-end px-6 lg:px-20 py-10 bg-[#05060d] bg-cover bg-center"
+      style={{ backgroundImage: "url('/login-bg.jpg')" }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-sm lg:max-w-md">
-        <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/15 backdrop-blur flex items-center justify-center mb-4 shadow-[0_0_40px_-10px_rgba(30,159,224,0.6)]">
-            <span className="font-display font-bold text-xl text-white">BC</span>
+      {brandLogo && (
+        <img
+          src={brandLogo}
+          alt=""
+          className="pointer-events-none absolute top-0 left-0 w-full sm:w-2/3 lg:w-1/2 opacity-[0.14] mix-blend-screen select-none"
+          style={{
+            maskImage: "linear-gradient(to bottom, black 0%, black 40%, transparent 75%)",
+            WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 40%, transparent 75%)",
+          }}
+        />
+      )}
+
+      <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
+        {brandLogo ? (
+          <img src={brandLogo} alt="" className="w-11 h-11 rounded-xl object-cover shadow-lg" />
+        ) : (
+          <div className="w-11 h-11 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shadow-lg">
+            BC
           </div>
-          {eyebrow && <p className="text-white/50 text-xs tracking-wide">{eyebrow}</p>}
-          <h1 className="font-display text-xl font-bold text-white">Bros Code School Portal</h1>
+        )}
+        <div>
+          <p className="font-display font-semibold text-white text-base leading-tight drop-shadow">Bros Code School</p>
+          <p className="text-xs text-white/70 drop-shadow">Smart Education Ecosystem</p>
         </div>
+      </div>
 
-        <div className="rounded-3xl bg-white/[0.04] border border-white/10 backdrop-blur-xl px-6 py-8 sm:px-8 sm:py-9 shadow-2xl">
-          <h2 className="font-display text-2xl font-bold text-white mb-1">{title}</h2>
-          {subtitle && <p className="text-white/40 text-xs mb-6">{subtitle}</p>}
-          {children}
-        </div>
-
-        {footer && <div className="text-center text-white/30 text-xs mt-6">{footer}</div>}
+      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+        {eyebrow && <p className="text-[#4db8f0] text-xs font-semibold tracking-wide mb-1">{eyebrow}</p>}
+        <h2 className="font-display text-2xl font-bold text-white mb-1">{title}</h2>
+        {subtitle && <p className="text-white/50 text-xs mb-6">{subtitle}</p>}
+        {children}
+        {footer && <div className="text-center text-white/40 text-xs mt-6">{footer}</div>}
       </div>
     </div>
   );
