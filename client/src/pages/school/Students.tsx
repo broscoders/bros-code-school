@@ -5,6 +5,7 @@ import Papa from "papaparse";
 import { Upload } from "lucide-react";
 import { Users, UserCheck, UserX, GraduationCap } from "lucide-react";
 import StatCard from "../../components/StatCard";
+import PromoteStudentsModal from "../../components/PromoteStudentsModal";
 
 const STATUS_TABS = ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI"];
 const statusColors: Record<string, string> = {
@@ -24,6 +25,7 @@ export default function Students() {
   const [classes, setClasses] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
   const [error, setError] = useState("");
   const [importMsg, setImportMsg] = useState("");
@@ -122,6 +124,10 @@ export default function Students() {
         <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
         <StatCard label="Withdrawn / Suspended" value={withdrawnCount} icon={UserX} tone="danger" />
         <StatCard label="Alumni / Graduated" value={alumniCount} icon={GraduationCap} tone="violet" />
+      </div>
+      <button onClick={() => setShowPromoteModal(true)} className="mb-4 bg-primary/10 text-primary text-sm px-4 py-2 rounded-lg font-medium hover:bg-primary/20 transition-colors">
+        Promote / Graduate Students
+      </button>
       </div>
 
       <div className="flex justify-between items-center">
@@ -224,6 +230,7 @@ export default function Students() {
           </div>
         </div>
       )}
+          {showPromoteModal && <PromoteStudentsModal schoolId={schoolId} onClose={() => setShowPromoteModal(false)} />}
     </div>
   );
 }

@@ -114,9 +114,22 @@ export const getHomework = async (req: AuthRequest, res: Response) => {
 
 export const submitHomework = async (req: AuthRequest, res: Response) => {
   try {
+    const homework = await Homework.findOne({ _id: req.body.homeworkId, schoolId: req.user!.schoolId });
+    if (!homework) return res.status(404).json({ message: "Homework not found in your school" });
+
+    let studentId = req.body.studentId;
+    if (req.user!.role === "STUDENT") {
+      const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+      studentId = myStudent._id.toString();
+    } else {
+      const belongs = await Student.findOne({ _id: studentId, schoolId: req.user!.schoolId });
+      if (!belongs) return res.status(404).json({ message: "Student not found in your school" });
+    }
+
     const submission = await HomeworkSubmission.findOneAndUpdate(
-      { homeworkId: req.body.homeworkId, studentId: req.body.studentId },
-      { ...req.body, status: "SUBMITTED", submittedAt: new Date() },
+      { homeworkId: req.body.homeworkId, studentId },
+      { ...req.body, studentId, status: "SUBMITTED", submittedAt: new Date() },
       { upsert: true, new: true }
     );
     res.status(201).json(submission);
@@ -145,9 +158,22 @@ export const getAssignments = async (req: AuthRequest, res: Response) => {
 
 export const submitAssignment = async (req: AuthRequest, res: Response) => {
   try {
+    const assignment = await Assignment.findOne({ _id: req.body.assignmentId, schoolId: req.user!.schoolId });
+    if (!assignment) return res.status(404).json({ message: "Assignment not found in your school" });
+
+    let studentId = req.body.studentId;
+    if (req.user!.role === "STUDENT") {
+      const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+      studentId = myStudent._id.toString();
+    } else {
+      const belongs = await Student.findOne({ _id: studentId, schoolId: req.user!.schoolId });
+      if (!belongs) return res.status(404).json({ message: "Student not found in your school" });
+    }
+
     const submission = await AssignmentSubmission.findOneAndUpdate(
-      { assignmentId: req.body.assignmentId, studentId: req.body.studentId },
-      { ...req.body, status: "SUBMITTED", submittedAt: new Date() },
+      { assignmentId: req.body.assignmentId, studentId },
+      { ...req.body, studentId, status: "SUBMITTED", submittedAt: new Date() },
       { upsert: true, new: true }
     );
     res.status(201).json(submission);
