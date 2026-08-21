@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import {
   createSession,
   getSessions,
@@ -8,6 +8,8 @@ import {
   getSections,
   createSubject,
   getSubjects,
+  promoteStudents,
+  graduateStudents,
 } from "../controllers/academicController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { ACADEMIC_STAFF, EVERYONE } from "../middleware/permissions";
@@ -25,5 +27,8 @@ router.get("/sections", protect, requireRole(...EVERYONE), getSections);
 
 router.post("/subjects", protect, requireRole(...ACADEMIC_STAFF), createSubject);
 router.get("/subjects", protect, requireRole(...EVERYONE), getSubjects);
+
+router.post("/promote", protect, requireRole(...ACADEMIC_STAFF), promoteStudents);
+router.post("/graduate", protect, requireRole(...ACADEMIC_STAFF), graduateStudents);
 
 export default router;
