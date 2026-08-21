@@ -158,7 +158,7 @@ export default function Accounting() {
                       <button onClick={() => updateDiscount(d._id, "REJECTED")} className="text-danger text-xs underline">Reject</button>
                     </div>
                   ) : (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${d.status === "APPROVED" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{d.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${d.status === "APPROVED" ? "bg-success-soft text-success" : "bg-danger-soft text-danger"}`}>{d.status}</span>
                   )}
                 </li>
               ))}
@@ -190,7 +190,7 @@ export default function Accounting() {
                       <button onClick={() => updateRefund(r._id, "REJECTED")} className="text-danger text-xs underline">Reject</button>
                     </div>
                   ) : (
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === "APPROVED" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{r.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === "APPROVED" ? "bg-success-soft text-success" : "bg-danger-soft text-danger"}`}>{r.status}</span>
                   )}
                 </li>
               ))}

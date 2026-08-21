@@ -143,7 +143,7 @@ export default function HRManagement() {
                   <td className="p-3">{s.designation}</td>
                   <td className="p-3">{s.departmentId?.name || "-"}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.employmentStatus === "TERMINATED" ? "bg-red-100 text-red-700" : s.employmentStatus === "ON_LEAVE" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>{s.employmentStatus}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.employmentStatus === "TERMINATED" ? "bg-danger-soft text-danger" : s.employmentStatus === "ON_LEAVE" ? "bg-warning-soft text-warning" : "bg-success-soft text-success"}`}>{s.employmentStatus}</span>
                   </td>
                   <td className="p-3">
                     <button onClick={() => openManage(s)} className="text-primary text-xs underline">Manage</button>

@@ -65,7 +65,7 @@ export default function Visitors() {
                   <td className="p-3">{v.personToMeet}</td>
                   <td className="p-3 text-xs text-muted">{new Date(v.checkInTime).toLocaleTimeString()}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${v.status === "CHECKED_IN" ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>{v.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${v.status === "CHECKED_IN" ? "bg-warning-soft text-warning" : "bg-success-soft text-success"}`}>{v.status}</span>
                   </td>
                   <td className="p-3">
                     {v.status === "CHECKED_IN" && <button onClick={() => checkout(v._id)} className="text-primary text-xs underline">Check Out</button>}

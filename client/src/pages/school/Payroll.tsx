@@ -72,7 +72,7 @@ export default function Payroll() {
                   <td className="p-3">{r.month} {r.year}</td>
                   <td className="p-3">Rs. {r.netSalary}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === "PAID" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{r.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === "PAID" ? "bg-success-soft text-success" : "bg-warning-soft text-warning"}`}>{r.status}</span>
                   </td>
                   <td className="p-3">
                     {r.status !== "PAID" && <button onClick={() => markPaid(r._id)} className="text-primary text-xs underline">Mark Paid</button>}

@@ -199,9 +199,9 @@ export default function InventoryAssets() {
                   <div className="flex justify-between items-center">
                     <span>{po.items?.map((i: any) => `${i.itemName} x${i.quantity}`).join(", ")}</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                      po.status === "RECEIVED" ? "bg-green-100 text-green-700" :
-                      po.status === "REJECTED" ? "bg-red-100 text-red-700" :
-                      "bg-amber-100 text-amber-700"
+                      po.status === "RECEIVED" ? "bg-success-soft text-success" :
+                      po.status === "REJECTED" ? "bg-danger-soft text-danger" :
+                      "bg-warning-soft text-warning"
                     }`}>{po.status}</span>
                   </div>
                   <p className="text-muted text-xs mt-1">Rs. {po.totalEstimatedCost} - by {po.requestedByName}</p>

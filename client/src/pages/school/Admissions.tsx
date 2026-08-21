@@ -3,11 +3,11 @@ import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
 const statusColors: Record<string, string> = {
-  APPLICATION: "bg-slate-100 text-slate-700",
-  REVIEW: "bg-amber-100 text-amber-700",
-  INTERVIEW: "bg-blue-100 text-blue-700",
-  APPROVED: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
+  APPLICATION: "bg-white/5 text-ink-soft",
+  REVIEW: "bg-warning-soft text-warning",
+  INTERVIEW: "bg-primary/10 text-primary",
+  APPROVED: "bg-success-soft text-success",
+  REJECTED: "bg-danger-soft text-danger",
   CONVERTED: "bg-accent-soft text-accent",
 };
 

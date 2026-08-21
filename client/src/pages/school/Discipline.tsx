@@ -78,7 +78,7 @@ export default function Discipline() {
                   <td className="p-3">{i.incidentType}</td>
                   <td className="p-3 text-muted text-xs">{i.description}</td>
                   <td className="p-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${i.status === "RESOLVED" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>{i.status}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${i.status === "RESOLVED" ? "bg-success-soft text-success" : "bg-warning-soft text-warning"}`}>{i.status}</span>
                   </td>
                   <td className="p-3">
                     {i.status === "OPEN" && <button onClick={() => resolve(i._id)} className="text-primary text-xs underline">Resolve</button>}

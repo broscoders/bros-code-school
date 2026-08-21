@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { FileText } from "lucide-react";
 
 export default function Assignments() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -41,7 +42,7 @@ export default function Assignments() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Academics</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Assignments</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileText size={22} className="text-primary" />Assignments</h1>
       <p className="text-muted mt-1 text-sm">Create and track assignments by class.</p>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">

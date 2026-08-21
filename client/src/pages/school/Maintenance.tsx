@@ -4,11 +4,11 @@ import { useAuthStore } from "../../store/authStore";
 
 const statusFlow = ["REPORTED", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 const statusColors: Record<string, string> = {
-  REPORTED: "bg-slate-100 text-slate-700",
-  ASSIGNED: "bg-blue-100 text-blue-700",
-  IN_PROGRESS: "bg-amber-100 text-amber-700",
-  RESOLVED: "bg-green-100 text-green-700",
-  CLOSED: "bg-gray-200 text-gray-600",
+  REPORTED: "bg-white/5 text-ink-soft",
+  ASSIGNED: "bg-primary/10 text-primary",
+  IN_PROGRESS: "bg-warning-soft text-warning",
+  RESOLVED: "bg-success-soft text-success",
+  CLOSED: "bg-white/10 text-muted",
 };
 
 export default function Maintenance() {

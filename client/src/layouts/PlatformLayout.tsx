@@ -1,4 +1,4 @@
-﻿import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Building2, LogOut } from "lucide-react";
 import { usePlatformAuthStore } from "../store/platformAuthStore";
 
@@ -18,11 +18,11 @@ export default function PlatformLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-950">
-      <aside className="w-60 bg-slate-900 border-r border-slate-800 flex flex-col">
+    <div className="min-h-screen flex bg-canvas">
+      <aside className="w-60 bg-surface border-r border-slate-800 flex flex-col">
         <div className="p-5 border-b border-slate-800">
           <p className="text-white font-bold text-sm">Platform Admin</p>
-          <p className="text-slate-500 text-xs mt-0.5">{admin?.name}</p>
+          <p className="text-muted text-xs mt-0.5">{admin?.name}</p>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => (
@@ -31,7 +31,7 @@ export default function PlatformLayout() {
               to={item.to}
               className={({ isActive }) =>
                 `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  isActive ? "bg-amber-500/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  isActive ? "bg-warning-soft0/10 text-warning" : "text-muted hover:bg-surface-soft hover:text-white"
                 }`
               }
             >
@@ -41,7 +41,7 @@ export default function PlatformLayout() {
           ))}
         </nav>
         <div className="p-3 border-t border-slate-800">
-          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors w-full">
+          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:bg-surface-soft hover:text-white transition-colors w-full">
             <LogOut size={16} />
             Logout
           </button>

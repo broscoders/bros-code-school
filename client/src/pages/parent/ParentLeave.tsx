@@ -63,7 +63,7 @@ export default function ParentLeave() {
               <p className="text-sm font-medium text-primary-dark">{new Date(l.date).toLocaleDateString()}</p>
               <p className="text-xs text-muted">{l.reason}</p>
             </div>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${l.status === "APPROVED" ? "bg-green-100 text-green-700" : l.status === "REJECTED" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${l.status === "APPROVED" ? "bg-success-soft text-success" : l.status === "REJECTED" ? "bg-danger-soft text-danger" : "bg-warning-soft text-warning"}`}>
               {l.status}
             </span>
           </div>

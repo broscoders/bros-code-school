@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Megaphone } from "lucide-react";
 
 export default function Announcements() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -27,7 +28,7 @@ export default function Announcements() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Communication</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Announcements</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Megaphone size={22} className="text-primary" />Announcements</h1>
       <p className="text-muted mt-1 text-sm">Publish announcements to your school community.</p>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 space-y-3">

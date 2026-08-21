@@ -3,11 +3,11 @@ import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
 const statusColors: Record<string, string> = {
-  NEW: "bg-slate-100 text-slate-700",
-  CONTACTED: "bg-blue-100 text-blue-700",
-  DEMO_SCHEDULED: "bg-amber-100 text-amber-700",
-  CONVERTED: "bg-green-100 text-green-700",
-  LOST: "bg-red-100 text-red-700",
+  NEW: "bg-white/5 text-ink-soft",
+  CONTACTED: "bg-primary/10 text-primary",
+  DEMO_SCHEDULED: "bg-warning-soft text-warning",
+  CONVERTED: "bg-success-soft text-success",
+  LOST: "bg-danger-soft text-danger",
 };
 
 export default function CRM() {

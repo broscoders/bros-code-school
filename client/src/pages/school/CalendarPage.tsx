@@ -3,11 +3,11 @@ import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
 const typeColors: Record<string, string> = {
-  EXAM: "bg-red-50 text-red-600",
+  EXAM: "bg-danger-soft text-danger",
   PTM: "bg-violet-50 text-violet-600",
-  HOLIDAY: "bg-emerald-50 text-emerald-600",
-  SPORTS: "bg-amber-50 text-amber-600",
-  TRIP: "bg-blue-50 text-blue-600",
+  HOLIDAY: "bg-success-soft text-success",
+  SPORTS: "bg-warning-soft text-warning",
+  TRIP: "bg-primary/10 text-primary",
   FUNCTION: "bg-pink-50 text-pink-600",
 };
 
@@ -36,7 +36,7 @@ export default function CalendarPage() {
                   <p className="text-xs text-muted">{new Date(item.date).toLocaleDateString(undefined, { month: "short" })}</p>
                   <p className="font-display font-bold text-ink">{new Date(item.date).getDate()}</p>
                 </div>
-                <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type] || "bg-slate-50 text-slate-600"}`}>{item.type}</span>
+                <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full ${typeColors[item.type] || "bg-white/5 text-muted"}`}>{item.type}</span>
                 <p className="text-sm text-ink flex-1">{item.title}</p>
               </div>
             ))}
