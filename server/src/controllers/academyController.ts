@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import AcademyProgram from "../models/AcademyProgram";
 import AcademyBatch from "../models/AcademyBatch";
@@ -65,6 +65,9 @@ export const getBatchStudents = async (req: AuthRequest, res: Response) => {
 
 export const enrollInAcademy = async (req: AuthRequest, res: Response) => {
   try {
+    const batch = await AcademyBatch.findOne({ _id: req.body.batchId, schoolId: req.user!.schoolId });
+    if (!batch) return res.status(404).json({ message: "Batch not found in your school" });
+
     const item = await AcademyEnrollment.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(item);
   } catch (err) {
