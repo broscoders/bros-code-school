@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import api from "../services/api";
 import { Upload, CheckCircle } from "lucide-react";
 
@@ -26,15 +26,16 @@ export default function FileUpload({ onUploaded, folder = "bros-code-school/gene
       });
       onUploaded(res.data.url);
       setUploaded(true);
-    } catch {
-      alert("Upload failed. Please try again.");
+    } catch (err: any) {
+      const detail = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Unknown error";
+      alert("Upload failed: " + detail);
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <label className="flex items-center gap-2 border border-dashed border-black/20 rounded-md px-3 py-2 text-sm cursor-pointer hover:border-primary/40 transition-colors">
+    <label className="flex items-center gap-2 border border-dashed border-white/20 rounded-md px-3 py-2 text-sm cursor-pointer hover:border-primary/40 transition-colors">
       {uploaded ? <CheckCircle size={16} className="text-success" /> : <Upload size={16} className="text-muted" />}
       <span className="text-muted">{uploading ? "Uploading..." : uploaded ? "File attached" : label}</span>
       <input type="file" className="hidden" onChange={handleChange} disabled={uploading} />

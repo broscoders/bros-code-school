@@ -1,5 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/authStore";
+import api from "../services/api";
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
@@ -66,21 +68,42 @@ export default function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
+  const [school, setSchool] = useState<{ name: string; logoUrl?: string } | null>(null);
+
+  useEffect(() => {
+    if (!user?.schoolId) return;
+    api
+      .get("/schools/" + user.schoolId)
+      .then((res) => setSchool(res.data))
+      .catch(() => {});
+  }, [user?.schoolId]);
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  const schoolName = school?.name || "Bros Code School";
+  const initials = schoolName
+    .split(" ")
+    .map((w) => w.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
     <div className="flex min-h-screen bg-canvas">
       <aside className="w-64 bg-surface border-r border-border flex flex-col">
         <div className="p-5 flex items-center gap-3 border-b border-border">
-          <div className="w-10 h-10 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shadow-[0_0_20px_-4px_rgba(30,159,224,0.6)]">
-            BC
-          </div>
-          <div>
-            <h1 className="font-display font-semibold text-sm leading-tight text-ink">Bros Code School</h1>
+          {school?.logoUrl ? (
+            <img src={school.logoUrl} alt={schoolName} className="w-10 h-10 rounded-xl object-cover" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shadow-[0_0_20px_-4px_rgba(30,159,224,0.6)]">
+              {initials}
+            </div>
+          )}
+          <div className="min-w-0">
+            <h1 className="font-display font-semibold text-sm leading-tight text-ink truncate">{schoolName}</h1>
             <p className="text-[11px] text-muted tracking-wide">{user?.role}</p>
           </div>
         </div>
