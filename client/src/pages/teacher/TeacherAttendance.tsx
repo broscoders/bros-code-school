@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
@@ -52,17 +52,17 @@ export default function TeacherAttendance() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Attendance</h1>
       <p className="text-muted mt-1 text-sm">Mark attendance for your assigned classes.</p>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <div className="grid grid-cols-3 gap-3 mb-4">
-          <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm">
+          <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm">
             <option value="">Select Class</option>
             {teacher?.assignedClasses?.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
-          <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm" disabled={!classId}>
+          <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm" disabled={!classId}>
             <option value="">Select Section</option>
             {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm" />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm" />
         </div>
 
         {msg && <p className="text-success text-sm mb-3">{msg}</p>}
@@ -70,12 +70,12 @@ export default function TeacherAttendance() {
         {students.length > 0 && (
           <div className="space-y-2">
             {students.map((s) => (
-              <div key={s._id} className="flex justify-between items-center border-b border-black/5 py-2">
+              <div key={s._id} className="flex justify-between items-center border-b border-border py-2">
                 <span className="text-sm">{s.userId?.name} ({s.admissionNumber})</span>
                 <select
                   value={statusMap[s._id] || "PRESENT"}
                   onChange={(e) => setStatusMap({ ...statusMap, [s._id]: e.target.value })}
-                  className="text-xs border border-black/10 rounded-md px-2 py-1"
+                  className="text-xs border border-border rounded-md px-2 py-1"
                 >
                   <option value="PRESENT">Present</option>
                   <option value="ABSENT">Absent</option>

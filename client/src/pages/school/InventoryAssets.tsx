@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -91,7 +91,7 @@ export default function InventoryAssets() {
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Inventory & Assets</h1>
       <p className="text-muted mt-1 text-sm">Track stock, equipment and vendors.</p>
 
-      <div className="flex gap-1 mt-6 border-b border-black/10">
+      <div className="flex gap-1 mt-6 border-b border-border">
         {tabs.map((t) => (
           <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === t.id ? "border-primary text-ink" : "border-transparent text-muted"}`}>
             {t.label}
@@ -101,17 +101,17 @@ export default function InventoryAssets() {
 
       {tab === "inventory" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addItem} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
-            <input placeholder="Item Name" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Category" value={itemForm.category} onChange={(e) => setItemForm({ ...itemForm, category: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Warehouse/Location" value={itemForm.warehouse} onChange={(e) => setItemForm({ ...itemForm, warehouse: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
+          <form onSubmit={addItem} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+            <input placeholder="Item Name" value={itemForm.name} onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Category" value={itemForm.category} onChange={(e) => setItemForm({ ...itemForm, category: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Warehouse/Location" value={itemForm.warehouse} onChange={(e) => setItemForm({ ...itemForm, warehouse: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
             <div className="grid grid-cols-2 gap-2">
-              <input type="number" placeholder="Quantity" value={itemForm.quantity} onChange={(e) => setItemForm({ ...itemForm, quantity: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
-              <input type="number" placeholder="Low Stock Alert" value={itemForm.lowStockThreshold} onChange={(e) => setItemForm({ ...itemForm, lowStockThreshold: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
+              <input type="number" placeholder="Quantity" value={itemForm.quantity} onChange={(e) => setItemForm({ ...itemForm, quantity: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
+              <input type="number" placeholder="Low Stock Alert" value={itemForm.lowStockThreshold} onChange={(e) => setItemForm({ ...itemForm, lowStockThreshold: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
             </div>
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full">+ Add Item</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {items.length === 0 && <li className="py-2 text-muted">No items yet.</li>}
               {items.map((i) => (
@@ -121,9 +121,9 @@ export default function InventoryAssets() {
                     {i.quantity <= i.lowStockThreshold && <span className="ml-2 text-[10px] text-danger font-semibold uppercase">Low Stock</span>}
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => adjustStock(i._id, -1)} className="text-xs px-2 py-0.5 border border-black/10 rounded">-</button>
+                    <button onClick={() => adjustStock(i._id, -1)} className="text-xs px-2 py-0.5 border border-border rounded">-</button>
                     <span className="text-sm">{i.quantity} {i.unit}</span>
-                    <button onClick={() => adjustStock(i._id, 1)} className="text-xs px-2 py-0.5 border border-black/10 rounded">+</button>
+                    <button onClick={() => adjustStock(i._id, 1)} className="text-xs px-2 py-0.5 border border-border rounded">+</button>
                   </div>
                 </li>
               ))}
@@ -134,15 +134,15 @@ export default function InventoryAssets() {
 
       {tab === "assets" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addAsset} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
-            <input placeholder="Asset Name" value={assetForm.name} onChange={(e) => setAssetForm({ ...assetForm, name: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Category (e.g. Computer, Furniture)" value={assetForm.category} onChange={(e) => setAssetForm({ ...assetForm, category: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Asset Tag (unique)" value={assetForm.assetTag} onChange={(e) => setAssetForm({ ...assetForm, assetTag: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Location" value={assetForm.location} onChange={(e) => setAssetForm({ ...assetForm, location: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
-            <input placeholder="Assigned To" value={assetForm.assignedTo} onChange={(e) => setAssetForm({ ...assetForm, assignedTo: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
+          <form onSubmit={addAsset} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+            <input placeholder="Asset Name" value={assetForm.name} onChange={(e) => setAssetForm({ ...assetForm, name: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Category (e.g. Computer, Furniture)" value={assetForm.category} onChange={(e) => setAssetForm({ ...assetForm, category: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Asset Tag (unique)" value={assetForm.assetTag} onChange={(e) => setAssetForm({ ...assetForm, assetTag: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Location" value={assetForm.location} onChange={(e) => setAssetForm({ ...assetForm, location: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
+            <input placeholder="Assigned To" value={assetForm.assignedTo} onChange={(e) => setAssetForm({ ...assetForm, assignedTo: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full">+ Add Asset</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {assets.length === 0 && <li className="py-2 text-muted">No assets yet.</li>}
               {assets.map((a) => (
@@ -158,13 +158,13 @@ export default function InventoryAssets() {
 
       {tab === "vendors" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addVendor} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
-            <input placeholder="Vendor Name" value={vendorForm.name} onChange={(e) => setVendorForm({ ...vendorForm, name: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Contact" value={vendorForm.contact} onChange={(e) => setVendorForm({ ...vendorForm, contact: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Category" value={vendorForm.category} onChange={(e) => setVendorForm({ ...vendorForm, category: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
+          <form onSubmit={addVendor} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+            <input placeholder="Vendor Name" value={vendorForm.name} onChange={(e) => setVendorForm({ ...vendorForm, name: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Contact" value={vendorForm.contact} onChange={(e) => setVendorForm({ ...vendorForm, contact: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Category" value={vendorForm.category} onChange={(e) => setVendorForm({ ...vendorForm, category: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full">+ Add Vendor</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {vendors.length === 0 && <li className="py-2 text-muted">No vendors yet.</li>}
               {vendors.map((v) => (
@@ -179,19 +179,19 @@ export default function InventoryAssets() {
       )}
       {tab === "purchase-orders" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={requestPurchase} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
-            <select value={poForm.vendorId} onChange={(e) => setPoForm({ ...poForm, vendorId: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm">
+          <form onSubmit={requestPurchase} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+            <select value={poForm.vendorId} onChange={(e) => setPoForm({ ...poForm, vendorId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm">
               <option value="">Select Vendor (optional)</option>
               {vendors.map((v) => <option key={v._id} value={v._id}>{v.name}</option>)}
             </select>
-            <input placeholder="Item Name" value={poForm.itemName} onChange={(e) => setPoForm({ ...poForm, itemName: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Item Name" value={poForm.itemName} onChange={(e) => setPoForm({ ...poForm, itemName: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <div className="grid grid-cols-2 gap-2">
-              <input type="number" placeholder="Quantity" value={poForm.quantity} onChange={(e) => setPoForm({ ...poForm, quantity: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-              <input type="number" placeholder="Est. Cost/unit" value={poForm.estimatedCost} onChange={(e) => setPoForm({ ...poForm, estimatedCost: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
+              <input type="number" placeholder="Quantity" value={poForm.quantity} onChange={(e) => setPoForm({ ...poForm, quantity: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+              <input type="number" placeholder="Est. Cost/unit" value={poForm.estimatedCost} onChange={(e) => setPoForm({ ...poForm, estimatedCost: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
             </div>
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full">Request Purchase</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {purchaseOrders.length === 0 && <li className="py-2 text-muted">No purchase requests yet.</li>}
               {purchaseOrders.map((po) => (

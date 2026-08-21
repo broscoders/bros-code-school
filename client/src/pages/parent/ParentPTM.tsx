@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useChildStore } from "../../store/childStore";
@@ -32,7 +32,7 @@ export default function ParentPTM() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Parent-Teacher Meeting</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr><th className="p-3 font-medium">Teacher</th><th className="p-3 font-medium">Date</th><th className="p-3 font-medium">Time</th><th className="p-3"></th></tr>
@@ -42,7 +42,7 @@ export default function ParentPTM() {
               <tr><td colSpan={4} className="p-6 text-center text-muted">No available slots right now.</td></tr>
             ) : (
               slots.map((s) => (
-                <tr key={s._id} className="border-t border-black/5">
+                <tr key={s._id} className="border-t border-border">
                   <td className="p-3">{s.teacherId?.name || "Teacher"}</td>
                   <td className="p-3">{new Date(s.date).toLocaleDateString()}</td>
                   <td className="p-3">{s.time}</td>

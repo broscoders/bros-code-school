@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -77,7 +77,7 @@ export default function Operations() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">School Operations</h1>
       <p className="text-muted mt-1 text-sm">Library, transport, complaints and calendar in one place.</p>
 
-      <div className="flex gap-1 mt-6 border-b border-black/10">
+      <div className="flex gap-1 mt-6 border-b border-border">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -93,15 +93,15 @@ export default function Operations() {
 
       {tab === "library" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addBook} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addBook} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Add Book</h2>
-            <input placeholder="Title" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Author" value={bookForm.author} onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
-            <input placeholder="Category" value={bookForm.category} onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
-            <input type="number" placeholder="Total Copies" value={bookForm.totalCopies} onChange={(e) => setBookForm({ ...bookForm, totalCopies: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
+            <input placeholder="Title" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Author" value={bookForm.author} onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
+            <input placeholder="Category" value={bookForm.category} onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
+            <input type="number" placeholder="Total Copies" value={bookForm.totalCopies} onChange={(e) => setBookForm({ ...bookForm, totalCopies: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Book</button>
           </form>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <h2 className="font-display font-semibold text-primary-dark mb-3">Books</h2>
             <ul className="text-sm divide-y divide-black/5">
               {books.length === 0 && <li className="py-2 text-muted">No books yet.</li>}
@@ -118,15 +118,15 @@ export default function Operations() {
 
       {tab === "transport" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addVehicle} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addVehicle} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Add Vehicle</h2>
-            <input placeholder="Vehicle Number" value={vehicleForm.vehicleNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, vehicleNumber: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Driver Name" value={vehicleForm.driverName} onChange={(e) => setVehicleForm({ ...vehicleForm, driverName: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Driver Contact" value={vehicleForm.driverContact} onChange={(e) => setVehicleForm({ ...vehicleForm, driverContact: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Route Name" value={vehicleForm.routeName} onChange={(e) => setVehicleForm({ ...vehicleForm, routeName: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Vehicle Number" value={vehicleForm.vehicleNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, vehicleNumber: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Driver Name" value={vehicleForm.driverName} onChange={(e) => setVehicleForm({ ...vehicleForm, driverName: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Driver Contact" value={vehicleForm.driverContact} onChange={(e) => setVehicleForm({ ...vehicleForm, driverContact: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Route Name" value={vehicleForm.routeName} onChange={(e) => setVehicleForm({ ...vehicleForm, routeName: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Vehicle</button>
           </form>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <h2 className="font-display font-semibold text-primary-dark mb-3">Vehicles</h2>
             <ul className="text-sm divide-y divide-black/5">
               {vehicles.length === 0 && <li className="py-2 text-muted">No vehicles yet.</li>}
@@ -143,9 +143,9 @@ export default function Operations() {
 
       {tab === "complaints" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addComplaint} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addComplaint} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Raise Complaint</h2>
-            <select value={complaintForm.category} onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm">
+            <select value={complaintForm.category} onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm">
               <option value="ACADEMIC">Academic</option>
               <option value="FEE">Fee</option>
               <option value="TRANSPORT">Transport</option>
@@ -153,11 +153,11 @@ export default function Operations() {
               <option value="GENERAL">General</option>
               <option value="TECHNICAL">Technical</option>
             </select>
-            <input placeholder="Subject" value={complaintForm.subject} onChange={(e) => setComplaintForm({ ...complaintForm, subject: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <textarea placeholder="Description" value={complaintForm.description} onChange={(e) => setComplaintForm({ ...complaintForm, description: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" rows={3} required />
+            <input placeholder="Subject" value={complaintForm.subject} onChange={(e) => setComplaintForm({ ...complaintForm, subject: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <textarea placeholder="Description" value={complaintForm.description} onChange={(e) => setComplaintForm({ ...complaintForm, description: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" rows={3} required />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Submit Ticket</button>
           </form>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <h2 className="font-display font-semibold text-primary-dark mb-3">Tickets</h2>
             <ul className="text-sm divide-y divide-black/5">
               {complaints.length === 0 && <li className="py-2 text-muted">No tickets yet.</li>}
@@ -174,10 +174,10 @@ export default function Operations() {
 
       {tab === "events" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addEvent} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addEvent} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Add Event</h2>
-            <input placeholder="Title" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <select value={eventForm.eventType} onChange={(e) => setEventForm({ ...eventForm, eventType: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm">
+            <input placeholder="Title" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <select value={eventForm.eventType} onChange={(e) => setEventForm({ ...eventForm, eventType: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm">
               <option value="HOLIDAY">Holiday</option>
               <option value="EXAM">Exam</option>
               <option value="PTM">PTM</option>
@@ -185,10 +185,10 @@ export default function Operations() {
               <option value="TRIP">Trip</option>
               <option value="FUNCTION">Function</option>
             </select>
-            <input type="date" value={eventForm.date} onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+            <input type="date" value={eventForm.date} onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Event</button>
           </form>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <h2 className="font-display font-semibold text-primary-dark mb-3">Upcoming Events</h2>
             <ul className="text-sm divide-y divide-black/5">
               {events.length === 0 && <li className="py-2 text-muted">No events yet.</li>}

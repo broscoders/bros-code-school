@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
@@ -17,7 +17,7 @@ export default function StudentCertificates() {
       <div className="space-y-3 mt-6">
         {certs.length === 0 && <p className="text-muted text-sm">No certificates yet.</p>}
         {certs.map((c) => (
-          <div key={c._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 flex justify-between items-center">
+          <div key={c._id} className="bg-surface rounded-xl border border-border shadow-sm p-4 flex justify-between items-center">
             <div>
               <h3 className="font-display font-semibold text-primary-dark">{c.title}</h3>
               <p className="text-xs text-muted mt-1">{c.type} · Issued {new Date(c.issueDate).toLocaleDateString()}</p>

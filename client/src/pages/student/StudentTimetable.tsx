@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
@@ -25,7 +25,7 @@ export default function StudentTimetable() {
         {DAYS.map((day) => {
           const daySlots = slots.filter((s) => s.dayOfWeek === day).sort((a, b) => a.periodNumber - b.periodNumber);
           return (
-            <div key={day} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+            <div key={day} className="bg-surface rounded-xl border border-border shadow-sm p-4">
               <h2 className="font-display font-semibold text-primary-dark mb-3 text-sm">{day}</h2>
               <ul className="text-sm divide-y divide-black/5">
                 {daySlots.length === 0 && <li className="py-2 text-muted">No periods scheduled.</li>}

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
@@ -18,7 +18,7 @@ export default function StudentHomework() {
       <div className="space-y-3 mt-6">
         {list.length === 0 && <p className="text-muted text-sm">No homework assigned yet.</p>}
         {list.map((h) => (
-          <div key={h._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+          <div key={h._id} className="bg-surface rounded-xl border border-border shadow-sm p-4">
             <div className="flex justify-between items-start">
               <h3 className="font-display font-semibold text-primary-dark">{h.title}</h3>
               <span className="text-xs text-muted">Due {new Date(h.dueDate).toLocaleDateString()}</span>

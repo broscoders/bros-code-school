@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
 import Result from "../models/Result";
@@ -42,7 +42,8 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user!.schoolId;
     const students = await Student.find({ schoolId }).populate("classId");
-    const results = await Result.find().populate({ path: "studentId", match: { schoolId } });
+    const studentIds = students.map((s) => s._id);
+    const totalResultsRecorded = await Result.countDocuments({ studentId: { $in: studentIds } });
 
     const classCounts: Record<string, number> = {};
     students.forEach((s: any) => {
@@ -53,7 +54,7 @@ export const getReportsSummary = async (req: AuthRequest, res: Response) => {
     res.json({
       totalStudents: students.length,
       classCounts,
-      totalResultsRecorded: results.filter((r: any) => r.studentId).length,
+      totalResultsRecorded,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

@@ -38,20 +38,20 @@ export default function Payroll() {
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Payroll</h1>
       <p className="text-muted mt-1 text-sm">Generate and track staff salary payments.</p>
 
-      <form onSubmit={generate} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-6 grid grid-cols-3 gap-3">
-        <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-3" required>
+      <form onSubmit={generate} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-3 gap-3">
+        <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-3" required>
           <option value="">Select Staff</option>
           {staff.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} - {s.designation}</option>)}
         </select>
-        <input placeholder="Month (e.g. August)" value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-        <input type="number" placeholder="Year" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-        <input type="number" placeholder="Allowances" value={form.allowances} onChange={(e) => setForm({ ...form, allowances: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
-        <input type="number" placeholder="Deductions" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
-        <input type="number" placeholder="Bonus" value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
+        <input placeholder="Month (e.g. August)" value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+        <input type="number" placeholder="Year" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+        <input type="number" placeholder="Allowances" value={form.allowances} onChange={(e) => setForm({ ...form, allowances: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
+        <input type="number" placeholder="Deductions" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
+        <input type="number" placeholder="Bonus" value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
         <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-3 hover:bg-primary-dark transition-colors">+ Generate Payslip</button>
       </form>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -67,7 +67,7 @@ export default function Payroll() {
               <tr><td colSpan={5} className="p-6 text-center text-muted">No payroll records yet.</td></tr>
             ) : (
               records.map((r) => (
-                <tr key={r._id} className="border-t border-black/5">
+                <tr key={r._id} className="border-t border-border">
                   <td className="p-3">{r.staffId?.userId?.name}</td>
                   <td className="p-3">{r.month} {r.year}</td>
                   <td className="p-3">Rs. {r.netSalary}</td>

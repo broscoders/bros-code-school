@@ -25,13 +25,13 @@ export default function CalendarPage() {
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Unified Calendar</h1>
       <p className="text-muted mt-1 text-sm">All exams, events and meetings in one timeline.</p>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6">
         {items.length === 0 ? (
           <p className="text-muted text-sm">No upcoming items.</p>
         ) : (
           <div className="space-y-3">
             {items.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 border-b border-black/5 pb-3 last:border-0">
+              <div key={item.id} className="flex items-center gap-4 border-b border-border pb-3 last:border-0">
                 <div className="w-14 text-center">
                   <p className="text-xs text-muted">{new Date(item.date).toLocaleDateString(undefined, { month: "short" })}</p>
                   <p className="font-display font-bold text-ink">{new Date(item.date).getDate()}</p>

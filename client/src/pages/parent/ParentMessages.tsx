@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -34,7 +34,7 @@ export default function ParentMessages() {
       <p className="text-muted mt-1 text-sm">All communication happens securely within the portal.</p>
 
       <div className="grid grid-cols-3 gap-4 mt-6">
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-4">
           <h2 className="font-display font-semibold text-primary-dark mb-3 text-sm">Teachers</h2>
           <ul className="space-y-1">
             {teachers.map((t) => (
@@ -51,7 +51,7 @@ export default function ParentMessages() {
           </ul>
         </div>
 
-        <div className="col-span-2 bg-surface rounded-xl border border-black/5 shadow-sm p-4 flex flex-col h-96">
+        <div className="col-span-2 bg-surface rounded-xl border border-border shadow-sm p-4 flex flex-col h-96">
           {!selectedTeacher ? (
             <p className="text-muted text-sm m-auto">Select a teacher to start messaging.</p>
           ) : (
@@ -70,7 +70,7 @@ export default function ParentMessages() {
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && send()}
                   placeholder="Type a message..."
-                  className="flex-1 border border-black/10 rounded-md px-3 py-2 text-sm"
+                  className="flex-1 border border-border rounded-md px-3 py-2 text-sm"
                 />
                 <button onClick={send} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium">Send</button>
               </div>

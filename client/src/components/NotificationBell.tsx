@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
 import { Bell } from "lucide-react";
@@ -34,8 +34,8 @@ export default function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-surface rounded-xl shadow-lg border border-black/10 z-50 max-h-96 overflow-y-auto">
-          <div className="p-3 border-b border-black/5 flex justify-between items-center">
+        <div className="absolute right-0 mt-2 w-80 bg-surface rounded-xl shadow-lg border border-border z-50 max-h-96 overflow-y-auto">
+          <div className="p-3 border-b border-border flex justify-between items-center">
             <span className="font-display font-semibold text-sm text-ink">Notifications</span>
             {unread > 0 && <button onClick={markAllRead} className="text-xs text-primary">Mark all read</button>}
           </div>
@@ -43,7 +43,7 @@ export default function NotificationBell() {
             <p className="p-4 text-sm text-muted">No notifications yet.</p>
           ) : (
             list.map((n) => (
-              <div key={n._id} className={`p-3 border-b border-black/5 text-sm ${!n.isRead ? "bg-primary/5" : ""}`}>
+              <div key={n._id} className={`p-3 border-b border-border text-sm ${!n.isRead ? "bg-primary/5" : ""}`}>
                 <p className="font-medium text-ink">{n.title}</p>
                 <p className="text-muted text-xs mt-0.5">{n.message}</p>
                 <p className="text-muted text-[10px] mt-1">{new Date(n.createdAt).toLocaleString()}</p>

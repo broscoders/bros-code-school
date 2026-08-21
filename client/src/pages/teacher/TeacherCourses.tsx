@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 import FileUpload from "../../components/FileUpload";
@@ -77,7 +77,7 @@ export default function TeacherCourses() {
         <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
 
         {progressSummary && (
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 mt-4">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-4 mt-4">
             <p className="text-sm font-medium text-ink mb-2">Progress ({progressSummary.totalLessons} lessons total)</p>
             {progressSummary.students.length === 0 ? (
               <p className="text-muted text-sm">No student progress yet.</p>
@@ -94,21 +94,21 @@ export default function TeacherCourses() {
           </div>
         )}
 
-        <form onSubmit={addLesson} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4 space-y-2">
+        <form onSubmit={addLesson} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 space-y-2">
           <p className="text-sm font-medium text-ink">Add Lesson</p>
-          <input placeholder="Lesson Title" value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <select value={lessonForm.contentType} onChange={(e) => setLessonForm({ ...lessonForm, contentType: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm">
+          <input placeholder="Lesson Title" value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+          <select value={lessonForm.contentType} onChange={(e) => setLessonForm({ ...lessonForm, contentType: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm">
             <option value="TEXT">Text</option>
             <option value="VIDEO">Video (URL)</option>
             <option value="PDF">PDF / File</option>
             <option value="LINK">External Link</option>
           </select>
           {lessonForm.contentType === "TEXT" ? (
-            <textarea placeholder="Lesson content" value={lessonForm.textContent} onChange={(e) => setLessonForm({ ...lessonForm, textContent: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" rows={4} />
+            <textarea placeholder="Lesson content" value={lessonForm.textContent} onChange={(e) => setLessonForm({ ...lessonForm, textContent: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" rows={4} />
           ) : lessonForm.contentType === "PDF" ? (
             <FileUpload folder="bros-code-school/lms" onUploaded={(url) => setLessonForm({ ...lessonForm, contentUrl: url })} label="Upload file" />
           ) : (
-            <input placeholder="URL" value={lessonForm.contentUrl} onChange={(e) => setLessonForm({ ...lessonForm, contentUrl: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
+            <input placeholder="URL" value={lessonForm.contentUrl} onChange={(e) => setLessonForm({ ...lessonForm, contentUrl: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
           )}
           <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors">+ Add Lesson</button>
         </form>
@@ -116,7 +116,7 @@ export default function TeacherCourses() {
         <div className="mt-4 space-y-2">
           {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
           {lessons.map((l, i) => (
-            <div key={l._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-3 flex justify-between items-center">
+            <div key={l._id} className="bg-surface rounded-xl border border-border shadow-sm p-3 flex justify-between items-center">
               <span className="text-sm">{i + 1}. {l.title} <span className="text-muted text-xs">({l.contentType})</span></span>
               <button onClick={() => removeLesson(l._id)} className="text-danger text-xs underline">Remove</button>
             </div>
@@ -140,14 +140,14 @@ export default function TeacherCourses() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
-          <input placeholder="Course Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required />
-          <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" rows={2} />
-          <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required>
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
+          <input placeholder="Course Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required />
+          <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" rows={2} />
+          <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required>
             <option value="">Select Class</option>
             {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
-          <select value={form.subjectId} onChange={(e) => setForm({ ...form, subjectId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" disabled={!form.classId}>
+          <select value={form.subjectId} onChange={(e) => setForm({ ...form, subjectId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" disabled={!form.classId}>
             <option value="">Select Subject</option>
             {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
@@ -158,7 +158,7 @@ export default function TeacherCourses() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {courses.length === 0 && <p className="text-muted text-sm">No courses yet.</p>}
         {courses.map((c) => (
-          <div key={c._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => openCourse(c)}>
+          <div key={c._id} className="bg-surface rounded-xl border border-border shadow-sm p-4 cursor-pointer hover:border-primary/30 transition-colors" onClick={() => openCourse(c)}>
             <div className="flex justify-between items-start">
               <p className="font-display font-semibold text-ink">{c.title}</p>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.isPublished ? "bg-success/10 text-success" : "bg-canvas text-muted"}`}>

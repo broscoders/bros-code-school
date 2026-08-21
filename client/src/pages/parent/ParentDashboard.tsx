@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useChildStore } from "../../store/childStore";
@@ -37,17 +37,17 @@ export default function ParentDashboard() {
 
       {selectedChild ? (
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Recent Attendance</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">
               {attendance.length > 0 ? attendance[attendance.length - 1].status : "No data"}
             </p>
           </div>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Class</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">{selectedChild.classId?.name || "-"}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Admission #</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">{selectedChild.admissionNumber}</p>
           </div>

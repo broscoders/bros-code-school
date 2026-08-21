@@ -39,12 +39,12 @@ export default function Discipline() {
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Discipline Management</h1>
       <p className="text-muted mt-1 text-sm">Record and track student discipline incidents.</p>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
-        <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2" required>
+      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+        <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required>
           <option value="">Select Student</option>
           {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
         </select>
-        <select value={form.incidentType} onChange={(e) => setForm({ ...form, incidentType: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm">
+        <select value={form.incidentType} onChange={(e) => setForm({ ...form, incidentType: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm">
           <option value="WARNING">Warning</option>
           <option value="MINOR">Minor</option>
           <option value="MAJOR">Major</option>
@@ -53,11 +53,11 @@ export default function Discipline() {
           <input type="checkbox" checked={form.parentNotified} onChange={(e) => setForm({ ...form, parentNotified: e.target.checked })} />
           Notify parent
         </label>
-        <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2" rows={3} required />
+        <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" rows={3} required />
         <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors">+ Record Incident</button>
       </form>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -73,7 +73,7 @@ export default function Discipline() {
               <tr><td colSpan={5} className="p-6 text-center text-muted">No incidents recorded.</td></tr>
             ) : (
               list.map((i) => (
-                <tr key={i._id} className="border-t border-black/5">
+                <tr key={i._id} className="border-t border-border">
                   <td className="p-3">{i.studentId?.userId?.name}</td>
                   <td className="p-3">{i.incidentType}</td>
                   <td className="p-3 text-muted text-xs">{i.description}</td>

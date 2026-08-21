@@ -30,8 +30,8 @@ export default function StudentLayout() {
 
   return (
     <div className="flex min-h-screen bg-canvas">
-      <aside className="w-64 bg-surface border-r border-black/5 flex flex-col">
-        <div className="p-5 flex items-center gap-3 border-b border-black/5">
+      <aside className="w-64 bg-surface border-r border-border flex flex-col">
+        <div className="p-5 flex items-center gap-3 border-b border-border">
           <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-display font-bold text-sm">BC</div>
           <div>
             <h1 className="font-display font-semibold text-sm leading-tight text-ink">Bros Code School</h1>
@@ -46,7 +46,7 @@ export default function StudentLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3 border-t border-black/5">
+        <div className="p-3 border-t border-border">
           <p className="px-3 text-xs text-muted mb-2">{user?.name}</p>
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:bg-canvas hover:text-ink w-full">
             <LogOut size={17} />

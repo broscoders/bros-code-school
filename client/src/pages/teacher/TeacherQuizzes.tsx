@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 
@@ -95,16 +95,16 @@ export default function TeacherQuizzes() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4 space-y-3">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 space-y-3">
           {error && <p className="text-danger text-sm">{error}</p>}
           <div className="grid grid-cols-2 gap-3">
-            <input placeholder="Quiz Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input type="number" placeholder="Time Limit (minutes)" value={form.timeLimitMinutes} onChange={(e) => setForm({ ...form, timeLimitMinutes: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required>
+            <input placeholder="Quiz Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+            <input type="number" placeholder="Time Limit (minutes)" value={form.timeLimitMinutes} onChange={(e) => setForm({ ...form, timeLimitMinutes: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+            <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required>
               <option value="">Select Class</option>
               {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
-            <select value={form.subjectId} onChange={(e) => setForm({ ...form, subjectId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required disabled={!form.classId}>
+            <select value={form.subjectId} onChange={(e) => setForm({ ...form, subjectId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required disabled={!form.classId}>
               <option value="">Select Subject</option>
               {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
             </select>
@@ -117,15 +117,15 @@ export default function TeacherQuizzes() {
           <div className="space-y-3 mt-3">
             <p className="text-sm font-medium text-ink">Questions</p>
             {questions.map((q, qi) => (
-              <div key={qi} className="border border-black/10 rounded-lg p-3 space-y-2">
+              <div key={qi} className="border border-border rounded-lg p-3 space-y-2">
                 <div className="flex justify-between items-start gap-2">
-                  <input placeholder={`Question ${qi + 1}`} value={q.questionText} onChange={(e) => updateQuestion(qi, "questionText", e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm w-full" required />
+                  <input placeholder={`Question ${qi + 1}`} value={q.questionText} onChange={(e) => updateQuestion(qi, "questionText", e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm w-full" required />
                   {questions.length > 1 && <button type="button" onClick={() => removeQuestion(qi)} className="text-danger text-xs whitespace-nowrap">Remove</button>}
                 </div>
                 {q.options.map((opt, oi) => (
                   <div key={oi} className="flex items-center gap-2">
                     <input type="radio" checked={q.correctOptionIndex === oi} onChange={() => updateQuestion(qi, "correctOptionIndex", oi)} title="Mark as correct answer" />
-                    <input placeholder={`Option ${oi + 1}`} value={opt} onChange={(e) => updateOption(qi, oi, e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm w-full" required />
+                    <input placeholder={`Option ${oi + 1}`} value={opt} onChange={(e) => updateOption(qi, oi, e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm w-full" required />
                   </div>
                 ))}
               </div>
@@ -137,7 +137,7 @@ export default function TeacherQuizzes() {
         </form>
       )}
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
@@ -152,7 +152,7 @@ export default function TeacherQuizzes() {
               <tr><td colSpan={4} className="p-6 text-center text-muted">No quizzes yet.</td></tr>
             ) : (
               quizzes.map((q) => (
-                <tr key={q._id} className="border-t border-black/5">
+                <tr key={q._id} className="border-t border-border">
                   <td className="p-3">{q.title}</td>
                   <td className="p-3 text-muted">{q.questions?.length || 0}</td>
                   <td className="p-3">

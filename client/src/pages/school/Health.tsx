@@ -53,34 +53,34 @@ export default function Health() {
       <p className="text-muted mt-1 text-sm">Manage student health profiles and incidents. Access is restricted to authorized staff.</p>
 
       <div className="grid grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Health Profile</h2>
           {msg && <p className="text-success text-sm mb-2">{msg}</p>}
-          <select value={selected} onChange={(e) => setSelected(e.target.value)} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-2">
+          <select value={selected} onChange={(e) => setSelected(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">
             <option value="">Select Student</option>
             {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
           </select>
           {selected && (
             <form onSubmit={saveProfile} className="space-y-2">
-              <input placeholder="Blood Group" value={profile.bloodGroup} onChange={(e) => setProfile({ ...profile, bloodGroup: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
-              <input placeholder="Allergies" value={profile.allergies} onChange={(e) => setProfile({ ...profile, allergies: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
-              <input placeholder="Emergency Contact Name" value={profile.emergencyContactName} onChange={(e) => setProfile({ ...profile, emergencyContactName: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
-              <input placeholder="Emergency Contact Phone" value={profile.emergencyContactPhone} onChange={(e) => setProfile({ ...profile, emergencyContactPhone: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
-              <textarea placeholder="Medical Notes" value={profile.medicalNotes} onChange={(e) => setProfile({ ...profile, medicalNotes: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" rows={2} />
+              <input placeholder="Blood Group" value={profile.bloodGroup} onChange={(e) => setProfile({ ...profile, bloodGroup: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
+              <input placeholder="Allergies" value={profile.allergies} onChange={(e) => setProfile({ ...profile, allergies: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
+              <input placeholder="Emergency Contact Name" value={profile.emergencyContactName} onChange={(e) => setProfile({ ...profile, emergencyContactName: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
+              <input placeholder="Emergency Contact Phone" value={profile.emergencyContactPhone} onChange={(e) => setProfile({ ...profile, emergencyContactPhone: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
+              <textarea placeholder="Medical Notes" value={profile.medicalNotes} onChange={(e) => setProfile({ ...profile, medicalNotes: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" rows={2} />
               <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">Save Profile</button>
             </form>
           )}
         </div>
 
-        <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Log Medical Incident</h2>
           <form onSubmit={logIncident} className="space-y-2 mb-4">
-            <select value={incidentForm.studentId} onChange={(e) => setIncidentForm({ ...incidentForm, studentId: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required>
+            <select value={incidentForm.studentId} onChange={(e) => setIncidentForm({ ...incidentForm, studentId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>
               <option value="">Select Student</option>
               {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
             </select>
-            <textarea placeholder="What happened" value={incidentForm.description} onChange={(e) => setIncidentForm({ ...incidentForm, description: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" rows={2} required />
-            <textarea placeholder="Action taken (first aid, sent home, etc.)" value={incidentForm.actionTaken} onChange={(e) => setIncidentForm({ ...incidentForm, actionTaken: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" rows={2} required />
+            <textarea placeholder="What happened" value={incidentForm.description} onChange={(e) => setIncidentForm({ ...incidentForm, description: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" rows={2} required />
+            <textarea placeholder="Action taken (first aid, sent home, etc.)" value={incidentForm.actionTaken} onChange={(e) => setIncidentForm({ ...incidentForm, actionTaken: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" rows={2} required />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">+ Log Incident</button>
           </form>
           <ul className="text-sm divide-y divide-black/5 max-h-48 overflow-y-auto">

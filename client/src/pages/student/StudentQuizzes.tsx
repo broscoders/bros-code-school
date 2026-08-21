@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
@@ -77,7 +77,7 @@ export default function StudentQuizzes() {
 
         <div className="space-y-4 mt-4">
           {activeQuiz.questions.map((q: any, qi: number) => (
-            <div key={qi} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+            <div key={qi} className="bg-surface rounded-xl border border-border shadow-sm p-4">
               <p className="text-sm font-medium text-ink mb-3">{qi + 1}. {q.questionText}</p>
               <div className="space-y-2">
                 {q.options.map((opt: string, oi: number) => (
@@ -113,7 +113,7 @@ export default function StudentQuizzes() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {quizzes.length === 0 && <p className="text-muted text-sm">No quizzes available right now.</p>}
         {quizzes.map((q) => (
-          <div key={q._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+          <div key={q._id} className="bg-surface rounded-xl border border-border shadow-sm p-4">
             <p className="font-display font-semibold text-ink">{q.title}</p>
             <p className="text-muted text-xs mt-1">{q.subjectId?.name} - {q.questionCount} questions - {q.timeLimitMinutes} min</p>
             {q.myAttemptStatus === "SUBMITTED" ? (

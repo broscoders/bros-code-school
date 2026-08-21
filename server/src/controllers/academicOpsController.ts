@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import Attendance from "../models/Attendance";
 import Homework from "../models/Homework";
 import HomeworkSubmission from "../models/HomeworkSubmission";
@@ -16,6 +16,9 @@ import type { AuthRequest } from "../middleware/authMiddleware";
 
 export const markAttendance = async (req: AuthRequest, res: Response) => {
   try {
+    const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
+    if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
+
     const record = await Attendance.create({ ...req.body, schoolId: req.user!.schoolId });
 
     if (req.body.status === "ABSENT" || req.body.status === "LATE") {
@@ -131,6 +134,9 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
   try {
     const exam = await Exam.findOne({ _id: req.body.examId, schoolId: req.user!.schoolId });
     if (!exam) return res.status(404).json({ message: "Exam not found" });
+
+    const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
+    if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
 
     const existing = await Result.findOne({ examId: req.body.examId, studentId: req.body.studentId });
 

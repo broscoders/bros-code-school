@@ -30,7 +30,7 @@ export default function IDCards() {
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Identification</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1">ID Card Generator</h1>
 
-      <div className="flex gap-1 mt-6 border-b border-black/10">
+      <div className="flex gap-1 mt-6 border-b border-border">
         <button onClick={() => setTab("students")} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === "students" ? "border-primary text-ink" : "border-transparent text-muted"}`}>Students</button>
         <button onClick={() => setTab("teachers")} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === "teachers" ? "border-primary text-ink" : "border-transparent text-muted"}`}>Teachers</button>
       </div>

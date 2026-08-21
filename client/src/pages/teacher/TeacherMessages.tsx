@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -42,7 +42,7 @@ export default function TeacherMessages() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Parent Messages</h1>
 
       <div className="grid grid-cols-3 gap-4 mt-6">
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-4">
           <h2 className="font-display font-semibold text-primary-dark mb-3 text-sm">Conversations</h2>
           <ul className="space-y-1">
             {inbox.length === 0 && <li className="text-muted text-sm">No messages yet.</li>}
@@ -56,7 +56,7 @@ export default function TeacherMessages() {
           </ul>
         </div>
 
-        <div className="col-span-2 bg-surface rounded-xl border border-black/5 shadow-sm p-4 flex flex-col h-96">
+        <div className="col-span-2 bg-surface rounded-xl border border-border shadow-sm p-4 flex flex-col h-96">
           {!selected ? (
             <p className="text-muted text-sm m-auto">Select a conversation.</p>
           ) : (
@@ -69,7 +69,7 @@ export default function TeacherMessages() {
                 ))}
               </div>
               <div className="flex gap-2">
-                <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && reply()} placeholder="Reply..." className="flex-1 border border-black/10 rounded-md px-3 py-2 text-sm" />
+                <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && reply()} placeholder="Reply..." className="flex-1 border border-border rounded-md px-3 py-2 text-sm" />
                 <button onClick={reply} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium">Send</button>
               </div>
             </>

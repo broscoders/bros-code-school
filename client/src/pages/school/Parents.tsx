@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -68,19 +68,19 @@ export default function Parents() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
-          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <select value={form.relationship} onChange={(e) => setForm({ ...form, relationship: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm">
+          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <select value={form.relationship} onChange={(e) => setForm({ ...form, relationship: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="Father">Father</option>
             <option value="Mother">Mother</option>
             <option value="Guardian">Guardian</option>
           </select>
           <div className="col-span-2">
             <p className="text-xs text-muted mb-2">Select children to link:</p>
-            <div className="max-h-40 overflow-y-auto border border-black/10 rounded-lg p-2 space-y-1">
+            <div className="max-h-40 overflow-y-auto border border-border rounded-lg p-2 space-y-1">
               {students.length === 0 && <p className="text-xs text-muted">No students found. Add students first.</p>}
               {students.map((s) => (
                 <label key={s._id} className="flex items-center gap-2 text-sm">
@@ -94,7 +94,7 @@ export default function Parents() {
         </form>
       )}
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -109,7 +109,7 @@ export default function Parents() {
               <tr><td colSpan={4} className="p-6 text-center text-muted">No parents yet - add your first one above.</td></tr>
             ) : (
               parents.map((p) => (
-                <tr key={p._id} className="border-t border-black/5">
+                <tr key={p._id} className="border-t border-border">
                   <td className="p-3">{p.userId?.name}</td>
                   <td className="p-3">{p.userId?.email}</td>
                   <td className="p-3">{p.relationship}</td>

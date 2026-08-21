@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -78,10 +78,10 @@ export default function HRManagement() {
       <p className="text-muted mt-1 text-sm">Manage departments and employee profiles.</p>
 
       <div className="grid grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Departments</h2>
           <form onSubmit={addDepartment} className="flex gap-2 mb-4">
-            <input placeholder="Department name" value={deptForm.name} onChange={(e) => setDeptForm({ name: e.target.value })} className="flex-1 border border-black/10 rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Department name" value={deptForm.name} onChange={(e) => setDeptForm({ name: e.target.value })} className="flex-1 border border-border rounded-lg px-3 py-2 text-sm" required />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium">+ Add</button>
           </form>
           <ul className="text-sm divide-y divide-black/5">
@@ -90,14 +90,14 @@ export default function HRManagement() {
           </ul>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Add Staff Member</h2>
           <form onSubmit={addStaff} className="space-y-2">
             {error && <p className="text-danger text-xs">{error}</p>}
-            <input placeholder="Full Name" value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Email" type="email" value={staffForm.email} onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input placeholder="Password" type="password" value={staffForm.password} onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <select value={staffForm.role} onChange={(e) => setStaffForm({ ...staffForm, role: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required>
+            <input placeholder="Full Name" value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Email" type="email" value={staffForm.email} onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Password" type="password" value={staffForm.password} onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <select value={staffForm.role} onChange={(e) => setStaffForm({ ...staffForm, role: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>
               <option value="RECEPTIONIST">Receptionist</option>
               <option value="ACCOUNTANT">Accountant</option>
               <option value="LIBRARIAN">Librarian</option>
@@ -108,19 +108,19 @@ export default function HRManagement() {
               <option value="ACADEMIC_COORDINATOR">Academic Coordinator</option>
               <option value="HEAD">Head / Vice Principal</option>
             </select>
-            <input placeholder="Employee ID" value={staffForm.employeeId} onChange={(e) => setStaffForm({ ...staffForm, employeeId: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <select value={staffForm.departmentId} onChange={(e) => setStaffForm({ ...staffForm, departmentId: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm">
+            <input placeholder="Employee ID" value={staffForm.employeeId} onChange={(e) => setStaffForm({ ...staffForm, employeeId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <select value={staffForm.departmentId} onChange={(e) => setStaffForm({ ...staffForm, departmentId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm">
               <option value="">Select Department</option>
               {departments.map((d) => <option key={d._id} value={d._id}>{d.name}</option>)}
             </select>
-            <input placeholder="Designation" value={staffForm.designation} onChange={(e) => setStaffForm({ ...staffForm, designation: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-            <input type="number" placeholder="Basic Salary" value={staffForm.basicSalary} onChange={(e) => setStaffForm({ ...staffForm, basicSalary: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Designation" value={staffForm.designation} onChange={(e) => setStaffForm({ ...staffForm, designation: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input type="number" placeholder="Basic Salary" value={staffForm.basicSalary} onChange={(e) => setStaffForm({ ...staffForm, basicSalary: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">+ Add Staff</button>
           </form>
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -137,7 +137,7 @@ export default function HRManagement() {
               <tr><td colSpan={6} className="p-6 text-center text-muted">No staff yet.</td></tr>
             ) : (
               staff.map((s) => (
-                <tr key={s._id} className="border-t border-black/5">
+                <tr key={s._id} className="border-t border-border">
                   <td className="p-3">{s.employeeId}</td>
                   <td className="p-3">{s.userId?.name}</td>
                   <td className="p-3">{s.designation}</td>
@@ -160,15 +160,15 @@ export default function HRManagement() {
           <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingStaff.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change employment status</p>
-            <select value={statusForm.employmentStatus} onChange={(e) => setStatusForm({ ...statusForm, employmentStatus: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-2">
+            <select value={statusForm.employmentStatus} onChange={(e) => setStatusForm({ ...statusForm, employmentStatus: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">
               <option value="ACTIVE">Active</option>
               <option value="ON_LEAVE">On Leave</option>
               <option value="TERMINATED">Terminated</option>
             </select>
-            <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
+            <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
             <div className="flex gap-2">
               <button onClick={saveStatus} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex-1 hover:bg-primary-dark transition-colors">Save</button>
-              <button onClick={() => setManagingStaff(null)} className="border border-black/10 text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
+              <button onClick={() => setManagingStaff(null)} className="border border-border text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
             </div>
           </div>
         </div>

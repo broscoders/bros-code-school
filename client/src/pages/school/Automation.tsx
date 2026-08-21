@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -72,7 +72,7 @@ export default function Automation() {
       {runResult && <p className="text-success text-sm mt-3">{runResult}</p>}
       <p className="text-xs text-muted mt-2">"Run Now" checks fee due dates, upcoming exams, and assignment deadlines and sends any reminders that are due. In production this should be scheduled to run automatically once a day (e.g. via a daily cron job hitting this same endpoint).</p>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm mt-6 divide-y divide-black/5">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-6 divide-y divide-black/5">
         {rules.map((rule) => (
           <div key={rule._id} className="p-4">
             <div className="flex justify-between items-center">
@@ -88,9 +88,9 @@ export default function Automation() {
 
             {editingId === rule._id ? (
               <div className="mt-2 flex gap-2">
-                <input value={draftMessage} onChange={(e) => setDraftMessage(e.target.value)} className="flex-1 border border-black/10 rounded-lg px-3 py-2 text-sm" />
+                <input value={draftMessage} onChange={(e) => setDraftMessage(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-2 text-sm" />
                 <button onClick={() => saveTemplate(rule._id)} className="bg-primary text-white px-3 py-2 rounded-lg text-xs font-medium">Save</button>
-                <button onClick={() => setEditingId("")} className="border border-black/10 px-3 py-2 rounded-lg text-xs">Cancel</button>
+                <button onClick={() => setEditingId("")} className="border border-border px-3 py-2 rounded-lg text-xs">Cancel</button>
               </div>
             ) : (
               <div className="mt-2 flex justify-between items-center">

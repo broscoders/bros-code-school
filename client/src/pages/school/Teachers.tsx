@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -82,13 +82,13 @@ export default function Teachers() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
-          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <input placeholder="Qualification" value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" />
+          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+          <input placeholder="Qualification" value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" />
           <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">Save Teacher</button>
         </form>
       )}
@@ -102,7 +102,7 @@ export default function Teachers() {
         <button onClick={() => setStatusFilter("ANY")} className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusFilter === "ANY" ? "bg-primary text-white" : "bg-canvas text-muted"}`}>All</button>
       </div>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
@@ -119,7 +119,7 @@ export default function Teachers() {
               <tr><td colSpan={6} className="p-6 text-center text-muted">No teachers in this status.</td></tr>
             ) : (
               teachers.map((t) => (
-                <tr key={t._id} className="border-t border-black/5">
+                <tr key={t._id} className="border-t border-border">
                   <td className="p-3">{t.employeeId}</td>
                   <td className="p-3">{t.userId?.name}</td>
                   <td className="p-3">{t.userId?.email}</td>
@@ -142,13 +142,13 @@ export default function Teachers() {
           <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingTeacher.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change employment status</p>
-            <select value={statusForm.employmentStatus} onChange={(e) => setStatusForm({ ...statusForm, employmentStatus: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-2">
+            <select value={statusForm.employmentStatus} onChange={(e) => setStatusForm({ ...statusForm, employmentStatus: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">
               {STATUS_TABS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
             </select>
-            <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
+            <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
             <div className="flex gap-2">
               <button onClick={saveStatus} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex-1 hover:bg-primary-dark transition-colors">Save</button>
-              <button onClick={() => setManagingTeacher(null)} className="border border-black/10 text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
+              <button onClick={() => setManagingTeacher(null)} className="border border-border text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
             </div>
           </div>
         </div>

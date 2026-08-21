@@ -47,19 +47,19 @@ export default function Admissions() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Admissions</h1>
       <p className="text-muted mt-1 text-sm">Manage the admission pipeline from application to approval.</p>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
-        <input placeholder="Applicant Name" value={form.applicantName} onChange={(e) => setForm({ ...form, applicantName: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <input placeholder="Parent Name" value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <input placeholder="Parent Contact" value={form.parentContact} onChange={(e) => setForm({ ...form, parentContact: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <select value={form.desiredClassId} onChange={(e) => setForm({ ...form, desiredClassId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required>
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+        <input placeholder="Applicant Name" value={form.applicantName} onChange={(e) => setForm({ ...form, applicantName: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+        <input placeholder="Parent Name" value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+        <input placeholder="Parent Contact" value={form.parentContact} onChange={(e) => setForm({ ...form, parentContact: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+        <select value={form.desiredClassId} onChange={(e) => setForm({ ...form, desiredClassId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required>
           <option value="">Desired Class</option>
           {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
         </select>
-        <input placeholder="Academic System (e.g. Matric)" value={form.academicSystem} onChange={(e) => setForm({ ...form, academicSystem: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required />
+        <input placeholder="Academic System (e.g. Matric)" value={form.academicSystem} onChange={(e) => setForm({ ...form, academicSystem: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required />
         <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">+ Submit Application</button>
       </form>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm mt-6 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
@@ -75,7 +75,7 @@ export default function Admissions() {
               <tr><td colSpan={5} className="p-6 text-center text-muted">No applications yet.</td></tr>
             ) : (
               list.map((a) => (
-                <tr key={a._id} className="border-t border-black/5">
+                <tr key={a._id} className="border-t border-border">
                   <td className="p-3">{a.applicantName}</td>
                   <td className="p-3">{a.parentName}</td>
                   <td className="p-3">{a.parentContact}</td>
@@ -86,7 +86,7 @@ export default function Admissions() {
                     <select
                       value=""
                       onChange={(e) => e.target.value && updateStatus(a._id, e.target.value)}
-                      className="text-xs border border-black/10 rounded-md px-2 py-1"
+                      className="text-xs border border-border rounded-md px-2 py-1"
                     >
                       <option value="">Change status</option>
                       <option value="REVIEW">Review</option>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -47,10 +47,10 @@ export default function Maintenance() {
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Maintenance Tickets</h1>
       <p className="text-muted mt-1 text-sm">Report and track facility/equipment issues.</p>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
-        <input placeholder="Issue Title (e.g. Projector not working)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2" required />
-        <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2" rows={2} required />
-        <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2">
+      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+        <input placeholder="Issue Title (e.g. Projector not working)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required />
+        <textarea placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" rows={2} required />
+        <select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2">
           <option value="LOW">Low Priority</option>
           <option value="MEDIUM">Medium Priority</option>
           <option value="HIGH">High Priority</option>
@@ -61,7 +61,7 @@ export default function Maintenance() {
       <div className="space-y-3 mt-6">
         {tickets.length === 0 && <p className="text-muted text-sm">No tickets reported yet.</p>}
         {tickets.map((t) => (
-          <div key={t._id} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-4 flex justify-between items-center">
+          <div key={t._id} className="bg-surface rounded-2xl border border-border shadow-sm p-4 flex justify-between items-center">
             <div>
               <h3 className="font-display font-semibold text-ink">{t.title}</h3>
               <p className="text-xs text-muted mt-1">{t.description}</p>

@@ -1,4 +1,4 @@
-﻿import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
+import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 
 export default function TeacherClasses() {
   const teacher = useMyTeacherRecord();
@@ -9,7 +9,7 @@ export default function TeacherClasses() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">My Classes</h1>
       <p className="text-muted mt-1 text-sm">Classes and subjects assigned to you.</p>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">Assigned Classes</h2>
         <ul className="text-sm divide-y divide-black/5">
           {(!teacher?.assignedClasses || teacher.assignedClasses.length === 0) && <li className="py-2 text-muted">No classes assigned yet.</li>}
@@ -19,7 +19,7 @@ export default function TeacherClasses() {
         </ul>
       </div>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
         <h2 className="font-display font-semibold text-primary-dark mb-3">Subjects</h2>
         <ul className="text-sm divide-y divide-black/5">
           {(!teacher?.subjects || teacher.subjects.length === 0) && <li className="py-2 text-muted">No subjects assigned yet.</li>}

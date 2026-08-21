@@ -37,24 +37,24 @@ export default function Fees() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Fees</h1>
       <p className="text-muted mt-1 text-sm">Create invoices and track payments per student.</p>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">Create Invoice</h2>
         <form onSubmit={addInvoice} className="grid grid-cols-2 gap-3">
-          <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required>
+          <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required>
             <option value="">Select Student</option>
             {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
           </select>
-          <input placeholder="Fee Type (e.g. Tuition)" value={form.feeType} onChange={(e) => setForm({ ...form, feeType: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <input type="number" placeholder="Amount" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-          <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required />
+          <input placeholder="Fee Type (e.g. Tuition)" value={form.feeType} onChange={(e) => setForm({ ...form, feeType: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+          <input type="number" placeholder="Amount" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+          <input type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required />
           <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">+ Create Invoice</button>
         </form>
       </div>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">View Invoices</h2>
         <div className="flex gap-2 mb-4">
-          <select value={studentId} onChange={(e) => setStudentId(e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm flex-1">
+          <select value={studentId} onChange={(e) => setStudentId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm flex-1">
             <option value="">Select a student</option>
             {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
           </select>
@@ -69,7 +69,7 @@ export default function Fees() {
               <tr><td colSpan={5} className="p-4 text-center text-muted">No invoices loaded.</td></tr>
             ) : (
               invoices.map((inv) => (
-                <tr key={inv._id} className="border-t border-black/5">
+                <tr key={inv._id} className="border-t border-border">
                   <td className="p-2">{inv.feeType}</td>
                   <td className="p-2">{inv.amount}</td>
                   <td className="p-2">{new Date(inv.dueDate).toLocaleDateString()}</td>

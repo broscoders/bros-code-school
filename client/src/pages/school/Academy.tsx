@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import FileUpload from "../../components/FileUpload";
@@ -69,11 +69,11 @@ export default function Academy() {
       <p className="text-muted mt-1 text-sm">Configure academy programs, batches and notes store.</p>
 
       <div className="grid grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Academy Programs</h2>
           <form onSubmit={addProgram} className="space-y-2 mb-4">
-            <input placeholder="Program Name (e.g. MDCAT Preparation)" value={programForm.name} onChange={(e) => setProgramForm({ ...programForm, name: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Description" value={programForm.description} onChange={(e) => setProgramForm({ ...programForm, description: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
+            <input placeholder="Program Name (e.g. MDCAT Preparation)" value={programForm.name} onChange={(e) => setProgramForm({ ...programForm, name: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Description" value={programForm.description} onChange={(e) => setProgramForm({ ...programForm, description: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Program</button>
           </form>
           <ul className="text-sm divide-y divide-black/5">
@@ -82,20 +82,20 @@ export default function Academy() {
           </ul>
         </div>
 
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Academy Batches</h2>
           <form onSubmit={addBatch} className="space-y-2 mb-4">
-            <select value={batchForm.programId} onChange={(e) => setBatchForm({ ...batchForm, programId: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required>
+            <select value={batchForm.programId} onChange={(e) => setBatchForm({ ...batchForm, programId: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required>
               <option value="">Select Program</option>
               {programs.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
             </select>
-            <input placeholder="Batch Name" value={batchForm.name} onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Days (comma separated)" value={batchForm.days} onChange={(e) => setBatchForm({ ...batchForm, days: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Batch Name" value={batchForm.name} onChange={(e) => setBatchForm({ ...batchForm, name: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Days (comma separated)" value={batchForm.days} onChange={(e) => setBatchForm({ ...batchForm, days: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             <div className="flex gap-2">
-              <input placeholder="Start" value={batchForm.startTime} onChange={(e) => setBatchForm({ ...batchForm, startTime: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-              <input placeholder="End" value={batchForm.endTime} onChange={(e) => setBatchForm({ ...batchForm, endTime: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+              <input placeholder="Start" value={batchForm.startTime} onChange={(e) => setBatchForm({ ...batchForm, startTime: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+              <input placeholder="End" value={batchForm.endTime} onChange={(e) => setBatchForm({ ...batchForm, endTime: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             </div>
-            <select value={batchForm.teacherId} onChange={(e) => setBatchForm({ ...batchForm, teacherId: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required>
+            <select value={batchForm.teacherId} onChange={(e) => setBatchForm({ ...batchForm, teacherId: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required>
               <option value="">Select Teacher</option>
               {teachers.map((t) => <option key={t._id} value={t._id}>{t.userId?.name}</option>)}
             </select>
@@ -113,13 +113,13 @@ export default function Academy() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">Digital Notes Store</h2>
         <form onSubmit={addProduct} className="grid grid-cols-2 gap-3 mb-4">
-          <input placeholder="Title" value={productForm.title} onChange={(e) => setProductForm({ ...productForm, title: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm col-span-2" required />
-          <input placeholder="Subject" value={productForm.subjectName} onChange={(e) => setProductForm({ ...productForm, subjectName: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" />
-          <input placeholder="Class" value={productForm.className} onChange={(e) => setProductForm({ ...productForm, className: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" />
-          <input type="number" placeholder="Price (0 for free)" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" />
+          <input placeholder="Title" value={productForm.title} onChange={(e) => setProductForm({ ...productForm, title: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required />
+          <input placeholder="Subject" value={productForm.subjectName} onChange={(e) => setProductForm({ ...productForm, subjectName: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
+          <input placeholder="Class" value={productForm.className} onChange={(e) => setProductForm({ ...productForm, className: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
+          <input type="number" placeholder="Price (0 for free)" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={productForm.isFree} onChange={(e) => setProductForm({ ...productForm, isFree: e.target.checked })} />
             Free material

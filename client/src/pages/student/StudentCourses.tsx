@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
@@ -54,7 +54,7 @@ export default function StudentCourses() {
         <button onClick={() => setActiveLesson(null)} className="text-primary text-sm underline mb-4">&larr; Back to Lessons</button>
         <h1 className="font-display text-xl font-bold text-primary-dark">{activeLesson.title}</h1>
 
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-4">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
           {activeLesson.contentType === "TEXT" && <p className="text-sm text-ink whitespace-pre-wrap">{activeLesson.textContent}</p>}
           {activeLesson.contentType === "VIDEO" && (
             <a href={activeLesson.contentUrl} target="_blank" rel="noreferrer" className="text-primary underline text-sm">Watch video</a>
@@ -84,7 +84,7 @@ export default function StudentCourses() {
         <div className="mt-4 space-y-2">
           {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
           {lessons.map((l: any, i: number) => (
-            <button key={l._id} onClick={() => openLesson(l)} className="w-full bg-surface rounded-xl border border-black/5 shadow-sm p-4 flex justify-between items-center text-left hover:border-primary/30 transition-colors">
+            <button key={l._id} onClick={() => openLesson(l)} className="w-full bg-surface rounded-xl border border-border shadow-sm p-4 flex justify-between items-center text-left hover:border-primary/30 transition-colors">
               <span className="text-sm">{i + 1}. {l.title}</span>
               {statusBadge(l.myStatus)}
             </button>
@@ -103,7 +103,7 @@ export default function StudentCourses() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {courses.length === 0 && <p className="text-muted text-sm">No courses available right now.</p>}
         {courses.map((c: any) => (
-          <button key={c._id} onClick={() => openCourse(c)} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 text-left hover:border-primary/30 transition-colors">
+          <button key={c._id} onClick={() => openCourse(c)} className="bg-surface rounded-xl border border-border shadow-sm p-4 text-left hover:border-primary/30 transition-colors">
             <p className="font-display font-semibold text-ink">{c.title}</p>
             <p className="text-muted text-xs mt-1">{c.subjectId?.name}</p>
             <p className="text-muted text-xs mt-2">{c.description}</p>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import FileUpload from "../../components/FileUpload";
@@ -72,13 +72,13 @@ export default function Documents() {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2">
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <input placeholder="Document Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm col-span-2" required />
-          <input placeholder="Related Person ID (optional)" value={form.relatedToId} onChange={(e) => setForm({ ...form, relatedToId: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
-          <input type="date" placeholder="Expiry Date (optional)" value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" />
+          <input placeholder="Document Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required />
+          <input placeholder="Related Person ID (optional)" value={form.relatedToId} onChange={(e) => setForm({ ...form, relatedToId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
+          <input type="date" placeholder="Expiry Date (optional)" value={form.expiryDate} onChange={(e) => setForm({ ...form, expiryDate: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
           <div className="col-span-2">
             <FileUpload folder="bros-code-school/documents" onUploaded={(url) => setForm({ ...form, fileUrl: url })} label="Attach document" />
           </div>
@@ -93,7 +93,7 @@ export default function Documents() {
         ))}
       </div>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -110,7 +110,7 @@ export default function Documents() {
               <tr><td colSpan={6} className="p-6 text-center text-muted">No documents yet.</td></tr>
             ) : (
               docs.map((d) => (
-                <tr key={d._id} className="border-t border-black/5">
+                <tr key={d._id} className="border-t border-border">
                   <td className="p-3"><a href={d.fileUrl} target="_blank" rel="noreferrer" className="text-primary underline">{d.title}</a></td>
                   <td className="p-3 text-muted">{d.category}</td>
                   <td className="p-3 text-muted">v{d.version}</td>

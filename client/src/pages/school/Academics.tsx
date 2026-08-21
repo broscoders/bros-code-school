@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -68,13 +68,13 @@ export default function Academics() {
       <p className="text-muted mt-1 text-sm">Manage sessions, classes, sections and academic systems.</p>
 
       <div className="grid grid-cols-3 gap-6 mt-6">
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Academic Sessions</h2>
           <form onSubmit={addSession} className="space-y-2 mb-4">
-            <input placeholder="Session Name (e.g. 2026-2027)" value={sessionForm.name} onChange={(e) => setSessionForm({ ...sessionForm, name: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Session Name (e.g. 2026-2027)" value={sessionForm.name} onChange={(e) => setSessionForm({ ...sessionForm, name: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             <div className="flex gap-2">
-              <input type="date" value={sessionForm.startDate} onChange={(e) => setSessionForm({ ...sessionForm, startDate: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-              <input type="date" value={sessionForm.endDate} onChange={(e) => setSessionForm({ ...sessionForm, endDate: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+              <input type="date" value={sessionForm.startDate} onChange={(e) => setSessionForm({ ...sessionForm, startDate: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+              <input type="date" value={sessionForm.endDate} onChange={(e) => setSessionForm({ ...sessionForm, endDate: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             </div>
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Session</button>
           </form>
@@ -88,15 +88,15 @@ export default function Academics() {
           </ul>
         </div>
 
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Classes</h2>
           <form onSubmit={addClass} className="space-y-2 mb-4">
-            <select value={classForm.sessionId} onChange={(e) => setClassForm({ ...classForm, sessionId: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required>
+            <select value={classForm.sessionId} onChange={(e) => setClassForm({ ...classForm, sessionId: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required>
               <option value="">Select Session</option>
               {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
             </select>
-            <input placeholder="Class Name (e.g. Grade 9-A)" value={classForm.name} onChange={(e) => setClassForm({ ...classForm, name: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Academic System (e.g. Matric)" value={classForm.academicSystem} onChange={(e) => setClassForm({ ...classForm, academicSystem: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Class Name (e.g. Grade 9-A)" value={classForm.name} onChange={(e) => setClassForm({ ...classForm, name: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input placeholder="Academic System (e.g. Matric)" value={classForm.academicSystem} onChange={(e) => setClassForm({ ...classForm, academicSystem: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Class</button>
           </form>
           <ul className="text-sm divide-y divide-black/5">
@@ -110,15 +110,15 @@ export default function Academics() {
           </ul>
         </div>
 
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Sections</h2>
           <form onSubmit={addSection} className="space-y-2 mb-4">
-            <select value={sectionForm.classId} onChange={(e) => setSectionForm({ ...sectionForm, classId: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required>
+            <select value={sectionForm.classId} onChange={(e) => setSectionForm({ ...sectionForm, classId: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required>
               <option value="">Select Class</option>
               {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
-            <input placeholder="Section Name (e.g. A)" value={sectionForm.name} onChange={(e) => setSectionForm({ ...sectionForm, name: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-            <input type="number" placeholder="Capacity (optional, e.g. 40)" value={sectionForm.capacity} onChange={(e) => setSectionForm({ ...sectionForm, capacity: e.target.value })} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
+            <input placeholder="Section Name (e.g. A)" value={sectionForm.name} onChange={(e) => setSectionForm({ ...sectionForm, name: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+            <input type="number" placeholder="Capacity (optional, e.g. 40)" value={sectionForm.capacity} onChange={(e) => setSectionForm({ ...sectionForm, capacity: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Section</button>
           </form>
           <ul className="text-sm divide-y divide-black/5">

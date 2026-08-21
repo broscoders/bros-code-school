@@ -1,4 +1,4 @@
-﻿import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
+import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 import { useAuthStore } from "../../store/authStore";
 
 export default function StudentDashboard() {
@@ -13,15 +13,15 @@ export default function StudentDashboard() {
 
       {student ? (
         <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Class</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">{student.classId?.name || "-"}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Section</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">{student.sectionId?.name || "-"}</p>
           </div>
-          <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Admission #</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">{student.admissionNumber}</p>
           </div>

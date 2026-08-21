@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import Papa from "papaparse";
@@ -117,7 +117,7 @@ export default function Students() {
           <p className="text-muted mt-1 text-sm">Manage all students of your school.</p>
         </div>
         <div className="flex gap-2">
-          <label className="flex items-center gap-2 bg-surface border border-black/10 text-ink px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-canvas">
+          <label className="flex items-center gap-2 bg-surface border border-border text-ink px-4 py-2 rounded-lg text-sm font-medium cursor-pointer hover:bg-canvas">
             <Upload size={15} />
             Bulk Import CSV
             <input type="file" accept=".csv" onChange={handleCSVUpload} className="hidden" />
@@ -132,17 +132,17 @@ export default function Students() {
       <p className="text-xs text-muted mt-2">CSV columns required: name, email, admissionNumber, classId, sectionId. Default password will be "changeme123".</p>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
-          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <input placeholder="Admission Number" value={form.admissionNumber} onChange={(e) => setForm({ ...form, admissionNumber: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-          <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: "" })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required>
+          <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Admission Number" value={form.admissionNumber} onChange={(e) => setForm({ ...form, admissionNumber: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: "" })} className="border border-border rounded-lg px-3 py-2 text-sm" required>
             <option value="">Select Class</option>
             {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
-          <select value={form.sectionId} onChange={(e) => setForm({ ...form, sectionId: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required disabled={!form.classId}>
+          <select value={form.sectionId} onChange={(e) => setForm({ ...form, sectionId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required disabled={!form.classId}>
             <option value="">Select Section</option>
             {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
@@ -159,7 +159,7 @@ export default function Students() {
         <button onClick={() => setStatusFilter("ANY")} className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusFilter === "ANY" ? "bg-primary text-white" : "bg-canvas text-muted"}`}>All</button>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -176,7 +176,7 @@ export default function Students() {
               <tr><td colSpan={6} className="p-6 text-center text-muted">No students in this status.</td></tr>
             ) : (
               students.map((s) => (
-                <tr key={s._id} className="border-t border-black/5">
+                <tr key={s._id} className="border-t border-border">
                   <td className="p-3">{s.admissionNumber}</td>
                   <td className="p-3">{s.userId?.name}</td>
                   <td className="p-3">{s.userId?.email}</td>
@@ -199,13 +199,13 @@ export default function Students() {
           <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingStudent.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change lifecycle status</p>
-            <select value={statusForm.status} onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-2">
+            <select value={statusForm.status} onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">
               {STATUS_TABS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
             </select>
-            <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
+            <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
             <div className="flex gap-2">
               <button onClick={saveStatus} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium flex-1 hover:bg-primary-dark transition-colors">Save</button>
-              <button onClick={() => setManagingStudent(null)} className="border border-black/10 text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
+              <button onClick={() => setManagingStudent(null)} className="border border-border text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
             </div>
           </div>
         </div>

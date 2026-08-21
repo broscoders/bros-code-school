@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useChildStore } from "../../store/childStore";
@@ -26,7 +26,7 @@ export default function ParentAttendance() {
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Monitoring</p>
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Attendance</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr><th className="p-3 font-medium">Date</th><th className="p-3 font-medium">Status</th></tr>
@@ -36,7 +36,7 @@ export default function ParentAttendance() {
               <tr><td colSpan={2} className="p-6 text-center text-muted">No attendance records yet.</td></tr>
             ) : (
               records.map((r) => (
-                <tr key={r._id} className="border-t border-black/5">
+                <tr key={r._id} className="border-t border-border">
                   <td className="p-3">{new Date(r.date).toLocaleDateString()}</td>
                   <td className="p-3">{r.status}</td>
                 </tr>

@@ -42,15 +42,15 @@ export default function CRM() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leads & Inquiries</h1>
       <p className="text-muted mt-1 text-sm">Track inquiries from first contact to admission.</p>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
-        <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <input placeholder="Contact (phone/email)" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <input placeholder="Source (e.g. Facebook, Walk-in)" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" />
-        <input placeholder="Interested In (e.g. Grade 9, MDCAT)" value={form.interestedIn} onChange={(e) => setForm({ ...form, interestedIn: e.target.value })} className="border border-black/10 rounded-md px-3 py-2 text-sm" />
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+        <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+        <input placeholder="Contact (phone/email)" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
+        <input placeholder="Source (e.g. Facebook, Walk-in)" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
+        <input placeholder="Interested In (e.g. Grade 9, MDCAT)" value={form.interestedIn} onChange={(e) => setForm({ ...form, interestedIn: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
         <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">+ Add Lead</button>
       </form>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
@@ -67,7 +67,7 @@ export default function CRM() {
               <tr><td colSpan={6} className="p-6 text-center text-muted">No leads yet.</td></tr>
             ) : (
               leads.map((l) => (
-                <tr key={l._id} className="border-t border-black/5">
+                <tr key={l._id} className="border-t border-border">
                   <td className="p-3">{l.name}</td>
                   <td className="p-3">{l.contact}</td>
                   <td className="p-3">{l.source || "-"}</td>
@@ -76,7 +76,7 @@ export default function CRM() {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[l.status]}`}>{l.status}</span>
                   </td>
                   <td className="p-3">
-                    <select value="" onChange={(e) => e.target.value && updateStatus(l._id, e.target.value)} className="text-xs border border-black/10 rounded-md px-2 py-1">
+                    <select value="" onChange={(e) => e.target.value && updateStatus(l._id, e.target.value)} className="text-xs border border-border rounded-md px-2 py-1">
                       <option value="">Update status</option>
                       <option value="CONTACTED">Contacted</option>
                       <option value="DEMO_SCHEDULED">Demo Scheduled</option>

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -46,23 +46,23 @@ export default function Surveys() {
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Feedback</p>
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Surveys & Feedback</h1>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6 space-y-3">
-        <input placeholder="Survey Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <select value={audience} onChange={(e) => setAudience(e.target.value)} className="border border-black/10 rounded-md px-3 py-2 text-sm">
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 space-y-3">
+        <input placeholder="Survey Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+        <select value={audience} onChange={(e) => setAudience(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm">
           <option value="ALL">Everyone</option>
           <option value="PARENTS">Parents</option>
           <option value="STUDENTS">Students</option>
           <option value="TEACHERS">Teachers</option>
         </select>
         {questions.map((q, i) => (
-          <input key={i} placeholder={`Question ${i + 1}`} value={q} onChange={(e) => updateQuestion(i, e.target.value)} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" />
+          <input key={i} placeholder={`Question ${i + 1}`} value={q} onChange={(e) => updateQuestion(i, e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
         ))}
         <button type="button" onClick={addQuestion} className="text-primary text-xs underline">+ Add another question</button>
         <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium block hover:bg-primary-light transition-colors">Create Survey</button>
       </form>
 
       <div className="grid grid-cols-2 gap-4 mt-6">
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-4">
           <h2 className="font-display font-semibold text-primary-dark mb-3 text-sm">Active Surveys</h2>
           <ul className="text-sm divide-y divide-black/5">
             {list.length === 0 && <li className="py-2 text-muted">No surveys yet.</li>}
@@ -74,7 +74,7 @@ export default function Surveys() {
             ))}
           </ul>
         </div>
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-4">
           <h2 className="font-display font-semibold text-primary-dark mb-3 text-sm">Responses</h2>
           {!viewingId ? (
             <p className="text-muted text-sm">Select a survey to view responses.</p>
@@ -83,7 +83,7 @@ export default function Surveys() {
           ) : (
             <ul className="text-sm space-y-2">
               {responses.map((r) => (
-                <li key={r._id} className="border-b border-black/5 pb-2">
+                <li key={r._id} className="border-b border-border pb-2">
                   <p className="font-medium text-primary-dark">{r.respondedBy?.name}</p>
                   <p className="text-muted text-xs">{r.answers.join(" - ")}</p>
                 </li>

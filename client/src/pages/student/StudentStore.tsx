@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
@@ -40,7 +40,7 @@ export default function StudentStore() {
         {products.map((p) => {
           const owned = p.isFree || isPurchased(p._id);
           return (
-            <div key={p._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4">
+            <div key={p._id} className="bg-surface rounded-xl border border-border shadow-sm p-4">
               <div className="flex justify-between items-start">
                 <h3 className="font-display font-semibold text-primary-dark">{p.title}</h3>
                 <span className="text-xs font-semibold text-accent">{p.isFree ? "Free" : `Rs. ${p.price}`}</span>

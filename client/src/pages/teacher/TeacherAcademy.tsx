@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 
@@ -27,7 +27,7 @@ export default function TeacherAcademy() {
         <h1 className="font-display text-xl font-bold text-primary-dark">{activeBatch.name}</h1>
         <p className="text-muted text-sm mt-1">{activeBatch.programId?.name} - {activeBatch.days?.join(", ")} - {activeBatch.startTime}-{activeBatch.endTime}</p>
 
-        <div className="bg-surface rounded-xl border border-black/5 shadow-sm mt-4 overflow-hidden">
+        <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-primary/5 text-primary-dark text-left">
               <tr>
@@ -41,7 +41,7 @@ export default function TeacherAcademy() {
                 <tr><td colSpan={3} className="p-6 text-center text-muted">No students enrolled yet.</td></tr>
               ) : (
                 enrollments.map((e) => (
-                  <tr key={e._id} className="border-t border-black/5">
+                  <tr key={e._id} className="border-t border-border">
                     <td className="p-3">{e.studentId?.admissionNumber}</td>
                     <td className="p-3">{e.studentId?.userId?.name}</td>
                     <td className="p-3 text-muted">{new Date(e.enrollmentDate).toLocaleDateString()}</td>
@@ -64,7 +64,7 @@ export default function TeacherAcademy() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {batches.length === 0 && <p className="text-muted text-sm">You are not assigned to any academy batch.</p>}
         {batches.map((b) => (
-          <button key={b._id} onClick={() => openBatch(b)} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 text-left hover:border-primary/30 transition-colors">
+          <button key={b._id} onClick={() => openBatch(b)} className="bg-surface rounded-xl border border-border shadow-sm p-4 text-left hover:border-primary/30 transition-colors">
             <p className="font-display font-semibold text-ink">{b.name}</p>
             <p className="text-muted text-xs mt-1">{b.programId?.name}</p>
             <p className="text-muted text-xs mt-1">{b.days?.join(", ")} - {b.startTime}-{b.endTime}</p>

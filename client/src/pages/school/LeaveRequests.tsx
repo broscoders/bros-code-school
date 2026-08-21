@@ -26,7 +26,7 @@ export default function LeaveRequests() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leave Requests</h1>
       <p className="text-muted mt-1 text-sm">Approve or reject leave requests from students and teachers.</p>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr><th className="p-3 font-medium">Type</th><th className="p-3 font-medium">Date</th><th className="p-3 font-medium">Reason</th><th className="p-3 font-medium">Status</th><th className="p-3 font-medium">Action</th></tr>
@@ -36,7 +36,7 @@ export default function LeaveRequests() {
               <tr><td colSpan={5} className="p-6 text-center text-muted">No leave requests yet.</td></tr>
             ) : (
               list.map((l) => (
-                <tr key={l._id} className="border-t border-black/5">
+                <tr key={l._id} className="border-t border-border">
                   <td className="p-3">{l.type}</td>
                   <td className="p-3">{new Date(l.date).toLocaleDateString()}</td>
                   <td className="p-3">{l.reason}</td>

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import api from "../services/api";
 import { MessageCircle, X, Send } from "lucide-react";
 
@@ -35,7 +35,7 @@ export default function AIChatWidget({ extraBody }: Props) {
   return (
     <>
       {open && (
-        <div className="fixed bottom-20 right-6 w-80 h-96 bg-surface rounded-2xl shadow-xl border border-black/10 flex flex-col z-50">
+        <div className="fixed bottom-20 right-6 w-80 h-96 bg-surface rounded-2xl shadow-xl border border-border flex flex-col z-50">
           <div className="bg-primary text-white p-3 rounded-t-2xl flex justify-between items-center">
             <span className="font-display text-sm font-semibold">Ask Assistant</span>
             <button onClick={() => setOpen(false)}><X size={16} /></button>
@@ -48,13 +48,13 @@ export default function AIChatWidget({ extraBody }: Props) {
             ))}
             {loading && <div className="text-muted text-xs">Thinking...</div>}
           </div>
-          <div className="p-2 border-t border-black/10 flex gap-2">
+          <div className="p-2 border-t border-border flex gap-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="Type a question..."
-              className="flex-1 border border-black/10 rounded-lg px-2 py-1.5 text-sm"
+              className="flex-1 border border-border rounded-lg px-2 py-1.5 text-sm"
             />
             <button onClick={send} className="bg-primary text-white p-2 rounded-lg">
               <Send size={14} />

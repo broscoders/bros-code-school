@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useChildStore } from "../store/childStore";
 
 interface Props {
@@ -25,7 +25,7 @@ export default function ChildSwitcher({ children }: Props) {
           className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
             selectedChildId === child._id
               ? "bg-primary text-white border-primary"
-              : "bg-surface text-primary-dark border-black/10 hover:border-primary/30"
+              : "bg-surface text-primary-dark border-border hover:border-primary/30"
           }`}
         >
           {child.userId?.name} — {child.classId?.name || "Class"}

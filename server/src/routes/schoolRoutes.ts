@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createSchool, getSchools, getSchoolById, updateSchool } from "../controllers/schoolController";
 import { protect, requireRole } from "../middleware/authMiddleware";
+import { protectPlatform } from "../middleware/platformAuthMiddleware";
 import School from "../models/School";
 
 const router = Router();
@@ -14,9 +15,9 @@ router.get("/public/branding", async (req, res) => {
   }
 });
 
-router.post("/", createSchool);
-router.get("/", getSchools);
-router.get("/:id", getSchoolById);
+router.post("/", protectPlatform, createSchool);
+router.get("/", protectPlatform, getSchools);
+router.get("/:id", protect, getSchoolById);
 router.put("/:id", protect, requireRole("SCHOOL_ADMIN", "PRINCIPAL"), updateSchool);
 
 export default router;

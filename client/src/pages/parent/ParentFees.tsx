@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useChildStore } from "../../store/childStore";
@@ -26,7 +26,7 @@ export default function ParentFees() {
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Monitoring</p>
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Fees</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr><th className="p-3 font-medium">Type</th><th className="p-3 font-medium">Amount</th><th className="p-3 font-medium">Due</th><th className="p-3 font-medium">Status</th></tr>
@@ -36,7 +36,7 @@ export default function ParentFees() {
               <tr><td colSpan={4} className="p-6 text-center text-muted">No invoices yet.</td></tr>
             ) : (
               invoices.map((inv) => (
-                <tr key={inv._id} className="border-t border-black/5">
+                <tr key={inv._id} className="border-t border-border">
                   <td className="p-3">{inv.feeType}</td>
                   <td className="p-3">{inv.amount}</td>
                   <td className="p-3">{new Date(inv.dueDate).toLocaleDateString()}</td>

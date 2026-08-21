@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -96,30 +96,30 @@ export default function Timetable() {
       <p className="text-muted mt-1 text-sm">Build the weekly timetable for each class and section. Clashing teachers or rooms are blocked automatically.</p>
 
       <div className="flex gap-3 mt-4">
-        <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-black/10 rounded-lg px-3 py-2 text-sm">
+        <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">
           <option value="">Select Class</option>
           {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
         </select>
-        <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="border border-black/10 rounded-lg px-3 py-2 text-sm" disabled={!classId}>
+        <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm" disabled={!classId}>
           <option value="">Select Section</option>
           {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
       </div>
 
       {sectionId && (
-        <div className="bg-surface rounded-2xl border border-black/5 shadow-sm mt-6 overflow-x-auto">
+        <div className="bg-surface rounded-2xl border border-border shadow-sm mt-6 overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
-                <th className="p-3 text-left text-xs font-medium text-muted border-b border-black/5">Period</th>
+                <th className="p-3 text-left text-xs font-medium text-muted border-b border-border">Period</th>
                 {DAYS.map((d) => (
-                  <th key={d} className="p-3 text-left text-xs font-medium text-muted border-b border-black/5">{d.slice(0, 3)}</th>
+                  <th key={d} className="p-3 text-left text-xs font-medium text-muted border-b border-border">{d.slice(0, 3)}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {PERIODS.map((p) => (
-                <tr key={p} className="border-t border-black/5">
+                <tr key={p} className="border-t border-border">
                   <td className="p-3 text-xs font-medium text-muted">Period {p}</td>
                   {DAYS.map((d) => {
                     const slot = getSlot(d, p);
@@ -130,9 +130,9 @@ export default function Timetable() {
                           className={`w-full text-left rounded-lg p-2 text-xs border transition-colors ${
                             slot
                               ? slot.isBreak
-                                ? "bg-canvas border-black/10 text-muted"
+                                ? "bg-canvas border-border text-muted"
                                 : "bg-primary/5 border-primary/20 text-ink"
-                              : "border-dashed border-black/10 text-muted hover:bg-canvas"
+                              : "border-dashed border-border text-muted hover:bg-canvas"
                           }`}
                         >
                           {slot ? (
@@ -170,20 +170,20 @@ export default function Timetable() {
                 This is a break / free period
               </label>
               <div className="flex gap-2">
-                <input placeholder="Start (e.g. 08:00)" value={cellForm.startTime} onChange={(e) => setCellForm({ ...cellForm, startTime: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm w-full" />
-                <input placeholder="End (e.g. 08:40)" value={cellForm.endTime} onChange={(e) => setCellForm({ ...cellForm, endTime: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm w-full" />
+                <input placeholder="Start (e.g. 08:00)" value={cellForm.startTime} onChange={(e) => setCellForm({ ...cellForm, startTime: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full" />
+                <input placeholder="End (e.g. 08:40)" value={cellForm.endTime} onChange={(e) => setCellForm({ ...cellForm, endTime: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full" />
               </div>
               {!cellForm.isBreak && (
                 <>
-                  <select value={cellForm.subjectId} onChange={(e) => setCellForm({ ...cellForm, subjectId: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm">
+                  <select value={cellForm.subjectId} onChange={(e) => setCellForm({ ...cellForm, subjectId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm">
                     <option value="">Select Subject</option>
                     {subjects.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
                   </select>
-                  <select value={cellForm.teacherId} onChange={(e) => setCellForm({ ...cellForm, teacherId: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm">
+                  <select value={cellForm.teacherId} onChange={(e) => setCellForm({ ...cellForm, teacherId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm">
                     <option value="">Select Teacher</option>
                     {teachers.map((t) => <option key={t._id} value={t._id}>{t.userId?.name}</option>)}
                   </select>
-                  <input placeholder="Room" value={cellForm.room} onChange={(e) => setCellForm({ ...cellForm, room: e.target.value })} className="w-full border border-black/10 rounded-lg px-3 py-2 text-sm" />
+                  <input placeholder="Room" value={cellForm.room} onChange={(e) => setCellForm({ ...cellForm, room: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
                 </>
               )}
             </div>
@@ -192,7 +192,7 @@ export default function Timetable() {
               {getSlot(editCell.day, editCell.period) && (
                 <button onClick={deleteCell} className="border border-danger text-danger px-4 py-2 rounded-lg text-sm font-medium hover:bg-danger/5 transition-colors">Clear</button>
               )}
-              <button onClick={() => setEditCell(null)} className="border border-black/10 text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
+              <button onClick={() => setEditCell(null)} className="border border-border text-ink px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas transition-colors">Cancel</button>
             </div>
           </div>
         </div>

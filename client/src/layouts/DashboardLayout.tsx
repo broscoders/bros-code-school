@@ -12,6 +12,7 @@ import {
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
+import ThemeToggle from "../components/ThemeToggle";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -158,6 +159,7 @@ export default function DashboardLayout() {
         <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-6">
           <GlobalSearch />
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <NotificationBell />
             <div className="w-8 h-8 rounded-full bg-[#1e9fe0]/15 text-[#1e9fe0] flex items-center justify-center font-display font-semibold text-xs">
               {user?.name?.charAt(0)}

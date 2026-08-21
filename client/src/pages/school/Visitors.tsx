@@ -34,15 +34,15 @@ export default function Visitors() {
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Visitor Management</h1>
       <p className="text-muted mt-1 text-sm">Register and track visitors entering the school.</p>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-black/5 shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
-        <input placeholder="Visitor Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-        <input placeholder="Contact" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-        <input placeholder="Purpose of Visit" value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
-        <input placeholder="Person to Meet" value={form.personToMeet} onChange={(e) => setForm({ ...form, personToMeet: e.target.value })} className="border border-black/10 rounded-lg px-3 py-2 text-sm" required />
+      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+        <input placeholder="Visitor Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+        <input placeholder="Contact" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+        <input placeholder="Purpose of Visit" value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+        <input placeholder="Person to Meet" value={form.personToMeet} onChange={(e) => setForm({ ...form, personToMeet: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
         <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors">+ Check In Visitor</button>
       </form>
 
-      <div className="bg-surface rounded-2xl border border-black/5 shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -59,7 +59,7 @@ export default function Visitors() {
               <tr><td colSpan={6} className="p-6 text-center text-muted">No visitors logged yet.</td></tr>
             ) : (
               list.map((v) => (
-                <tr key={v._id} className="border-t border-black/5">
+                <tr key={v._id} className="border-t border-border">
                   <td className="p-3">{v.name}</td>
                   <td className="p-3">{v.purpose}</td>
                   <td className="p-3">{v.personToMeet}</td>

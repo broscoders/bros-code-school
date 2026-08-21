@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { useChildStore } from "../../store/childStore";
@@ -49,16 +49,16 @@ export default function ParentLeave() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leave Request</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
 
-      <form onSubmit={submit} className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 space-y-3">
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" required />
-        <textarea placeholder="Reason (e.g. Ahmed is sick today)" value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-black/10 rounded-md px-3 py-2 text-sm" rows={2} required />
+      <form onSubmit={submit} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-3">
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
+        <textarea placeholder="Reason (e.g. Ahmed is sick today)" value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" rows={2} required />
         <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors">Submit Request</button>
       </form>
 
       <div className="space-y-2 mt-6">
         {myLeaves.length === 0 && <p className="text-muted text-sm">No leave requests submitted yet.</p>}
         {myLeaves.map((l) => (
-          <div key={l._id} className="bg-surface rounded-xl border border-black/5 shadow-sm p-4 flex justify-between items-center">
+          <div key={l._id} className="bg-surface rounded-xl border border-border shadow-sm p-4 flex justify-between items-center">
             <div>
               <p className="text-sm font-medium text-primary-dark">{new Date(l.date).toLocaleDateString()}</p>
               <p className="text-xs text-muted">{l.reason}</p>

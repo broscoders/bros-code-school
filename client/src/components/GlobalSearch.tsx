@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { useAuthStore } from "../store/authStore";
@@ -34,11 +34,11 @@ export default function GlobalSearch() {
           onChange={(e) => search(e.target.value)}
           onFocus={() => query.length >= 2 && setOpen(true)}
           placeholder="Search students, teachers, leads..."
-          className="w-full border border-black/10 rounded-lg pl-9 pr-3 py-2 text-sm bg-canvas focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="w-full border border-border rounded-lg pl-9 pr-3 py-2 text-sm bg-canvas focus:outline-none focus:ring-2 focus:ring-primary/30"
         />
       </div>
       {open && (
-        <div className="absolute mt-2 w-full bg-surface rounded-xl shadow-lg border border-black/10 z-50 max-h-96 overflow-y-auto">
+        <div className="absolute mt-2 w-full bg-surface rounded-xl shadow-lg border border-border z-50 max-h-96 overflow-y-auto">
           {!hasResults ? (
             <p className="p-4 text-sm text-muted">No results found.</p>
           ) : (
@@ -54,7 +54,7 @@ export default function GlobalSearch() {
                 </div>
               )}
               {results.teachers?.length > 0 && (
-                <div className="p-2 border-t border-black/5">
+                <div className="p-2 border-t border-border">
                   <p className="text-[10px] uppercase text-muted px-2 mb-1">Teachers</p>
                   {results.teachers.map((t: any) => (
                     <button key={t._id} onClick={() => { navigate("/teachers"); setOpen(false); }} className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-canvas text-sm">
@@ -64,7 +64,7 @@ export default function GlobalSearch() {
                 </div>
               )}
               {results.leads?.length > 0 && (
-                <div className="p-2 border-t border-black/5">
+                <div className="p-2 border-t border-border">
                   <p className="text-[10px] uppercase text-muted px-2 mb-1">Leads</p>
                   {results.leads.map((l: any) => (
                     <button key={l._id} onClick={() => { navigate("/crm"); setOpen(false); }} className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-canvas text-sm">
@@ -74,7 +74,7 @@ export default function GlobalSearch() {
                 </div>
               )}
               {results.books?.length > 0 && (
-                <div className="p-2 border-t border-black/5">
+                <div className="p-2 border-t border-border">
                   <p className="text-[10px] uppercase text-muted px-2 mb-1">Library Books</p>
                   {results.books.map((b: any) => (
                     <button key={b._id} onClick={() => { navigate("/operations"); setOpen(false); }} className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-canvas text-sm">

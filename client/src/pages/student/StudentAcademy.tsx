@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
@@ -47,7 +47,7 @@ export default function StudentAcademy() {
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Academy Programs</h1>
       <p className="text-muted mt-1 text-sm">Browse programs and manage your enrollments.</p>
 
-      <div className="bg-surface rounded-xl border border-black/5 shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">My Enrollments</h2>
         {enrollments.filter((e) => e.isActive).length === 0 ? (
           <p className="text-muted text-sm">You are not enrolled in any academy batch yet.</p>
@@ -66,7 +66,7 @@ export default function StudentAcademy() {
       <div className="mt-6 space-y-3">
         {programs.length === 0 && <p className="text-muted text-sm">No academy programs available right now.</p>}
         {programs.map((p) => (
-          <div key={p._id} className="bg-surface rounded-xl border border-black/5 shadow-sm overflow-hidden">
+          <div key={p._id} className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
             <button onClick={() => toggleProgram(p._id)} className="w-full text-left p-4 flex justify-between items-center hover:bg-canvas transition-colors">
               <div>
                 <p className="font-display font-semibold text-ink">{p.name}</p>
@@ -75,10 +75,10 @@ export default function StudentAcademy() {
               <span className="text-primary text-xs underline">{expandedProgram === p._id ? "Hide batches" : "View batches"}</span>
             </button>
             {expandedProgram === p._id && (
-              <div className="border-t border-black/5 p-4 space-y-2">
+              <div className="border-t border-border p-4 space-y-2">
                 {(batchesByProgram[p._id] || []).length === 0 && <p className="text-muted text-xs">No batches yet for this program.</p>}
                 {(batchesByProgram[p._id] || []).map((b) => (
-                  <div key={b._id} className="flex justify-between items-center text-sm border border-black/5 rounded-lg p-3">
+                  <div key={b._id} className="flex justify-between items-center text-sm border border-border rounded-lg p-3">
                     <div>
                       <p className="font-medium text-ink">{b.name}</p>
                       <p className="text-muted text-xs">{b.days?.join(", ")} - {b.startTime}-{b.endTime}</p>
