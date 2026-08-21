@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Users, UserCheck, UserX } from "lucide-react";
+import StatCard from "../../components/StatCard";
 
 export default function Parents() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -54,8 +56,18 @@ export default function Parents() {
     }
   };
 
+  const totalCount = parents.length;
+  const linkedCount = parents.filter((p: any) => (p.children?.length || 0) > 0).length;
+  const unlinkedCount = totalCount - linkedCount;
+
   return (
     <div className="p-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard label="Total Parents" value={totalCount} icon={Users} tone="primary" />
+        <StatCard label="Linked to a Child" value={linkedCount} icon={UserCheck} tone="success" />
+        <StatCard label="Not Linked Yet" value={unlinkedCount} icon={UserX} tone="danger" />
+      </div>
+
       <div className="flex justify-between items-center">
         <div>
           <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>

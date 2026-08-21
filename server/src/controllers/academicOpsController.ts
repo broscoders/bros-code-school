@@ -9,6 +9,7 @@ import Result from "../models/Result";
 import FeeStructure from "../models/FeeStructure";
 import Invoice from "../models/Invoice";
 import Student from "../models/Student";
+import Section from "../models/Section";
 import Parent from "../models/Parent";
 import { canAccessStudent } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
@@ -37,6 +38,45 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
     }
 
     res.status(201).json(record);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const bulkMarkAttendance = async (req: AuthRequest, res: Response) => {
+  try {
+    const { classId, sectionId, date, records } = req.body;
+    const schoolId = req.user!.schoolId;
+
+    const section = await Section.findOne({ _id: sectionId, schoolId });
+    if (!section) return res.status(404).json({ message: "Section not found in your school" });
+
+    const studentIds = (records || []).map((r: any) => r.studentId);
+    const validStudents = await Student.find({ _id: { $in: studentIds }, schoolId }).select("_id");
+    const validIds = new Set(validStudents.map((s) => s._id.toString()));
+
+    const ops = (records || [])
+      .filter((r: any) => validIds.has(r.studentId))
+      .map((r: any) => ({
+        updateOne: {
+          filter: { studentId: r.studentId, date: new Date(date) },
+          update: {
+            $set: {
+              status: r.status,
+              schoolId,
+              classId,
+              sectionId,
+              markedBy: req.user!.userId,
+            },
+          },
+          upsert: true,
+        },
+      }));
+
+    if (ops.length === 0) return res.status(400).json({ message: "No valid students to mark" });
+
+    await Attendance.bulkWrite(ops);
+    res.json({ marked: ops.length });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

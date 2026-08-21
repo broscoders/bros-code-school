@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { GraduationCap, UserCheck, UserX, Award } from "lucide-react";
+import StatCard from "../../components/StatCard";
 
 const STATUS_TABS = ["ACTIVE", "ON_LEAVE", "TRANSFERRED", "RESIGNED", "TERMINATED"];
 const statusColors: Record<string, string> = {
@@ -68,8 +70,20 @@ export default function Teachers() {
     loadTeachers();
   };
 
+  const totalCount = teachers.length;
+  const activeCount = teachers.filter((t: any) => (t.employmentStatus || "ACTIVE") === "ACTIVE").length;
+  const onLeaveCount = teachers.filter((t: any) => t.employmentStatus === "ON_LEAVE").length;
+  const exitedCount = teachers.filter((t: any) => ["RESIGNED", "TERMINATED", "TRANSFERRED"].includes(t.employmentStatus)).length;
+
   return (
     <div className="p-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Total Teachers" value={totalCount} icon={GraduationCap} tone="primary" />
+        <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
+        <StatCard label="On Leave" value={onLeaveCount} icon={Award} tone="accent" />
+        <StatCard label="Resigned / Transferred" value={exitedCount} icon={UserX} tone="danger" />
+      </div>
+
       <div className="flex justify-between items-center">
         <div>
           <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>

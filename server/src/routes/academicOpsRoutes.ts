@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  markAttendance, getAttendance,
+  markAttendance, bulkMarkAttendance, getAttendance,
   createHomework, getHomework, submitHomework,
   createAssignment, getAssignments, submitAssignment,
   createExam, getExams,
@@ -13,6 +13,7 @@ import { TEACHING_STAFF, ACADEMIC_STAFF, FINANCE_STAFF, EVERYONE, ROLES } from "
 const router = Router();
 
 router.post("/attendance", protect, requireRole(...TEACHING_STAFF), markAttendance);
+router.post("/attendance/bulk", protect, requireRole(...TEACHING_STAFF), bulkMarkAttendance);
 router.get("/attendance", protect, requireRole(...EVERYONE), getAttendance);
 
 router.post("/homework", protect, requireRole(...TEACHING_STAFF), createHomework);

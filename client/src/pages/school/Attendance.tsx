@@ -1,16 +1,26 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { CalendarCheck, Check } from "lucide-react";
+
+const STATUS_OPTIONS = ["PRESENT", "ABSENT", "LATE", "LEAVE"];
+const statusColors: Record<string, string> = {
+  PRESENT: "bg-success text-white",
+  ABSENT: "bg-danger text-white",
+  LATE: "bg-warning text-white",
+  LEAVE: "bg-primary text-white",
+};
 
 export default function Attendance() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
-  const userId = useAuthStore((s) => s.user?.id);
   const [classes, setClasses] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
+  const [classId, setClassId] = useState("");
+  const [sectionId, setSectionId] = useState("");
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [students, setStudents] = useState<any[]>([]);
-  const [form, setForm] = useState({ studentId: "", classId: "", sectionId: "", date: "", status: "PRESENT" });
-  const [records, setRecords] = useState<any[]>([]);
-  const [lookupId, setLookupId] = useState("");
+  const [statusMap, setStatusMap] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
@@ -18,87 +28,148 @@ export default function Attendance() {
   }, [schoolId]);
 
   useEffect(() => {
-    if (form.classId) {
-      api.get(`/academics/sections?classId=${form.classId}`).then((res) => setSections(res.data));
-      api.get(`/people/students?schoolId=${schoolId}`).then((res) =>
-        setStudents(res.data.filter((s: any) => s.classId === form.classId || s.classId?._id === form.classId))
-      );
+    if (classId) {
+      api.get(`/academics/sections?classId=${classId}`).then((res) => setSections(res.data));
     } else {
       setSections([]);
+    }
+    setSectionId("");
+    setStudents([]);
+  }, [classId]);
+
+  useEffect(() => {
+    if (sectionId) {
+      api.get(`/people/students?schoolId=${schoolId}&status=ACTIVE`).then((res) => {
+        const list = res.data.filter((s: any) => (s.sectionId?._id || s.sectionId) === sectionId);
+        setStudents(list);
+        const initial: Record<string, string> = {};
+        list.forEach((s: any) => (initial[s._id] = "PRESENT"));
+        setStatusMap(initial);
+      });
+    } else {
       setStudents([]);
     }
-  }, [form.classId]);
+  }, [sectionId]);
 
-  const markAttendance = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await api.post("/ops/attendance", { ...form, schoolId, markedBy: userId });
-    setMsg("Attendance marked.");
-    setTimeout(() => setMsg(""), 2000);
+  const setAll = (status: string) => {
+    const next: Record<string, string> = {};
+    students.forEach((s) => (next[s._id] = status));
+    setStatusMap(next);
   };
 
-  const loadRecords = async () => {
-    const res = await api.get(`/ops/attendance?studentId=${lookupId}`);
-    setRecords(res.data);
+  const saveAttendance = async () => {
+    setSaving(true);
+    setMsg("");
+    try {
+      const records = students.map((s) => ({ studentId: s._id, status: statusMap[s._id] || "PRESENT" }));
+      const res = await api.post("/ops/attendance/bulk", { classId, sectionId, date, records });
+      setMsg(`Saved attendance for ${res.data.marked} students.`);
+    } catch (err: any) {
+      setMsg(err.response?.data?.message || "Failed to save attendance");
+    } finally {
+      setSaving(false);
+      setTimeout(() => setMsg(""), 3000);
+    }
   };
+
+  const presentCount = Object.values(statusMap).filter((v) => v === "PRESENT").length;
+  const absentCount = Object.values(statusMap).filter((v) => v === "ABSENT").length;
 
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Operations</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Attendance</h1>
-      <p className="text-muted mt-1 text-sm">Mark and review student attendance.</p>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
+        <CalendarCheck size={22} className="text-primary" />
+        Attendance
+      </h1>
+      <p className="text-muted mt-1 text-sm">Mark attendance for a whole class at once.</p>
 
-      <form onSubmit={markAttendance} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
-        {msg && <p className="text-success text-sm col-span-2">{msg}</p>}
-        <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: "", studentId: "" })} className="border border-border rounded-md px-3 py-2 text-sm" required>
-          <option value="">Select Class</option>
-          {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-        </select>
-        <select value={form.sectionId} onChange={(e) => setForm({ ...form, sectionId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required disabled={!form.classId}>
-          <option value="">Select Section</option>
-          {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
-        </select>
-        <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required disabled={!form.classId}>
-          <option value="">Select Student</option>
-          {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
-        </select>
-        <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
-        <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm">
-          <option value="PRESENT">Present</option>
-          <option value="ABSENT">Absent</option>
-          <option value="LATE">Late</option>
-          <option value="LEAVE">Leave</option>
-        </select>
-        <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">Mark Attendance</button>
-      </form>
-
-      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
-        <h2 className="font-display font-semibold text-primary-dark mb-3">View Attendance History</h2>
-        <div className="flex gap-2 mb-4">
-          <select value={lookupId} onChange={(e) => setLookupId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm flex-1">
-            <option value="">Select a student</option>
-            {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
+      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-[160px]">
+          <label className="block text-xs font-medium text-muted mb-1">Class</label>
+          <select value={classId} onChange={(e) => setClassId(e.target.value)} className="w-full">
+            <option value="">Select Class</option>
+            {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
-          <button onClick={loadRecords} className="bg-primary-dark text-white px-4 py-2 rounded-md text-sm">Load</button>
         </div>
-        <table className="w-full text-sm">
-          <thead className="bg-primary/5 text-primary-dark text-left">
-            <tr><th className="p-2 font-medium">Date</th><th className="p-2 font-medium">Status</th></tr>
-          </thead>
-          <tbody>
-            {records.length === 0 ? (
-              <tr><td colSpan={2} className="p-4 text-center text-muted">No records loaded.</td></tr>
-            ) : (
-              records.map((r) => (
-                <tr key={r._id} className="border-t border-border">
-                  <td className="p-2">{new Date(r.date).toLocaleDateString()}</td>
-                  <td className="p-2">{r.status}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+        <div className="flex-1 min-w-[160px]">
+          <label className="block text-xs font-medium text-muted mb-1">Section</label>
+          <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="w-full" disabled={!classId}>
+            <option value="">Select Section</option>
+            {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+          </select>
+        </div>
+        <div className="flex-1 min-w-[160px]">
+          <label className="block text-xs font-medium text-muted mb-1">Date</label>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full" />
+        </div>
       </div>
+
+      {students.length > 0 && (
+        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex gap-3 text-sm">
+              <span className="text-success font-medium">{presentCount} Present</span>
+              <span className="text-danger font-medium">{absentCount} Absent</span>
+              <span className="text-muted">{students.length} Total</span>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setAll("PRESENT")} className="text-xs px-3 py-1.5 rounded-full bg-success-soft text-success font-medium">
+                Mark All Present
+              </button>
+              <button onClick={() => setAll("ABSENT")} className="text-xs px-3 py-1.5 rounded-full bg-danger-soft text-danger font-medium">
+                Mark All Absent
+              </button>
+            </div>
+          </div>
+
+          <div className="divide-y divide-border">
+            {students.map((s) => (
+              <div key={s._id} className="flex items-center justify-between py-2.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-display font-semibold">
+                    {s.userId?.name?.charAt(0) || "?"}
+                  </div>
+                  <div>
+                    <p className="text-sm text-ink font-medium">{s.userId?.name}</p>
+                    <p className="text-[11px] text-muted">{s.admissionNumber}</p>
+                  </div>
+                </div>
+                <div className="flex gap-1.5">
+                  {STATUS_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => setStatusMap({ ...statusMap, [s._id]: opt })}
+                      className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-colors ${
+                        statusMap[s._id] === opt ? statusColors[opt] : "bg-white/5 text-muted hover:bg-white/10"
+                      }`}
+                    >
+                      {opt === "PRESENT" && statusMap[s._id] === opt && <Check size={10} className="inline mr-0.5" />}
+                      {opt.charAt(0) + opt.slice(1).toLowerCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {msg && <p className={`text-sm mt-4 ${msg.includes("Saved") ? "text-success" : "text-danger"}`}>{msg}</p>}
+
+          <button
+            onClick={saveAttendance}
+            disabled={saving}
+            className="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-semibold mt-4 hover:bg-primary-dark disabled:opacity-60 transition-colors"
+          >
+            {saving ? "Saving..." : "Save Attendance"}
+          </button>
+        </div>
+      )}
+
+      {sectionId && students.length === 0 && (
+        <div className="bg-surface rounded-2xl border border-border shadow-sm p-8 mt-4 text-center text-muted text-sm">
+          No active students found in this section.
+        </div>
+      )}
     </div>
   );
 }
-
