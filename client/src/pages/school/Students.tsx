@@ -3,6 +3,8 @@ import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import Papa from "papaparse";
 import { Upload } from "lucide-react";
+import { Users, UserCheck, UserX, GraduationCap } from "lucide-react";
+import StatCard from "../../components/StatCard";
 
 const STATUS_TABS = ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI"];
 const statusColors: Record<string, string> = {
@@ -108,8 +110,20 @@ export default function Students() {
     loadStudents();
   };
 
+  const totalCount = students.length;
+  const activeCount = students.filter((s) => (s.status || "ACTIVE") === "ACTIVE").length;
+  const withdrawnCount = students.filter((s) => ["WITHDRAWN", "TRANSFERRED", "SUSPENDED"].includes(s.status)).length;
+  const alumniCount = students.filter((s) => ["GRADUATED", "ALUMNI"].includes(s.status)).length;
+
   return (
     <div className="p-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Showing" value={totalCount} icon={Users} tone="primary" />
+        <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
+        <StatCard label="Withdrawn / Suspended" value={withdrawnCount} icon={UserX} tone="danger" />
+        <StatCard label="Alumni / Graduated" value={alumniCount} icon={GraduationCap} tone="violet" />
+      </div>
+
       <div className="flex justify-between items-center">
         <div>
           <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>

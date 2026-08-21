@@ -10,6 +10,7 @@ import FeeStructure from "../models/FeeStructure";
 import Invoice from "../models/Invoice";
 import Student from "../models/Student";
 import Parent from "../models/Parent";
+import { canAccessStudent } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
 import { notify } from "../utils/notifier";
 import type { AuthRequest } from "../middleware/authMiddleware";
@@ -43,6 +44,9 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
 
 export const getAttendance = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.query.studentId as string);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const records = await Attendance.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string });
     res.json(records);
   } catch (err) {
@@ -229,6 +233,9 @@ export const publishResults = async (req: AuthRequest, res: Response) => {
 
 export const getResults = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.query.studentId as string);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const student = await Student.findOne({ _id: req.query.studentId as string, schoolId: req.user!.schoolId });
     if (!student) return res.status(404).json({ message: "Student not found" });
 

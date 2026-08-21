@@ -1,9 +1,10 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Notification from "../models/Notification";
 import DisciplineIncident from "../models/DisciplineIncident";
 import { notify } from "../utils/notifier";
 import Parent from "../models/Parent";
+import Student from "../models/Student";
 
 export const getMyNotifications = async (req: AuthRequest, res: Response) => {
   try {
@@ -34,6 +35,9 @@ export const markAllRead = async (req: AuthRequest, res: Response) => {
 
 export const createIncident = async (req: AuthRequest, res: Response) => {
   try {
+    const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
+    if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
+
     const incident = await DisciplineIncident.create({ ...req.body, schoolId: req.user!.schoolId });
 
     if (req.body.parentNotified) {

@@ -1,6 +1,7 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
+import { canAccessStudent } from "../utils/accessControl";
 import Parent from "../models/Parent";
 import Teacher from "../models/Teacher";
 import Section from "../models/Section";
@@ -48,6 +49,9 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
 
 export const getStudentById = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.params.id);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const student = await Student.findOne({ _id: req.params.id, schoolId: req.user!.schoolId }).populate("userId classId sectionId parentId classHistory.classId classHistory.sectionId");
     if (!student) return res.status(404).json({ message: "Student not found" });
     res.json(student);

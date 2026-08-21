@@ -4,9 +4,13 @@ import Student from "../models/Student";
 import Result from "../models/Result";
 import Attendance from "../models/Attendance";
 import School from "../models/School";
+import { canAccessStudent } from "../utils/accessControl";
 
 export const getReportCardData = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.params.studentId);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const student = await Student.findOne({ _id: req.params.studentId, schoolId: req.user!.schoolId }).populate("userId classId sectionId");
     if (!student) return res.status(404).json({ message: "Student not found" });
 

@@ -12,6 +12,8 @@
   --color-primary-light: #3aacea;
   --color-accent: #f59e0b;
   --color-accent-soft: rgba(245, 158, 11, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-soft: rgba(245, 158, 11, 0.12);
   --color-success: #22c55e;
   --color-success-soft: rgba(34, 197, 94, 0.12);
   --color-danger: #ef4444;
@@ -32,6 +34,7 @@ html.light {
   --color-border: rgba(0, 0, 0, 0.08);
   --color-muted: #6b7280;
   --color-accent-soft: rgba(245, 158, 11, 0.1);
+  --color-warning-soft: rgba(245, 158, 11, 0.1);
   --color-success-soft: rgba(34, 197, 94, 0.1);
   --color-danger-soft: rgba(239, 68, 68, 0.1);
 }
