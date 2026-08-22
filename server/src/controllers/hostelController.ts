@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import HostelBuilding from "../models/HostelBuilding";
 import HostelRoom from "../models/HostelRoom";
@@ -50,6 +50,15 @@ export const allocateRoom = async (req: AuthRequest, res: Response) => {
     const room = await HostelRoom.findOne({ _id: req.body.roomId, schoolId: req.user!.schoolId });
     if (!room) return res.status(404).json({ message: "Room not found" });
     if (room.occupied >= room.capacity) return res.status(400).json({ message: "Room is full" });
+
+    const existingActive = await HostelAllocation.findOne({
+      schoolId: req.user!.schoolId,
+      studentId: req.body.studentId,
+      isActive: true,
+    });
+    if (existingActive) {
+      return res.status(400).json({ message: "This student already has an active hostel allocation. Deallocate it first before assigning a new room." });
+    }
 
     const allocation = await HostelAllocation.create({ ...req.body, schoolId: req.user!.schoolId });
     room.occupied += 1;
