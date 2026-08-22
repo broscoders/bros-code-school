@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Message from "../models/Message";
 import PTMSlot from "../models/PTMSlot";
@@ -88,11 +88,11 @@ export const getAllTeacherSlots = async (req: AuthRequest, res: Response) => {
 export const bookPTMSlot = async (req: AuthRequest, res: Response) => {
   try {
     const slot = await PTMSlot.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
+      { _id: req.params.id, schoolId: req.user!.schoolId, isBooked: false },
       { parentId: req.body.parentId, studentId: req.body.studentId, isBooked: true },
       { new: true }
     );
-    if (!slot) return res.status(404).json({ message: "Slot not found" });
+    if (!slot) return res.status(409).json({ message: "This slot was just booked by someone else. Please pick another time." });
     res.json(slot);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
