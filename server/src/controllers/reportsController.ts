@@ -21,6 +21,17 @@ export const getReportCardData = async (req: AuthRequest, res: Response) => {
     const presentCount = attendanceRecords.filter((a) => a.status === "PRESENT").length;
     const attendancePercent = attendanceRecords.length > 0 ? Math.round((presentCount / attendanceRecords.length) * 100) : 0;
 
+    const gradedResults = results.filter((r) => (r.examId as any)?.totalMarks);
+    const totalPossible = gradedResults.reduce((sum, r) => sum + ((r.examId as any)?.totalMarks || 0), 0);
+    const totalObtained = gradedResults.reduce((sum, r) => sum + (r.marksObtained || 0), 0);
+    const overallPercent = totalPossible > 0 ? Math.round((totalObtained / totalPossible) * 10000) / 100 : 0;
+    const passingThreshold = 40;
+    const failedSubjects = gradedResults.filter((r) => {
+      const pct = ((r.marksObtained || 0) / ((r.examId as any)?.totalMarks || 1)) * 100;
+      return pct < passingThreshold;
+    });
+    const overallStatus = gradedResults.length > 0 && failedSubjects.length === 0 ? "PASS" : gradedResults.length > 0 ? "FAIL" : "PENDING";
+
     res.json({
       school: { name: school?.name, logoUrl: school?.logoUrl },
       student: {
@@ -35,6 +46,13 @@ export const getReportCardData = async (req: AuthRequest, res: Response) => {
         marksObtained: r.marksObtained,
         grade: r.grade,
       })),
+      summary: {
+        totalPossible,
+        totalObtained,
+        overallPercent,
+        overallStatus,
+        failedSubjectCount: failedSubjects.length,
+      },
       attendancePercent,
     });
   } catch (err) {
