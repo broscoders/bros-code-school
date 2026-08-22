@@ -76,7 +76,23 @@ export const bulkMarkAttendance = async (req: AuthRequest, res: Response) => {
     if (ops.length === 0) return res.status(400).json({ message: "No valid students to mark" });
 
     await Attendance.bulkWrite(ops);
-    res.json({ marked: ops.length });
+
+    const absentOrLate = records.filter((r: any) => validIds.has(r.studentId) && (r.status === "ABSENT" || r.status === "LATE"));
+    for (const rec of absentOrLate) {
+      const student = await Student.findById(rec.studentId).populate("userId");
+      const parent = await Parent.findOne({ children: rec.studentId });
+      if (parent) {
+        await notify({
+          schoolId,
+          userId: parent.userId.toString(),
+          title: rec.status === "ABSENT" ? "Child marked absent" : "Child marked late",
+          message: `${(student?.userId as any)?.name || "Your child"} was marked ${rec.status.toLowerCase()} today.`,
+          category: "ATTENDANCE",
+        });
+      }
+    }
+
+    res.json({ marked: ops.length, parentsNotified: absentOrLate.length });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
