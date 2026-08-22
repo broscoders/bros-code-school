@@ -81,6 +81,7 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
       role: "STUDENT",
       schoolId,
       isEmailVerified: false,
+      mustChangePassword: true,
       verificationCode: studentCode,
       verificationCodeExpires: new Date(Date.now() + CODE_EXPIRY_MS),
     });
@@ -122,6 +123,7 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
         role: "PARENT",
         schoolId,
         isEmailVerified: false,
+        mustChangePassword: true,
         verificationCode: parentCode,
         verificationCodeExpires: new Date(Date.now() + CODE_EXPIRY_MS),
       });

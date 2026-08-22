@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
-import User from "../models/User";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
 import {
   sendMail,
@@ -41,6 +41,7 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
       role,
       schoolId,
       isEmailVerified: false,
+      mustChangePassword: true,
       verificationCode: code,
       verificationCodeExpires: new Date(Date.now() + CODE_EXPIRY_MS),
     });
@@ -92,6 +93,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
         schoolId: user.schoolId,
+        mustChangePassword: user.mustChangePassword,
       },
       token,
     });
@@ -195,6 +197,7 @@ export const loginUser = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
         schoolId: user.schoolId,
+        mustChangePassword: user.mustChangePassword,
       },
       token,
     });
@@ -250,11 +253,38 @@ export const googleLogin = async (req: Request, res: Response) => {
         email: user.email,
         role: user.role,
         schoolId: user.schoolId,
+        mustChangePassword: user.mustChangePassword,
       },
       token,
     });
   } catch (err) {
     res.status(500).json({ message: "Google sign-in failed", error: (err as Error).message });
+  }
+};
+
+export const changePassword = async (req: AuthRequest, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Current password and new password are required" });
+    }
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "New password must be at least 6 characters" });
+    }
+
+    const user = await User.findById(req.user!.userId).select("+password");
+    if (!user) return res.status(404).json({ message: "Account not found" });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(401).json({ message: "Current password is incorrect" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.mustChangePassword = false;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
 };
 
@@ -306,6 +336,7 @@ export const resetPassword = async (req: Request, res: Response) => {
     user.passwordResetExpires = undefined;
     user.failedLoginAttempts = 0;
     user.lockUntil = undefined;
+    user.mustChangePassword = false;
     await user.save();
 
     res.json({ message: "Password reset. You can now log in." });

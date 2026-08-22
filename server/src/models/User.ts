@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export type UserRole =
@@ -26,6 +26,7 @@ export interface IUser extends Document {
   schoolId: mongoose.Types.ObjectId;
   isActive: boolean;
   isEmailVerified: boolean;
+  mustChangePassword: boolean;
   verificationCode?: string;
   verificationCodeExpires?: Date;
   failedLoginAttempts: number;
@@ -65,6 +66,7 @@ const userSchema = new Schema<IUser>(
     schoolId: { type: Schema.Types.ObjectId, ref: "School", required: true },
     isActive: { type: Boolean, default: true },
     isEmailVerified: { type: Boolean, default: false },
+    mustChangePassword: { type: Boolean, default: false },
     verificationCode: { type: String, select: false },
     verificationCodeExpires: { type: Date, select: false },
     failedLoginAttempts: { type: Number, default: 0, select: false },

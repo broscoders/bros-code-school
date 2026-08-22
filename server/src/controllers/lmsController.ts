@@ -1,8 +1,9 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Course from "../models/Course";
 import Lesson from "../models/Lesson";
 import LessonProgress from "../models/LessonProgress";
+import Student from "../models/Student";
 
 export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
@@ -99,7 +100,10 @@ export const deleteLesson = async (req: AuthRequest, res: Response) => {
 
 export const markLessonProgress = async (req: AuthRequest, res: Response) => {
   try {
-    const { lessonId, courseId, studentId, status } = req.body;
+    const { lessonId, courseId, status } = req.body;
+    const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+    const studentId = myStudent._id.toString();
     const progress = await LessonProgress.findOneAndUpdate(
       { studentId, lessonId },
       {

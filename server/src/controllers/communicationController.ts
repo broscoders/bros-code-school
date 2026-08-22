@@ -2,6 +2,8 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Message from "../models/Message";
 import PTMSlot from "../models/PTMSlot";
+import Parent from "../models/Parent";
+import { canAccessStudent } from "../utils/accessControl";
 import LeaveRequest from "../models/LeaveRequest";
 import StudyMaterial from "../models/StudyMaterial";
 import Teacher from "../models/Teacher";
@@ -87,9 +89,19 @@ export const getAllTeacherSlots = async (req: AuthRequest, res: Response) => {
 
 export const bookPTMSlot = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.body.studentId);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to book on behalf of this student" });
+
+    let parentId = req.body.parentId;
+    if (req.user!.role === "PARENT") {
+      const myParent = await Parent.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!myParent) return res.status(403).json({ message: "Parent profile not found" });
+      parentId = myParent._id.toString();
+    }
+
     const slot = await PTMSlot.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId, isBooked: false },
-      { parentId: req.body.parentId, studentId: req.body.studentId, isBooked: true },
+      { parentId, studentId: req.body.studentId, isBooked: true },
       { new: true }
     );
     if (!slot) return res.status(409).json({ message: "This slot was just booked by someone else. Please pick another time." });

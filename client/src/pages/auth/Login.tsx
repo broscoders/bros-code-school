@@ -22,7 +22,11 @@ export default function Login() {
       .catch(() => {});
   }, []);
 
-  const redirectByRole = (role: string) => {
+  const redirectByRole = (role: string, mustChangePassword?: boolean) => {
+    if (mustChangePassword) {
+      navigate("/change-password-required");
+      return;
+    }
     if (role === "PARENT") navigate("/parent/dashboard");
     else if (role === "STUDENT") navigate("/student/dashboard");
     else if (role === "TEACHER" || role === "ACADEMY_TEACHER") navigate("/teacher/dashboard");
@@ -36,7 +40,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       login(res.data.user, res.data.token);
-      redirectByRole(res.data.user.role);
+      redirectByRole(res.data.user.role, res.data.user.mustChangePassword);
     } catch (err: any) {
       if (err.response?.data?.requiresVerification) {
         navigate("/verify-email", { state: { email: err.response.data.email || email } });
@@ -53,7 +57,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/google", { credential: credentialResponse.credential });
       login(res.data.user, res.data.token);
-      redirectByRole(res.data.user.role);
+      redirectByRole(res.data.user.role, res.data.user.mustChangePassword);
     } catch (err: any) {
       setError(err.response?.data?.message || "Google sign-in failed");
     }
@@ -81,7 +85,7 @@ export default function Login() {
       </div>
 
       <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
-        <h2 className="font-display text-2xl font-bold text-white mb-1">Welcome back 👋</h2>
+        <h2 className="font-display text-2xl font-bold text-white mb-1">Welcome back ðŸ‘‹</h2>
         <p className="text-white/50 text-xs mb-6">Sign in to access your dashboard</p>
 
         <form onSubmit={handleSubmit}>

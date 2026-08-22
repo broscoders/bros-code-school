@@ -1,7 +1,8 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Quiz from "../models/Quiz";
 import QuizAttempt from "../models/QuizAttempt";
+import Student from "../models/Student";
 
 export const createQuiz = async (req: AuthRequest, res: Response) => {
   try {
@@ -72,7 +73,11 @@ export const togglePublish = async (req: AuthRequest, res: Response) => {
 
 export const startAttempt = async (req: AuthRequest, res: Response) => {
   try {
-    const { quizId, studentId } = req.body;
+    const { quizId } = req.body;
+    const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+    const studentId = myStudent._id.toString();
+
     const quiz = await Quiz.findOne({ _id: quizId, schoolId: req.user!.schoolId, isPublished: true });
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
 

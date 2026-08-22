@@ -5,6 +5,7 @@ import {
   googleLogin,
   verifyEmail,
   resendVerificationCode,
+  changePassword,
   forgotPassword,
   resetPassword,
 } from "../controllers/authController";
@@ -18,6 +19,7 @@ router.post("/verify-email", verifyEmail);
 router.post("/resend-verification", resendVerificationCode);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.put("/change-password", protect, changePassword);
 
 router.post(
   "/register",

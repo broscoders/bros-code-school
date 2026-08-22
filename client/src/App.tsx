@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ChangePasswordRequired from "./pages/auth/ChangePasswordRequired";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/school/Dashboard";
 import Students from "./pages/school/Students";
@@ -112,6 +113,7 @@ function App() {
         </Route>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/change-password-required" element={<ChangePasswordRequired />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<RoleProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardLayout /></RoleProtectedRoute>}>
