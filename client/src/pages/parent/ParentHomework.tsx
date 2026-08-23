@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { ClipboardCheck } from "lucide-react";
 import { useChildStore } from "../../store/childStore";
 import ChildSwitcher from "../../components/ChildSwitcher";
 
@@ -26,7 +27,7 @@ export default function ParentHomework() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Monitoring</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Homework</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ClipboardCheck size={22} className="text-primary" />Homework</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
       <div className="space-y-3">
         {list.length === 0 && <p className="text-muted text-sm">No homework assigned yet.</p>}

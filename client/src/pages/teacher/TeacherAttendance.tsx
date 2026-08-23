@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { CalendarCheck } from "lucide-react";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 
 export default function TeacherAttendance() {
@@ -49,7 +50,7 @@ export default function TeacherAttendance() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Teaching</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Attendance</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><CalendarCheck size={22} className="text-primary" />Attendance</h1>
       <p className="text-muted mt-1 text-sm">Mark attendance for your assigned classes.</p>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">

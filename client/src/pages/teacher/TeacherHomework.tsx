@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { ClipboardCheck } from "lucide-react";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 
 export default function TeacherHomework() {
@@ -28,7 +29,7 @@ export default function TeacherHomework() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Teaching</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Homework</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ClipboardCheck size={22} className="text-primary" />Homework</h1>
       <p className="text-muted mt-1 text-sm">Assign homework to your classes.</p>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">

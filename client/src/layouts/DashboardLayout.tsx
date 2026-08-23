@@ -1,6 +1,7 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/authStore";
+import { useEffect, useRef } from "react";
 import api from "../services/api";
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
@@ -69,6 +70,12 @@ export default function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
+  const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
   const [school, setSchool] = useState<{ name: string; logoUrl?: string } | null>(null);
 
   useEffect(() => {
@@ -166,7 +173,7 @@ export default function DashboardLayout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto pb-20">
+        <main ref={mainRef} className="flex-1 overflow-y-auto pb-20">
           <Outlet />
           <AIChatWidget />
         </main>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { ShoppingBag } from "lucide-react";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 
 export default function StudentStore() {
@@ -32,7 +33,7 @@ export default function StudentStore() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Academy</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Notes Store</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShoppingBag size={22} className="text-primary" />Notes Store</h1>
       <p className="text-muted mt-1 text-sm">Browse and access study material from the academy.</p>
 
       <div className="grid grid-cols-2 gap-4 mt-6">
@@ -45,7 +46,7 @@ export default function StudentStore() {
                 <h3 className="font-display font-semibold text-primary-dark">{p.title}</h3>
                 <span className="text-xs font-semibold text-accent">{p.isFree ? "Free" : `Rs. ${p.price}`}</span>
               </div>
-              <p className="text-xs text-muted mt-1">{p.subjectName} {p.className && `· ${p.className}`}</p>
+              <p className="text-xs text-muted mt-1">{p.subjectName} {p.className && `Â· ${p.className}`}</p>
               {owned ? (
                 <a href={p.fileUrl} target="_blank" rel="noreferrer" className="text-primary text-xs underline mt-3 inline-block">Open Material</a>
               ) : (

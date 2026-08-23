@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { FileWarning } from "lucide-react";
 import { useChildStore } from "../../store/childStore";
 import ChildSwitcher from "../../components/ChildSwitcher";
 
@@ -46,7 +47,7 @@ export default function ParentLeave() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Requests</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leave Request</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileWarning size={22} className="text-primary" />Leave Request</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
 
       <form onSubmit={submit} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-3">

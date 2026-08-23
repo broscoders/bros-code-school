@@ -6,7 +6,7 @@ export default function TeacherClasses() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Teaching</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">My Classes</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Users size={22} className="text-primary" />My Classes</h1>
       <p className="text-muted mt-1 text-sm">Classes and subjects assigned to you.</p>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">

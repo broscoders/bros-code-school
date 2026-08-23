@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { CalendarCheck } from "lucide-react";
 import { useChildStore } from "../../store/childStore";
 import ChildSwitcher from "../../components/ChildSwitcher";
 
@@ -24,7 +25,7 @@ export default function ParentAttendance() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Monitoring</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Attendance</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><CalendarCheck size={22} className="text-primary" />Attendance</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
         <table className="w-full text-sm">

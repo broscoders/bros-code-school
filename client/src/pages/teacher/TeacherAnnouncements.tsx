@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Megaphone } from "lucide-react";
 
 export default function TeacherAnnouncements() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -13,7 +14,7 @@ export default function TeacherAnnouncements() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Communication</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Announcements</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Megaphone size={22} className="text-primary" />Announcements</h1>
       <div className="space-y-3 mt-6">
         {list.length === 0 && <p className="text-muted text-sm">No announcements yet.</p>}
         {list.map((a) => (
