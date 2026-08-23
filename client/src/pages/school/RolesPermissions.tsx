@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { Check, X } from "lucide-react";
+import { Check, X, Lock } from "lucide-react";
 
 const ACTIONS = ["view", "create", "edit", "delete"] as const;
 
@@ -41,7 +41,7 @@ export default function RolesPermissions() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Access Control</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Roles & Permissions</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Lock size={22} className="text-primary" />Roles &amp; Permissions</h1>
       <p className="text-muted mt-1 text-sm">Configure exactly what each role can view, create, edit, or delete.</p>
 
       <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 flex gap-2">

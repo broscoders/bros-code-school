@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { IdCard } from "lucide-react";
 
 export default function IDCards() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -28,7 +29,7 @@ export default function IDCards() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Identification</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">ID Card Generator</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><IdCard size={22} className="text-primary" />ID Card Generator</h1>
 
       <div className="flex gap-1 mt-6 border-b border-border">
         <button onClick={() => setTab("students")} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === "students" ? "border-primary text-ink" : "border-transparent text-muted"}`}>Students</button>

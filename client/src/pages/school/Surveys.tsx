@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { MessageSquareText } from "lucide-react";
 
 export default function Surveys() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -44,7 +45,7 @@ export default function Surveys() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Feedback</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Surveys & Feedback</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><MessageSquareText size={22} className="text-primary" />Surveys &amp; Feedback</h1>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 space-y-3">
         <input placeholder="Survey Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />

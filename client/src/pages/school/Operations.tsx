@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Settings2 } from "lucide-react";
 
 export default function Operations() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -74,7 +75,7 @@ export default function Operations() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Operations</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">School Operations</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Settings2 size={22} className="text-primary" />School Operations</h1>
       <p className="text-muted mt-1 text-sm">Library, transport, complaints and calendar in one place.</p>
 
       <div className="flex gap-1 mt-6 border-b border-border">
