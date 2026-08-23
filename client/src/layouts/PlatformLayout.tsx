@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Building2, LogOut } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { LayoutDashboard, Building2, LogOut, Menu, X } from "lucide-react";
 import { usePlatformAuthStore } from "../store/platformAuthStore";
-import { useEffect, useRef } from "react";
 
 const navItems = [
   { to: "/platform/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -14,9 +14,11 @@ export default function PlatformLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    setMobileOpen(false);
   }, [location.pathname]);
 
   const handleLogout = () => {
@@ -25,11 +27,15 @@ export default function PlatformLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-canvas">
-      <aside className="w-60 bg-surface border-r border-slate-800 flex flex-col">
-        <div className="p-5 border-b border-slate-800">
-          <p className="text-white font-bold text-sm">Platform Admin</p>
-          <p className="text-muted text-xs mt-0.5">{admin?.name}</p>
+    <div className="min-h-screen flex bg-slate-950">
+      {mobileOpen && <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-slate-900 border-r border-slate-800 flex flex-col transform transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <p className="text-white font-bold text-sm">Platform Admin</p>
+            <p className="text-slate-500 text-xs mt-0.5">{admin?.name}</p>
+          </div>
+          <button onClick={() => setMobileOpen(false)} className="lg:hidden text-slate-400 hover:text-white"><X size={20} /></button>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {navItems.map((item) => (
@@ -38,7 +44,7 @@ export default function PlatformLayout() {
               to={item.to}
               className={({ isActive }) =>
                 `flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  isActive ? "bg-warning-soft0/10 text-warning" : "text-muted hover:bg-surface-soft hover:text-white"
+                  isActive ? "bg-amber-500/10 text-amber-400" : "text-slate-400 hover:bg-slate-800 hover:text-white"
                 }`
               }
             >
@@ -48,15 +54,20 @@ export default function PlatformLayout() {
           ))}
         </nav>
         <div className="p-3 border-t border-slate-800">
-          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted hover:bg-surface-soft hover:text-white transition-colors w-full">
+          <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors w-full">
             <LogOut size={16} />
             Logout
           </button>
         </div>
       </aside>
-      <main ref={mainRef} className="flex-1 overflow-y-auto">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-14 border-b border-slate-800 flex items-center px-4 lg:hidden">
+          <button onClick={() => setMobileOpen(true)} className="text-slate-400 hover:text-white"><Menu size={22} /></button>
+        </header>
+        <main ref={mainRef} className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }
