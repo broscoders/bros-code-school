@@ -1,5 +1,6 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useEffect, useRef } from "react";
 import { useChildStore } from "../store/childStore";
 import { LayoutDashboard, CalendarCheck, ClipboardCheck, Award, Wallet, Megaphone, LogOut, MessageSquare, Users, FileWarning } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
@@ -17,6 +18,12 @@ const navItems = [
 ];
 
 export default function ParentLayout() {
+  const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
@@ -53,7 +60,7 @@ export default function ParentLayout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto">
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
         <Outlet />
         <AIChatWidget extraBody={{ studentId: selectedChildId }} />
       </main>

@@ -1,6 +1,7 @@
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { LayoutDashboard, Building2, LogOut } from "lucide-react";
 import { usePlatformAuthStore } from "../store/platformAuthStore";
+import { useEffect, useRef } from "react";
 
 const navItems = [
   { to: "/platform/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -11,6 +12,12 @@ export default function PlatformLayout() {
   const admin = usePlatformAuthStore((s) => s.admin);
   const logout = usePlatformAuthStore((s) => s.logout);
   const navigate = useNavigate();
+  const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -47,7 +54,7 @@ export default function PlatformLayout() {
           </button>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto">
+      <main ref={mainRef} className="flex-1 overflow-y-auto">
         <Outlet />
       </main>
     </div>
