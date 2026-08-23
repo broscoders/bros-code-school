@@ -8,6 +8,7 @@ import {
   createFeeStructure, createInvoice, getInvoices, payInvoice,
 } from "../controllers/academicOpsController";
 import { protect, requireRole } from "../middleware/authMiddleware";
+import { checkPermission } from "../middleware/checkPermission";
 import { TEACHING_STAFF, ACADEMIC_STAFF, FINANCE_STAFF, EVERYONE, ROLES } from "../middleware/permissions";
 
 const router = Router();
@@ -30,12 +31,12 @@ router.get("/exams", protect, requireRole(...EVERYONE), getExams);
 router.post("/results", protect, requireRole(...TEACHING_STAFF), enterResult);
 router.get("/results", protect, requireRole(...EVERYONE), getResults);
 router.get("/results/by-exam/:examId", protect, requireRole(...TEACHING_STAFF), getResultsByExam);
-router.put("/results/:examId/publish", protect, requireRole(...ACADEMIC_STAFF), publishResults);
+router.put("/results/:examId/publish", protect, requireRole(...ACADEMIC_STAFF), checkPermission("Exams", "edit"), publishResults);
 
 router.post("/fee-structures", protect, requireRole(...FINANCE_STAFF), createFeeStructure);
 router.post("/invoices", protect, requireRole(...FINANCE_STAFF), createInvoice);
 router.get("/invoices", protect, requireRole(...EVERYONE), getInvoices);
-router.put("/invoices/:id/pay", protect, requireRole(ROLES.PARENT, ...FINANCE_STAFF), payInvoice);
+router.put("/invoices/:id/pay", protect, requireRole(ROLES.PARENT, ...FINANCE_STAFF), checkPermission("Fees", "edit"), payInvoice);
 
 export default router;
 

@@ -1,8 +1,8 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Permission from "../models/Permission";
 
-const MODULES = ["Students", "Teachers", "Attendance", "Homework", "Exams", "Fees", "Admissions", "Academy", "Announcements", "Reports"];
+const MODULES = ["Students", "Teachers", "Attendance", "Homework", "Exams", "Fees", "Admissions", "Academy", "Announcements", "Reports", "Discipline"];
 
 const DEFAULT_ROLES: Record<string, Record<string, boolean>> = {
   SCHOOL_ADMIN: { view: true, create: true, edit: true, delete: true },
