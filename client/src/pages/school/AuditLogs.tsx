@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { ShieldCheck } from "lucide-react";
 
 export default function AuditLogs() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -13,7 +14,7 @@ export default function AuditLogs() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Security</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Audit Logs</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShieldCheck size={22} className="text-primary" />Audit Logs</h1>
       <p className="text-muted mt-1 text-sm">Track important actions across the system.</p>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">

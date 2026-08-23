@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Zap } from "lucide-react";
 
 const labels: Record<string, string> = {
   STUDENT_ABSENT: "Student marked absent",
@@ -61,7 +62,7 @@ export default function Automation() {
       <div className="flex justify-between items-center">
         <div>
           <p className="text-xs uppercase tracking-wider text-accent font-semibold">System</p>
-          <h1 className="font-display text-2xl font-bold text-ink mt-1">Automation Rules</h1>
+          <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Zap size={22} className="text-primary" />Automation Rules</h1>
           <p className="text-muted mt-1 text-sm">Turn automatic notifications on or off, and customize their wording.</p>
         </div>
         <button onClick={runNow} disabled={running} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors disabled:opacity-50">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { FolderOpen } from "lucide-react";
 import FileUpload from "../../components/FileUpload";
 
 const CATEGORIES = ["STUDENT", "PARENT", "TEACHER", "STAFF", "SCHOOL", "CONTRACT", "CERTIFICATE", "REPORT"];
@@ -52,7 +53,7 @@ export default function Documents() {
       <div className="flex justify-between items-center">
         <div>
           <p className="text-xs uppercase tracking-wider text-accent font-semibold">Records</p>
-          <h1 className="font-display text-2xl font-bold text-ink mt-1">Documents</h1>
+          <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FolderOpen size={22} className="text-primary" />Documents</h1>
           <p className="text-muted mt-1 text-sm">Central store for all school, staff, and student documents.</p>
         </div>
         <button onClick={() => setShowForm(!showForm)} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">

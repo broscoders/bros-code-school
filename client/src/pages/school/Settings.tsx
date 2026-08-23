@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Settings as SettingsIcon } from "lucide-react";
 import FileUpload from "../../components/FileUpload";
 
 export default function Settings() {
@@ -34,7 +35,7 @@ export default function Settings() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Configuration</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">School Settings</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><SettingsIcon size={22} className="text-primary" />School Settings</h1>
       <p className="text-muted mt-1 text-sm">Branding and contact information for your school.</p>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3 max-w-2xl">
