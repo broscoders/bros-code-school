@@ -1,7 +1,6 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/authStore";
-import { useEffect, useRef } from "react";
 import api from "../services/api";
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
@@ -9,6 +8,7 @@ import {
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
   Library, Bus, ShoppingCart, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
+  Menu, X,
 } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
@@ -72,11 +72,13 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [school, setSchool] = useState<{ name: string; logoUrl?: string } | null>(null);
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    setMobileOpen(false);
   }, [location.pathname]);
-  const [school, setSchool] = useState<{ name: string; logoUrl?: string } | null>(null);
 
   useEffect(() => {
     if (!user?.schoolId) return;
@@ -101,19 +103,35 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex min-h-screen bg-canvas">
-      <aside className="w-64 bg-surface border-r border-border flex flex-col">
-        <div className="p-5 flex items-center gap-3 border-b border-border">
-          {school?.logoUrl ? (
-            <img src={school.logoUrl} alt={schoolName} className="w-10 h-10 rounded-xl object-cover" />
-          ) : (
-            <div className="w-10 h-10 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shadow-[0_0_20px_-4px_rgba(30,159,224,0.6)]">
-              {initials}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 lg:translate-x-0 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="p-5 flex items-center justify-between gap-3 border-b border-border">
+          <div className="flex items-center gap-3 min-w-0">
+            {school?.logoUrl ? (
+              <img src={school.logoUrl} alt={schoolName} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shrink-0">
+                {initials}
+              </div>
+            )}
+            <div className="min-w-0">
+              <h1 className="font-display font-semibold text-sm leading-tight text-ink truncate">{schoolName}</h1>
+              <p className="text-[11px] text-muted tracking-wide">{user?.role}</p>
             </div>
-          )}
-          <div className="min-w-0">
-            <h1 className="font-display font-semibold text-sm leading-tight text-ink truncate">{schoolName}</h1>
-            <p className="text-[11px] text-muted tracking-wide">{user?.role}</p>
           </div>
+          <button onClick={() => setMobileOpen(false)} className="lg:hidden text-muted hover:text-ink shrink-0">
+            <X size={20} />
+          </button>
         </div>
         <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
           {navItems.map((item) => (
@@ -162,10 +180,13 @@ export default function DashboardLayout() {
           </button>
         </div>
       </aside>
-      <div className="flex-1 flex flex-col">
-        <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-6">
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 bg-surface border-b border-border flex items-center justify-between px-4 lg:px-6 gap-3">
+          <button onClick={() => setMobileOpen(true)} className="lg:hidden text-ink-soft hover:text-ink shrink-0">
+            <Menu size={22} />
+          </button>
           <GlobalSearch />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <ThemeToggle />
             <NotificationBell />
             <div className="w-8 h-8 rounded-full bg-[#1e9fe0]/15 text-[#1e9fe0] flex items-center justify-center font-display font-semibold text-xs">
