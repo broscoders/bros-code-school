@@ -8,6 +8,7 @@ export default function Academics() {
   const [classes, setClasses] = useState<any[]>([]);
   const [sections, setSections] = useState<any[]>([]);
   const [sessionForm, setSessionForm] = useState({ name: "", startDate: "", endDate: "" });
+  const [sessionMsg, setSessionMsg] = useState("");
   const [classForm, setClassForm] = useState({ sessionId: "", name: "", academicSystem: "" });
   const [sectionForm, setSectionForm] = useState({ classId: "", name: "", capacity: "" });
 
@@ -37,9 +38,14 @@ export default function Academics() {
 
   const addSession = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/academics/sessions", { ...sessionForm, schoolId });
-    setSessionForm({ name: "", startDate: "", endDate: "" });
-    load();
+    setSessionMsg("");
+    try {
+      await api.post("/academics/sessions", { ...sessionForm, schoolId });
+      setSessionForm({ name: "", startDate: "", endDate: "" });
+      load();
+    } catch (err: any) {
+      setSessionMsg(err.response?.data?.message || "Could not create session");
+    }
   };
 
   const addClass = async (e: React.FormEvent) => {
@@ -71,6 +77,7 @@ export default function Academics() {
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Academic Sessions</h2>
           <form onSubmit={addSession} className="space-y-2 mb-4">
+          {sessionMsg && <p className="text-xs text-danger">{sessionMsg}</p>}
             <input placeholder="Session Name (e.g. 2026-2027)" value={sessionForm.name} onChange={(e) => setSessionForm({ ...sessionForm, name: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
             <div className="flex gap-2">
               <input type="date" value={sessionForm.startDate} onChange={(e) => setSessionForm({ ...sessionForm, startDate: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />

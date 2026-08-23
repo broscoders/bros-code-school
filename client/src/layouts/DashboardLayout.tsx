@@ -7,7 +7,7 @@ import {
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
-  Library, Bus, ShoppingCart, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
+  Library as LibraryIcon, Bus, ShoppingCart, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
   Menu, X,
 } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
@@ -44,6 +44,8 @@ const navItems = [
   { to: "/certificates", label: "Certificates", icon: BadgeCheck },
   { to: "/id-cards", label: "ID Cards", icon: IdCard },
   { to: "/documents", label: "Documents", icon: FolderOpen },
+  { to: "/library", label: "Library", icon: LibraryIcon },
+  { to: "/transport", label: "Transport", icon: Bus },
   { to: "/automation", label: "Automation", icon: Zap },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
@@ -56,8 +58,6 @@ const navItems = [
 ];
 
 const comingSoonItems = [
-  { label: "Library", icon: Library },
-  { label: "Transport", icon: Bus },
   { label: "Procurement", icon: ShoppingCart },
   { label: "LMS", icon: LMSIcon },
   { label: "Online Exams", icon: MonitorCheck },

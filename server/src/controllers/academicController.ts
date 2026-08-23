@@ -9,6 +9,14 @@ import Student from "../models/Student";
 // Academic Session
 export const createSession = async (req: AuthRequest, res: Response) => {
   try {
+    const startDate = new Date(req.body.startDate);
+    const endDate = new Date(req.body.endDate);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return res.status(400).json({ message: "Please provide valid start and end dates" });
+    }
+    if (endDate <= startDate) {
+      return res.status(400).json({ message: "End date must be after the start date" });
+    }
     const session = await AcademicSession.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(session);
   } catch (err) {

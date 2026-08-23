@@ -11,6 +11,8 @@ import Parents from "./pages/school/Parents";
 import Academics from "./pages/school/Academics";
 import Timetable from "./pages/school/Timetable";
 import Documents from "./pages/school/Documents";
+import Library from "./pages/school/Library";
+import Transport from "./pages/school/Transport";
 import Automation from "./pages/school/Automation";
 import Fees from "./pages/school/Fees";
 import Announcements from "./pages/school/Announcements";
@@ -124,6 +126,8 @@ function App() {
           <Route path="/academics" element={<Academics />} />
           <Route path="/timetable" element={<Timetable />} />
           <Route path="/documents" element={<Documents />} />
+        <Route path="/library" element={<Library />} />
+        <Route path="/transport" element={<Transport />} />
           <Route path="/automation" element={<Automation />} />
           <Route path="/fees" element={<Fees />} />
           <Route path="/announcements" element={<Announcements />} />

@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import LibraryBook from "../models/LibraryBook";
 import LibraryTransaction from "../models/LibraryTransaction";
@@ -25,6 +25,7 @@ export const issueBook = async (req: AuthRequest, res: Response) => {
   try {
     const book = await LibraryBook.findOne({ _id: req.body.bookId, schoolId: req.user!.schoolId });
     if (!book) return res.status(404).json({ message: "Book not found" });
+    if (book.availableCopies <= 0) return res.status(400).json({ message: "No copies available to issue" });
 
     const record = await LibraryTransaction.create({ ...req.body, schoolId: req.user!.schoolId });
     book.availableCopies -= 1;

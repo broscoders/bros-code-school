@@ -11,6 +11,7 @@ export default function Hostel() {
   const [buildingForm, setBuildingForm] = useState({ name: "", type: "BOYS", wardenName: "" });
   const [roomForm, setRoomForm] = useState({ buildingId: "", roomNumber: "", capacity: "2" });
   const [allocForm, setAllocForm] = useState({ studentId: "", roomId: "", monthlyFee: "" });
+  const [allocMsg, setAllocMsg] = useState("");
 
   const loadBuildings = async () => {
     const res = await api.get(`/hostel/buildings?schoolId=${schoolId}`);
@@ -58,9 +59,18 @@ export default function Hostel() {
 
   const allocate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/hostel/allocate", { ...allocForm, schoolId, monthlyFee: Number(allocForm.monthlyFee) });
-    setAllocForm({ studentId: "", roomId: "", monthlyFee: "" });
-    loadAllocations();
+    setAllocMsg("");
+    try {
+      await api.post("/hostel/allocate", { ...allocForm, schoolId, monthlyFee: Number(allocForm.monthlyFee) });
+      setAllocForm({ studentId: "", roomId: "", monthlyFee: "" });
+      loadAllocations();
+      if (roomForm.buildingId) {
+        const res = await api.get(`/hostel/rooms?buildingId=${roomForm.buildingId}`);
+        setRooms(res.data);
+      }
+    } catch (err: any) {
+      setAllocMsg(err.response?.data?.message || "Could not allocate room");
+    }
   };
 
   return (
@@ -112,6 +122,7 @@ export default function Hostel() {
         <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3 text-sm">Allocate Student</h2>
           <form onSubmit={allocate} className="space-y-2 mb-3">
+            {allocMsg && <p className="text-xs text-danger">{allocMsg}</p>}
             <select value={allocForm.studentId} onChange={(e) => setAllocForm({ ...allocForm, studentId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>
               <option value="">Select Student</option>
               {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
