@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { ShieldAlert } from "lucide-react";
 
 export default function Discipline() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -36,7 +37,7 @@ export default function Discipline() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Behavior</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Discipline Management</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShieldAlert size={22} className="text-primary" />Discipline Management</h1>
       <p className="text-muted mt-1 text-sm">Record and track student discipline incidents.</p>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">

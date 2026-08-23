@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Users } from "lucide-react";
 
 export default function HRManagement() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -74,7 +75,7 @@ export default function HRManagement() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">HR</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Staff & HR Management</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Users size={22} className="text-primary" />Staff &amp; HR Management</h1>
       <p className="text-muted mt-1 text-sm">Manage departments and employee profiles.</p>
 
       <div className="grid grid-cols-2 gap-6 mt-6">

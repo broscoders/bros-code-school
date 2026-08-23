@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { AlertTriangle } from "lucide-react";
 
 const statusFlow = ["REPORTED", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "CLOSED"];
 const statusColors: Record<string, string> = {
@@ -44,7 +45,7 @@ export default function Maintenance() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Facilities</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Maintenance Tickets</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><AlertTriangle size={22} className="text-primary" />Maintenance Tickets</h1>
       <p className="text-muted mt-1 text-sm">Report and track facility/equipment issues.</p>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">

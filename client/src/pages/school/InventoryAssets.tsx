@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { Boxes } from "lucide-react";
 
 export default function InventoryAssets() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -88,7 +89,7 @@ export default function InventoryAssets() {
   return (
     <div className="p-8">
       <p className="text-xs uppercase tracking-wider text-accent font-semibold">Resources</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Inventory & Assets</h1>
+      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />Inventory &amp; Assets</h1>
       <p className="text-muted mt-1 text-sm">Track stock, equipment and vendors.</p>
 
       <div className="flex gap-1 mt-6 border-b border-border">
