@@ -146,7 +146,6 @@ export default function Students() {
       <button onClick={() => setShowPromoteModal(true)} className="mb-4 bg-primary/10 text-primary text-sm px-4 py-2 rounded-lg font-medium hover:bg-primary/20 transition-colors">
         Promote / Graduate Students
       </button>
-      </div>
 
       <div className="flex justify-between items-center">
         <div>
@@ -258,7 +257,7 @@ export default function Students() {
           </div>
         </div>
       )}
-          {showPromoteModal && <PromoteStudentsModal schoolId={schoolId} onClose={() => setShowPromoteModal(false)} />}
+      {showPromoteModal && <PromoteStudentsModal schoolId={schoolId} onClose={() => setShowPromoteModal(false)} />}
     </div>
   );
 }
