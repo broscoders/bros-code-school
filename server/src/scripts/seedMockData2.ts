@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import User from "../models/User";
+import User, { type UserRole } from "../models/User";
 import School from "../models/School";
 import Student from "../models/Student";
 import Teacher from "../models/Teacher";
@@ -19,7 +19,7 @@ dotenv.config();
 const PASSWORD = "Test@123";
 const SCHOOL_ID = "6a7a34b8f4bf247132b2fe3e";
 
-async function ensureUser(name: string, email: string, role: string, schoolId: mongoose.Types.ObjectId) {
+async function ensureUser(name: string, email: string, role: UserRole, schoolId: mongoose.Types.ObjectId) {
   let user = await User.findOne({ email });
   if (user) return user;
   const hashed = await bcrypt.hash(PASSWORD, 10);
@@ -55,7 +55,9 @@ const run = async () => {
   }
 
   console.log("Creating HR staff profiles (Accountant, Librarian, Receptionist)...");
-  const staffData = [
+  // Explicitly typed so `role` is UserRole, not a widened `string` — this is
+  // what was causing the TS2345 error when passed into ensureUser().
+  const staffData: { name: string; email: string; role: UserRole; designation: string; salary: number }[] = [
     { name: "Bilal Accountant", email: "bilal.accountant.demo@test.com", role: "ACCOUNTANT", designation: "Accountant", salary: 45000 },
     { name: "Nadia Librarian", email: "nadia.librarian.demo@test.com", role: "LIBRARIAN", designation: "Librarian", salary: 35000 },
     { name: "Faisal Reception", email: "faisal.reception.demo@test.com", role: "RECEPTIONIST", designation: "Receptionist", salary: 30000 },

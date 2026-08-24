@@ -49,7 +49,7 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
 
 export const getStudentById = async (req: AuthRequest, res: Response) => {
   try {
-    const allowed = await canAccessStudent(req, req.params.id);
+    const allowed = await canAccessStudent(req, String(req.params.id));
     if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
 
     const student = await Student.findOne({ _id: req.params.id, schoolId: req.user!.schoolId }).populate("userId classId sectionId parentId classHistory.classId classHistory.sectionId");

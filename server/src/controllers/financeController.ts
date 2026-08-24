@@ -4,7 +4,6 @@ import Discount from "../models/Discount";
 import Refund from "../models/Refund";
 import Invoice from "../models/Invoice";
 import Expense from "../models/Expense";
-import Invoice from "../models/Invoice";
 
 export const createDiscount = async (req: AuthRequest, res: Response) => {
   try {

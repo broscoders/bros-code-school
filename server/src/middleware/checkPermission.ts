@@ -20,9 +20,7 @@ export function checkPermission(moduleName: string, action: "view" | "create" | 
       const permission = await Permission.findOne({ schoolId: req.user!.schoolId, roleName: role });
       if (!permission) return next();
 
-      const moduleAccess = permission.modules?.get
-        ? permission.modules.get(moduleName)
-        : (permission.modules as any)?.[moduleName];
+      const moduleAccess = permission.modules?.get(moduleName);
 
       if (!moduleAccess) return next();
 

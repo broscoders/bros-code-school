@@ -1,6 +1,6 @@
 ﻿import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
-import AutomationRule from "../models/AutomationRule";
+import AutomationRule, { type AutomationTrigger } from "../models/AutomationRule";
 import Invoice from "../models/Invoice";
 import Exam from "../models/Exam";
 import Assignment from "../models/Assignment";
@@ -8,7 +8,9 @@ import Student from "../models/Student";
 import Parent from "../models/Parent";
 import { notify } from "../utils/notifier";
 
-const DEFAULT_RULES: { triggerEvent: string; messageTemplate: string }[] = [
+type NotifyCategory = "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION";
+
+const DEFAULT_RULES: { triggerEvent: AutomationTrigger; messageTemplate: string }[] = [
   { triggerEvent: "STUDENT_ABSENT", messageTemplate: "{studentName} was marked absent today." },
   { triggerEvent: "FEE_DUE_SOON", messageTemplate: "A fee payment of Rs. {amount} for {studentName} is due on {dueDate}." },
   { triggerEvent: "FEE_OVERDUE", messageTemplate: "A fee payment of Rs. {amount} for {studentName} is now overdue. Please pay as soon as possible." },
@@ -53,7 +55,7 @@ export const updateRule = async (req: AuthRequest, res: Response) => {
 };
 
 const fillTemplate = (template: string, values: Record<string, string>) =>
-  Object.entries(values).reduce((msg, [key, val]) => msg.replaceAll(`{${key}}`, val), template);
+  Object.entries(values).reduce((msg, [key, val]) => msg.split(`{${key}}`).join(val), template);
 
 export const runDueReminders = async (req: AuthRequest, res: Response) => {
   try {
@@ -66,7 +68,7 @@ export const runDueReminders = async (req: AuthRequest, res: Response) => {
     const soon = new Date();
     soon.setDate(soon.getDate() + 3);
 
-    const notifyParentOfStudent = async (studentId: any, title: string, message: string, category: string) => {
+    const notifyParentOfStudent = async (studentId: any, title: string, message: string, category: NotifyCategory) => {
       const parent = await Parent.findOne({ children: studentId }).populate("userId");
       if (parent && (parent.userId as any)?._id) {
         await notify({ schoolId, userId: (parent.userId as any)._id.toString(), title, message, category });

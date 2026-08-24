@@ -12,7 +12,7 @@ export interface IPermission extends Document {
   schoolId: mongoose.Types.ObjectId;
   roleName: string;
   isCustom: boolean;
-  modules: Record<string, IModulePermission>;
+  modules: Map<string, IModulePermission>;
 }
 
 const modulePermSchema = new Schema<IModulePermission>(

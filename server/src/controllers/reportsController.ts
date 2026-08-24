@@ -8,7 +8,7 @@ import { canAccessStudent } from "../utils/accessControl";
 
 export const getReportCardData = async (req: AuthRequest, res: Response) => {
   try {
-    const allowed = await canAccessStudent(req, req.params.studentId);
+    const allowed = await canAccessStudent(req, String(req.params.studentId));
     if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
 
     const student = await Student.findOne({ _id: req.params.studentId, schoolId: req.user!.schoolId }).populate("userId classId sectionId");

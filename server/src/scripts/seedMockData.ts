@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import User from "../models/User";
+import User, { type UserRole } from "../models/User";
 import School from "../models/School";
 import AcademicSession from "../models/AcademicSession";
 import ClassModel from "../models/ClassModel";
@@ -24,7 +24,7 @@ dotenv.config();
 const PASSWORD = "Test@123";
 const SCHOOL_ID = "6a7a34b8f4bf247132b2fe3e";
 
-async function ensureUser(name: string, email: string, role: string, schoolId: mongoose.Types.ObjectId) {
+async function ensureUser(name: string, email: string, role: UserRole, schoolId: mongoose.Types.ObjectId) {
   let user = await User.findOne({ email });
   if (user) return user;
   const hashed = await bcrypt.hash(PASSWORD, 10);
@@ -159,7 +159,7 @@ const run = async () => {
   }
 
   console.log("Creating fee invoices (mixed statuses)...");
-  const feeStatusCycle = ["PAID", "PARTIAL", "PENDING", "OVERDUE"];
+  const feeStatusCycle = ["PAID", "PARTIAL", "PENDING", "OVERDUE"] as const;
   for (let i = 0; i < allStudents.length; i++) {
     const { studentDoc } = allStudents[i];
     const amount = 15000;
@@ -168,7 +168,7 @@ const run = async () => {
     if (existing) continue;
 
     let paidAmount = 0;
-    let status = statusPick;
+    let status: typeof feeStatusCycle[number] = statusPick;
     let dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 15);
 
@@ -236,7 +236,7 @@ const run = async () => {
       if (existingResult) continue;
       const marks = 55 + Math.floor(Math.random() * 40);
       const grade = marks >= 90 ? "A+" : marks >= 80 ? "A" : marks >= 70 ? "B" : marks >= 60 ? "C" : "D";
-      await Result.create({ schoolId, examId: exam._id, studentId: studentDoc._id, marksObtained: marks, grade, isPublished: true });
+      await Result.create({ examId: exam._id, studentId: studentDoc._id, marksObtained: marks, grade, isPublished: true });
     }
   }
 
@@ -306,7 +306,7 @@ const run = async () => {
     { applicantName: "Zara Ahmed", parentName: "Ahmed Sheikh", parentContact: "0300-1111111", status: "APPLICATION" },
     { applicantName: "Danish Iqbal", parentName: "Iqbal Rehman", parentContact: "0300-2222222", status: "REVIEW" },
     { applicantName: "Sana Tariq", parentName: "Tariq Mehmood", parentContact: "0300-3333333", status: "APPROVED" },
-  ];
+  ] as const;
   const grade9Class = classData["Grade 9"].cls;
   for (const a of admissionSamples) {
     const exists = await Admission.findOne({ schoolId, applicantName: a.applicantName });

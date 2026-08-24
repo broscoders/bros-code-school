@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
-import User from "../models/User";
+import User, { type UserRole } from "../models/User";
 import School from "../models/School";
 import AcademicSession from "../models/AcademicSession";
 import ClassModel from "../models/ClassModel";
@@ -17,7 +17,7 @@ dotenv.config();
 const TEST_PASSWORD = "Test@123";
 const SCHOOL_ID = "6a7a34b8f4bf247132b2fe3e";
 
-async function upsertVerifiedFalseUser(name: string, email: string, role: string, schoolId: mongoose.Types.ObjectId) {
+async function upsertVerifiedFalseUser(name: string, email: string, role: UserRole, schoolId: mongoose.Types.ObjectId) {
   await User.findOneAndDelete({ email });
   const hashedPassword = await bcrypt.hash(TEST_PASSWORD, 10);
   const code = generateSixDigitCode();

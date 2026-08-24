@@ -20,11 +20,13 @@ export const ROLES = {
   STUDENT: "STUDENT",
 } as const;
 
-// Top-level management: can do anything any sub-role can do, in every module.
-export const TOP_ADMIN = [ROLES.SCHOOL_ADMIN, ROLES.PRINCIPAL];
+// Top-level management.
+export const TOP_ADMIN = [
+  ROLES.SCHOOL_ADMIN,
+  ROLES.PRINCIPAL,
+];
 
-// Every kind of school-office staff member (used for things every admin sub-role
-// should see), but NOT teachers/parents/students.
+// Every kind of school-office staff member.
 export const ANY_ADMIN_STAFF = [
   ROLES.SCHOOL_ADMIN,
   ROLES.PRINCIPAL,
@@ -39,42 +41,90 @@ export const ANY_ADMIN_STAFF = [
   ROLES.HOSTEL_WARDEN,
 ];
 
-// Academic structure: sessions, classes, sections, subjects, exams, results.
-export const ACADEMIC_STAFF = [...TOP_ADMIN, ROLES.HEAD, ROLES.ACADEMIC_COORDINATOR];
+// Academic structure.
+export const ACADEMIC_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.HEAD,
+  ROLES.ACADEMIC_COORDINATOR,
+];
 
-// Anyone who actually teaches (marks attendance, sets homework, enters marks).
-export const TEACHING_STAFF = [...TOP_ADMIN, ROLES.HEAD, ROLES.ACADEMIC_COORDINATOR, ROLES.TEACHER, ROLES.ACADEMY_TEACHER];
+// Teaching staff.
+export const TEACHING_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.HEAD,
+  ROLES.ACADEMIC_COORDINATOR,
+  ROLES.TEACHER,
+  ROLES.ACADEMY_TEACHER,
+];
 
-// Admissions pipeline (new student admissions + front-desk enquiries).
-export const ADMISSIONS_STAFF = [...TOP_ADMIN, ROLES.ADMISSION_STAFF, ROLES.RECEPTIONIST];
+// Admissions.
+export const ADMISSIONS_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.ADMISSION_STAFF,
+  ROLES.RECEPTIONIST,
+];
 
-// Fees, invoices, payments.
-export const FINANCE_STAFF = [...TOP_ADMIN, ROLES.ACCOUNTANT];
+// Finance.
+export const FINANCE_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.ACCOUNTANT,
+];
 
 // Library.
-export const LIBRARY_STAFF = [...TOP_ADMIN, ROLES.LIBRARIAN];
+export const LIBRARY_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.LIBRARIAN,
+];
 
-// Transport / vehicles.
-export const TRANSPORT_STAFF = [...TOP_ADMIN, ROLES.TRANSPORT_MANAGER];
+// Transport.
+export const TRANSPORT_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.TRANSPORT_MANAGER,
+];
 
-// Front desk: complaints, general enquiries, visitor-facing tasks.
-export const FRONT_DESK_STAFF = [...TOP_ADMIN, ROLES.RECEPTIONIST, ROLES.HEAD];
+// Front desk.
+export const FRONT_DESK_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.RECEPTIONIST,
+  ROLES.HEAD,
+];
 
-// Health records, medical incidents, visitor check-in.
-export const MEDICAL_STAFF = [...TOP_ADMIN, ROLES.HEAD, ROLES.NURSE];
+// Health.
+export const MEDICAL_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.HEAD,
+  ROLES.NURSE,
+];
 
-// Hostel buildings, rooms, allocations.
-export const HOSTEL_STAFF = [...TOP_ADMIN, ROLES.HEAD, ROLES.HOSTEL_WARDEN];
+// Hostel.
+export const HOSTEL_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.HEAD,
+  ROLES.HOSTEL_WARDEN,
+];
 
-// HR records + payroll (salary data - kept tight, top management only).
-export const HR_MANAGERS = [...TOP_ADMIN, ROLES.HEAD];
+// HR.
+export const HR_MANAGERS = [
+  ...TOP_ADMIN,
+  ROLES.HEAD,
+];
 
-// Paid academy programs/batches/enrollments/store.
-export const ACADEMY_STAFF = [...TOP_ADMIN, ROLES.ACADEMY_TEACHER];
+// Academy.
+export const ACADEMY_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.ACADEMY_TEACHER,
+];
 
-// Every logged-in staff/teacher role (no parents/students).
-export const ALL_STAFF_AND_TEACHERS = [...ANY_ADMIN_STAFF, ROLES.TEACHER, ROLES.ACADEMY_TEACHER];
+// All staff and teachers.
+export const ALL_STAFF_AND_TEACHERS = [
+  ...ANY_ADMIN_STAFF,
+  ROLES.TEACHER,
+  ROLES.ACADEMY_TEACHER,
+];
 
-// Every role in the system. Used for read endpoints that any logged-in school
-// member (including parents/students) should be able to reach.
-export const EVERYONE = [...ALL_STAFF_AND_TEACHERS, ROLES.PARENT, ROLES.STUDENT];
+// Every role.
+export const EVERYONE = [
+  ...ALL_STAFF_AND_TEACHERS,
+  ROLES.PARENT,
+  ROLES.STUDENT,
+];
