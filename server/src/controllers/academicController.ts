@@ -36,6 +36,9 @@ export const getSessions = async (req: AuthRequest, res: Response) => {
 // Class
 export const createClass = async (req: AuthRequest, res: Response) => {
   try {
+    const existing = await ClassModel.findOne({ schoolId: req.user!.schoolId, sessionId: req.body.sessionId, name: req.body.name });
+    if (existing) return res.status(400).json({ message: `A class named "${req.body.name}" already exists in this session` });
+
     const newClass = await ClassModel.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(newClass);
   } catch (err) {
@@ -55,6 +58,9 @@ export const getClasses = async (req: AuthRequest, res: Response) => {
 // Section
 export const createSection = async (req: AuthRequest, res: Response) => {
   try {
+    const existing = await Section.findOne({ schoolId: req.user!.schoolId, classId: req.body.classId, name: req.body.name });
+    if (existing) return res.status(400).json({ message: `Section "${req.body.name}" already exists in this class` });
+
     const section = await Section.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(section);
   } catch (err) {

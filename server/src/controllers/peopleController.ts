@@ -63,7 +63,7 @@ export const getStudentById = async (req: AuthRequest, res: Response) => {
 export const updateStudentStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { status, reason } = req.body;
-    const validStatuses = ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI"];
+    const validStatuses = ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI", "ARCHIVED"];
     if (!validStatuses.includes(status)) return res.status(400).json({ message: "Invalid status" });
 
     const student = await Student.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });

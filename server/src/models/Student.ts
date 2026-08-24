@@ -1,7 +1,7 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
-export type StudentStatus = "ACTIVE" | "ON_LEAVE" | "SUSPENDED" | "TRANSFERRED" | "WITHDRAWN" | "GRADUATED" | "ALUMNI";
+export type StudentStatus = "ACTIVE" | "ON_LEAVE" | "SUSPENDED" | "TRANSFERRED" | "WITHDRAWN" | "GRADUATED" | "ALUMNI" | "ARCHIVED";
 
 export interface IClassTransferRecord {
   classId: mongoose.Types.ObjectId;
@@ -53,7 +53,7 @@ const studentSchema = new Schema<IStudent>(
     admissionDate: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI"],
+      enum: ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI", "ARCHIVED"],
       default: "ACTIVE",
     },
     statusReason: { type: String },

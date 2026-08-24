@@ -385,6 +385,51 @@ export const createInvoice = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const bulkCreateInvoices = async (req: AuthRequest, res: Response) => {
+  try {
+    const schoolId = req.user!.schoolId;
+    const { classId, sectionId, feeType, amount, dueDate } = req.body;
+
+    if (!classId || !feeType || !amount || !dueDate) {
+      return res.status(400).json({ message: "classId, feeType, amount and dueDate are required" });
+    }
+
+    const filter: Record<string, any> = { schoolId, classId, status: "ACTIVE" };
+    if (sectionId) filter.sectionId = sectionId;
+    const students = await Student.find(filter);
+
+    if (students.length === 0) {
+      return res.status(400).json({ message: "No active students found for this class/section" });
+    }
+
+    let created = 0;
+    let skipped = 0;
+    for (const student of students) {
+      const existing = await Invoice.findOne({ schoolId, studentId: student._id, feeType, status: { $ne: "CANCELLED" } });
+      if (existing) {
+        skipped++;
+        continue;
+      }
+      await Invoice.create({ schoolId, studentId: student._id, feeType, amount, dueDate });
+      const parent = await Parent.findOne({ children: student._id }).populate("userId");
+      if (parent && (parent.userId as any)?._id) {
+        await notify({
+          schoolId,
+          userId: (parent.userId as any)._id.toString(),
+          title: "New fee invoice",
+          message: `A new ${feeType} invoice of Rs. ${amount} has been generated.`,
+          category: "FINANCE",
+        });
+      }
+      created++;
+    }
+
+    res.status(201).json({ message: `Created ${created} invoice(s). ${skipped} student(s) already had this fee type invoiced.`, created, skipped });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const getInvoices = async (req: AuthRequest, res: Response) => {
   try {
     const invoices = await Invoice.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string });
