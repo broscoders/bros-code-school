@@ -11,6 +11,7 @@ import Invoice from "../models/Invoice";
 import Student from "../models/Student";
 import Section from "../models/Section";
 import Parent from "../models/Parent";
+import Discount from "../models/Discount";
 import { canAccessStudent } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
 import { notify } from "../utils/notifier";
@@ -365,7 +366,26 @@ export const createFeeStructure = async (req: AuthRequest, res: Response) => {
 
 export const createInvoice = async (req: AuthRequest, res: Response) => {
   try {
-    const invoice = await Invoice.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    let finalAmount = Number(req.body.amount);
+    const activeDiscount = await Discount.findOne({ schoolId, studentId: req.body.studentId, status: "APPROVED", isActive: true });
+    let originalAmount: number | undefined;
+    if (activeDiscount) {
+      originalAmount = finalAmount;
+      if (activeDiscount.percentage) {
+        finalAmount = Math.round(finalAmount * (1 - activeDiscount.percentage / 100));
+      } else if (activeDiscount.fixedAmount) {
+        finalAmount = Math.max(0, finalAmount - activeDiscount.fixedAmount);
+      }
+    }
+
+    const invoice = await Invoice.create({
+      ...req.body,
+      schoolId,
+      amount: finalAmount,
+      originalAmount,
+      discountApplied: activeDiscount ? activeDiscount._id : undefined,
+    });
 
     const student = await Student.findById(req.body.studentId);
     const parent = await Parent.findOne({ children: req.body.studentId }).populate("userId");

@@ -1,7 +1,8 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Discount from "../models/Discount";
 import Refund from "../models/Refund";
+import Invoice from "../models/Invoice";
 import Expense from "../models/Expense";
 import Invoice from "../models/Invoice";
 
@@ -66,6 +67,16 @@ export const updateRefundStatus = async (req: AuthRequest, res: Response) => {
       { new: true }
     );
     if (!refund) return res.status(404).json({ message: "Refund not found" });
+
+    if (req.body.status === "APPROVED" && refund.invoiceId) {
+      const invoice = await Invoice.findOne({ _id: refund.invoiceId, schoolId: req.user!.schoolId });
+      if (invoice) {
+        invoice.paidAmount = Math.max(0, (invoice.paidAmount || 0) - refund.amount);
+        invoice.status = invoice.paidAmount >= invoice.amount ? "PAID" : invoice.paidAmount > 0 ? "PARTIAL" : "PENDING";
+        await invoice.save();
+      }
+    }
+
     res.json(refund);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

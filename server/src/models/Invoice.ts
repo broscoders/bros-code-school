@@ -10,6 +10,8 @@ export interface IInvoice extends Document {
   status: "PENDING" | "PARTIAL" | "PAID" | "OVERDUE" | "CANCELLED";
   paidDate?: Date;
   paidAmount?: number;
+  originalAmount?: number;
+  discountApplied?: mongoose.Types.ObjectId;
 }
 
 const invoiceSchema = new Schema<IInvoice>(
@@ -22,6 +24,8 @@ const invoiceSchema = new Schema<IInvoice>(
     status: { type: String, enum: ["PENDING", "PARTIAL", "PAID", "OVERDUE", "CANCELLED"], default: "PENDING" },
     paidDate: { type: Date },
     paidAmount: { type: Number },
+    originalAmount: { type: Number },
+    discountApplied: { type: Schema.Types.ObjectId, ref: "Discount" },
   },
   { timestamps: true }
 );

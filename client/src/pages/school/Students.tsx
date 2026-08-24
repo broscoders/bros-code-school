@@ -32,6 +32,9 @@ export default function Students() {
   const [statusFilter, setStatusFilter] = useState("ACTIVE");
   const [managingStudent, setManagingStudent] = useState<any>(null);
   const [statusForm, setStatusForm] = useState({ status: "ACTIVE", reason: "" });
+  const [filterClassId, setFilterClassId] = useState("");
+  const [filterSectionId, setFilterSectionId] = useState("");
+  const [filterSections, setFilterSections] = useState<any[]>([]);
 
   const loadStudents = async (status = statusFilter) => {
     const res = await api.get(`/people/students?schoolId=${schoolId}&status=${status}`);
@@ -57,6 +60,21 @@ export default function Students() {
       setSections([]);
     }
   }, [form.classId]);
+
+  useEffect(() => {
+    if (filterClassId) {
+      api.get(`/academics/sections?classId=${filterClassId}`).then((res) => setFilterSections(res.data));
+    } else {
+      setFilterSections([]);
+    }
+    setFilterSectionId("");
+  }, [filterClassId]);
+
+  const filteredStudents = students.filter((s) => {
+    if (filterClassId && (s.classId?._id || s.classId) !== filterClassId) return false;
+    if (filterSectionId && (s.sectionId?._id || s.sectionId) !== filterSectionId) return false;
+    return true;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
