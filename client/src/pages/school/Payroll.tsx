@@ -40,15 +40,34 @@ export default function Payroll() {
       <p className="text-muted mt-1 text-sm">Generate and track staff salary payments.</p>
 
       <form onSubmit={generate} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-3 gap-3">
-        <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-3" required>
-          <option value="">Select Staff</option>
-          {staff.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} - {s.designation}</option>)}
-        </select>
-        <input placeholder="Month (e.g. August)" value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
-        <input type="number" placeholder="Year" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
-        <input type="number" placeholder="Allowances" value={form.allowances} onChange={(e) => setForm({ ...form, allowances: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
-        <input type="number" placeholder="Deductions" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
-        <input type="number" placeholder="Bonus" value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
+        <div className="col-span-3">
+          <label className="block text-xs text-muted mb-1">Staff Member</label>
+          <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="w-full" required>
+            <option value="">Select Staff</option>
+            {staff.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} - {s.designation}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Month</label>
+          <input placeholder="e.g. August" value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="w-full" required />
+        </div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Year</label>
+          <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} className="w-full" required />
+        </div>
+        <div></div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Allowances (Rs.)</label>
+          <input type="number" value={form.allowances} onChange={(e) => setForm({ ...form, allowances: e.target.value })} className="w-full" />
+        </div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Deductions (Rs.)</label>
+          <input type="number" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} className="w-full" />
+        </div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Bonus (Rs.)</label>
+          <input type="number" value={form.bonus} onChange={(e) => setForm({ ...form, bonus: e.target.value })} className="w-full" />
+        </div>
         <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-3 hover:bg-primary-dark transition-colors">+ Generate Payslip</button>
       </form>
 

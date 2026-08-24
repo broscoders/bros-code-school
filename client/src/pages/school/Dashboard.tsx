@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../../store/authStore";
+import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import {
   Users, GraduationCap, ClipboardList, Bell, TrendingUp,
@@ -36,6 +37,7 @@ const admissionFunnel = [
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
   const [counts, setCounts] = useState({ students: 0, teachers: 0, admissions: 0, announcements: 0 });
   const [events, setEvents] = useState<any[]>([]);
   const [activity, setActivity] = useState<any[]>([]);
@@ -199,18 +201,10 @@ export default function Dashboard() {
       <div className="bg-surface rounded-2xl border border-border p-5 mt-6">
         <h2 className="font-display font-semibold text-ink mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <button className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors">
-            <UserPlus size={16} /> Add Student
-          </button>
-          <button className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors">
-            <ClipboardList size={16} /> New Admission
-          </button>
-          <button className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors">
-            <ClipboardCheck size={16} /> Mark Attendance
-          </button>
-          <button className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors">
-            <CheckSquare size={16} /> Create Notice
-          </button>
+          <button onClick={() => navigate("/students")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><UserPlus size={16} /> Add Student</button>
+          <button onClick={() => navigate("/admissions")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><ClipboardList size={16} /> New Admission</button>
+          <button onClick={() => navigate("/attendance")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><ClipboardCheck size={16} /> Mark Attendance</button>
+          <button onClick={() => navigate("/announcements")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><CheckSquare size={16} /> Create Notice</button>
         </div>
       </div>
     </div>
