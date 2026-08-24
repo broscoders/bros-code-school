@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
+import { ClipboardCheck } from "lucide-react";
 
 export default function StudentHomework() {
   const student = useMyStudentRecord();

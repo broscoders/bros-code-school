@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 import FileUpload from "../../components/FileUpload";
+import { BookOpen } from "lucide-react";
 
 export default function TeacherCourses() {
   const teacher = useMyTeacherRecord();

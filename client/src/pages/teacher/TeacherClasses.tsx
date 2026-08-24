@@ -1,4 +1,5 @@
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
+import { Users } from "lucide-react";
 
 export default function TeacherClasses() {
   const teacher = useMyTeacherRecord();

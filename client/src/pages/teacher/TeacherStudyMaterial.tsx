@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 import FileUpload from "../../components/FileUpload";
+import { FolderOpen } from "lucide-react";
 
 export default function TeacherStudyMaterial() {
   const teacher = useMyTeacherRecord();

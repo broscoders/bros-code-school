@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
+import { Boxes } from "lucide-react";
 
 export default function TeacherAcademy() {
   const teacher = useMyTeacherRecord();
