@@ -188,7 +188,16 @@ export default function Students() {
         </form>
       )}
 
-      <div className="flex gap-2 mt-6 flex-wrap">
+      <div className="flex gap-2 mt-6 flex-wrap items-center">
+        <select value={filterClassId} onChange={(e) => setFilterClassId(e.target.value)} className="text-sm">
+          <option value="">All Classes</option>
+          {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+        </select>
+        <select value={filterSectionId} onChange={(e) => setFilterSectionId(e.target.value)} className="text-sm" disabled={!filterClassId}>
+          <option value="">All Sections</option>
+          {filterSections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+        </select>
+        <div className="w-px h-6 bg-border mx-1" />
         {STATUS_TABS.map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusFilter === s ? "bg-primary text-white" : "bg-canvas text-muted"}`}>
             {s.replace("_", " ")}
@@ -210,10 +219,10 @@ export default function Students() {
             </tr>
           </thead>
           <tbody>
-            {students.length === 0 ? (
-              <tr><td colSpan={6} className="p-6 text-center text-muted">No students in this status.</td></tr>
+            {filteredStudents.length === 0 ? (
+              <tr><td colSpan={6} className="p-6 text-center text-muted">No students match this filter.</td></tr>
             ) : (
-              students.map((s) => (
+              filteredStudents.map((s) => (
                 <tr key={s._id} className="border-t border-border">
                   <td className="p-3">{s.admissionNumber}</td>
                   <td className="p-3">{s.userId?.name}</td>
@@ -237,8 +246,9 @@ export default function Students() {
           <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingStudent.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change lifecycle status</p>
-            <select value={statusForm.status} onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">
+            <select value={statusForm.status} onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })} className="w-full mb-2">
               {STATUS_TABS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+              <option value="ARCHIVED">Archive (Wrong Entry - Hide)</option>
             </select>
             <textarea placeholder="Reason (optional)" value={statusForm.reason} onChange={(e) => setStatusForm({ ...statusForm, reason: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-4" rows={2} />
             <div className="flex gap-2">
