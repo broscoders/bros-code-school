@@ -1,6 +1,7 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Achievement from "../models/Achievement";
+import { canAccessStudent } from "../utils/accessControl";
 
 export const addAchievement = async (req: AuthRequest, res: Response) => {
   try {
@@ -13,6 +14,9 @@ export const addAchievement = async (req: AuthRequest, res: Response) => {
 
 export const getAchievements = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.query.studentId as string);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const list = await Achievement.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string });
     res.json(list);
   } catch (err) {
