@@ -106,8 +106,9 @@ export const getFinancialSummary = async (req: AuthRequest, res: Response) => {
     const invoices = await Invoice.find({ schoolId });
     const expenses = await Expense.find({ schoolId });
 
-    const totalCollected = invoices.filter((i) => i.status === "PAID").reduce((sum, i) => sum + (i.paidAmount || i.amount), 0);
-    const totalPending = invoices.filter((i) => i.status !== "PAID").reduce((sum, i) => sum + i.amount, 0);
+    const activeInvoices = invoices.filter((i) => i.status !== "CANCELLED");
+    const totalCollected = activeInvoices.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+    const totalPending = activeInvoices.reduce((sum, i) => sum + (i.amount - (i.paidAmount || 0)), 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
     res.json({
