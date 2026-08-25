@@ -1,9 +1,10 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Survey from "../models/Survey";
 import SurveyResponse from "../models/SurveyResponse";
 import DigitalProduct from "../models/DigitalProduct";
 import Purchase from "../models/Purchase";
+import { canAccessStudent } from "../utils/accessControl";
 
 // Surveys
 export const createSurvey = async (req: AuthRequest, res: Response) => {
@@ -28,7 +29,7 @@ export const submitSurveyResponse = async (req: AuthRequest, res: Response) => {
   try {
     const survey = await Survey.findOne({ _id: req.body.surveyId, schoolId: req.user!.schoolId });
     if (!survey) return res.status(404).json({ message: "Survey not found" });
-    const response = await SurveyResponse.create(req.body);
+    const response = await SurveyResponse.create({ ...req.body, respondedBy: req.user!.userId });
     res.status(201).json(response);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -69,6 +70,10 @@ export const purchaseProduct = async (req: AuthRequest, res: Response) => {
   try {
     const product = await DigitalProduct.findOne({ _id: req.body.productId, schoolId: req.user!.schoolId });
     if (!product) return res.status(404).json({ message: "Product not found" });
+
+    const allowed = await canAccessStudent(req, req.body.studentId);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to purchase for this student" });
+
     const purchase = await Purchase.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(purchase);
   } catch (err) {

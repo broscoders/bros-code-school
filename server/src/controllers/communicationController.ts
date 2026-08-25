@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Message from "../models/Message";
+import User from "../models/User";
 import PTMSlot from "../models/PTMSlot";
 import Parent from "../models/Parent";
 import { canAccessStudent } from "../utils/accessControl";
@@ -9,9 +10,26 @@ import StudyMaterial from "../models/StudyMaterial";
 import Teacher from "../models/Teacher";
 
 // Messages
+const BLOCKED_PEER_PAIRS = new Set(["STUDENT-STUDENT", "PARENT-PARENT"]);
+
 export const sendMessage = async (req: AuthRequest, res: Response) => {
   try {
-    const msg = await Message.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const fromUserId = req.user!.userId;
+    const { toUserId } = req.body;
+
+    if (!toUserId) return res.status(400).json({ message: "toUserId is required" });
+    if (toUserId === fromUserId) return res.status(400).json({ message: "You cannot message yourself" });
+
+    const recipient = await User.findOne({ _id: toUserId, schoolId });
+    if (!recipient) return res.status(404).json({ message: "Recipient not found in your school" });
+
+    const pairKey = `${req.user!.role}-${recipient.role}`;
+    if (BLOCKED_PEER_PAIRS.has(pairKey)) {
+      return res.status(403).json({ message: "You are not authorized to message this type of user directly" });
+    }
+
+    const msg = await Message.create({ ...req.body, fromUserId, schoolId });
     res.status(201).json(msg);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
