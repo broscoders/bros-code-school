@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Department from "../models/Department";
 import StaffProfile from "../models/StaffProfile";
@@ -86,6 +86,11 @@ export const generatePayroll = async (req: AuthRequest, res: Response) => {
     if (!staff) return res.status(404).json({ message: "Staff not found" });
     if (staff.employmentStatus === "TERMINATED") {
       return res.status(400).json({ message: "Cannot generate payroll for a terminated staff member." });
+    }
+
+    const existing = await PayrollRecord.findOne({ schoolId: req.user!.schoolId, staffId, month, year });
+    if (existing) {
+      return res.status(400).json({ message: `A payslip for ${month} ${year} already exists for this staff member.` });
     }
 
     const netSalary = staff.basicSalary + Number(allowances || 0) + Number(bonus || 0) - Number(deductions || 0);
