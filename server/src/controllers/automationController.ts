@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Request, Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import AutomationRule, { type AutomationTrigger } from "../models/AutomationRule";
 import Invoice from "../models/Invoice";
@@ -7,6 +7,7 @@ import Assignment from "../models/Assignment";
 import Student from "../models/Student";
 import Parent from "../models/Parent";
 import { notify } from "../utils/notifier";
+import School from "../models/School";
 
 type NotifyCategory = "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION";
 
@@ -57,9 +58,7 @@ export const updateRule = async (req: AuthRequest, res: Response) => {
 const fillTemplate = (template: string, values: Record<string, string>) =>
   Object.entries(values).reduce((msg, [key, val]) => msg.split(`{${key}}`).join(val), template);
 
-export const runDueReminders = async (req: AuthRequest, res: Response) => {
-  try {
-    const schoolId = req.user!.schoolId;
+export const runRemindersForSchool = async (schoolId: any) => {
     const rules = await AutomationRule.find({ schoolId });
     const ruleFor = (trigger: string) => rules.find((r) => r.triggerEvent === trigger);
 
@@ -125,7 +124,35 @@ export const runDueReminders = async (req: AuthRequest, res: Response) => {
 
     await AutomationRule.updateMany({ schoolId }, { lastRunAt: new Date() });
 
+  return sent;
+};
+
+export const runDueReminders = async (req: AuthRequest, res: Response) => {
+  try {
+    const sent = await runRemindersForSchool(req.user!.schoolId);
     res.json({ success: true, notificationsSent: sent });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Called by Vercel Cron once a day. Protected by CRON_SECRET, not user auth,
+// since no logged-in admin is present when this runs automatically.
+export const runRemindersForAllSchools = async (req: Request, res: Response) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const schools = await School.find({ isActive: true });
+    let totalSent = 0;
+    for (const school of schools) {
+      const sent = await runRemindersForSchool(school._id);
+      totalSent += sent;
+    }
+
+    res.json({ success: true, schoolsProcessed: schools.length, notificationsSent: totalSent });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
