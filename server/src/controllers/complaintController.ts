@@ -1,11 +1,16 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Complaint from "../models/Complaint";
 
 export const createComplaint = async (req: AuthRequest, res: Response) => {
   try {
-    const ticketNumber = "SC-" + Math.floor(1000 + Math.random() * 9000);
-    const complaint = await Complaint.create({ ...req.body, schoolId: req.user!.schoolId, ticketNumber });
+    const ticketNumber = "SC-" + Date.now().toString(36).toUpperCase();
+    const complaint = await Complaint.create({
+      ...req.body,
+      schoolId: req.user!.schoolId,
+      raisedBy: req.user!.userId,
+      ticketNumber,
+    });
     res.status(201).json(complaint);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
