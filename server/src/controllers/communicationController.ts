@@ -2,6 +2,7 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Message from "../models/Message";
 import User from "../models/User";
+import Teacher from "../models/Teacher";
 import PTMSlot from "../models/PTMSlot";
 import Parent from "../models/Parent";
 import { canAccessStudent } from "../utils/accessControl";
@@ -132,7 +133,19 @@ export const bookPTMSlot = async (req: AuthRequest, res: Response) => {
 // Leave Requests
 export const createLeaveRequest = async (req: AuthRequest, res: Response) => {
   try {
-    const leave = await LeaveRequest.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const role = req.user!.role;
+
+    if (req.body.type === "STUDENT") {
+      const allowed = await canAccessStudent(req, req.body.studentId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to request leave for this student" });
+    } else if (req.body.type === "TEACHER") {
+      const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+      if (!myTeacher) return res.status(403).json({ message: "Only teachers can request teacher leave" });
+      req.body.teacherId = myTeacher._id;
+    }
+
+    const leave = await LeaveRequest.create({ ...req.body, requestedBy: req.user!.userId, schoolId });
     res.status(201).json(leave);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

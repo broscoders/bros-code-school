@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import {
   sendMessage, getThread, getInbox, setCommunicationHours,
   createPTMSlot, getPTMSlotsByTeacher, getAllTeacherSlots, bookPTMSlot,
@@ -21,7 +21,7 @@ router.get("/ptm-slots/by-teacher", protect, requireRole(...EVERYONE), getPTMSlo
 router.get("/ptm-slots/available", protect, requireRole(...EVERYONE), getAllTeacherSlots);
 router.put("/ptm-slots/:id/book", protect, requireRole(ROLES.PARENT, ...TEACHING_STAFF), bookPTMSlot);
 
-router.post("/leave-requests", protect, requireRole(...TEACHING_STAFF), createLeaveRequest);
+router.post("/leave-requests", protect, requireRole(...TEACHING_STAFF, ROLES.PARENT), createLeaveRequest);
 router.get("/leave-requests", protect, requireRole(...ACADEMIC_STAFF), getLeaveRequests);
 router.put("/leave-requests/:id/status", protect, requireRole(...ACADEMIC_STAFF), updateLeaveStatus);
 
