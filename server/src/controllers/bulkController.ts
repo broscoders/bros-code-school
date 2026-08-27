@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import bcrypt from "bcryptjs";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
@@ -52,6 +52,8 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
           password: defaultPassword,
           role: "STUDENT",
           schoolId,
+          isEmailVerified: true,
+          mustChangePassword: true,
         });
 
         await Student.create({
