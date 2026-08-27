@@ -7,8 +7,8 @@ import {
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
-  Library as LibraryIcon, Bus, ShoppingCart, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
-  Menu, X,
+  Library as LibraryIcon, Bus, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
+  Menu, X, Search,
 } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
@@ -44,8 +44,6 @@ const navItems = [
   { to: "/certificates", label: "Certificates", icon: BadgeCheck },
   { to: "/id-cards", label: "ID Cards", icon: IdCard },
   { to: "/documents", label: "Documents", icon: FolderOpen },
-  { to: "/library", label: "Library", icon: LibraryIcon },
-  { to: "/transport", label: "Transport", icon: Bus },
   { to: "/automation", label: "Automation", icon: Zap },
   { to: "/announcements", label: "Announcements", icon: Megaphone },
   { to: "/surveys", label: "Surveys", icon: MessageSquareText },
@@ -55,6 +53,8 @@ const navItems = [
   { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },
   { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
   { to: "/settings", label: "Settings", icon: SettingsIcon },
+  { to: "/library", label: "Library", icon: LibraryIcon },
+  { to: "/transport", label: "Transport", icon: Bus },
 ];
 
 const comingSoonItems = [
@@ -73,6 +73,7 @@ export default function DashboardLayout() {
   const mainRef = useRef<HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [school, setSchool] = useState<{ name: string; logoUrl?: string } | null>(null);
+  const [sidebarSearch, setSidebarSearch] = useState("");
 
   useEffect(() => {
     mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -99,6 +100,10 @@ export default function DashboardLayout() {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  const query = sidebarSearch.trim().toLowerCase();
+  const filteredNavItems = navItems.filter((item) => item.label.toLowerCase().includes(query));
+  const filteredComingSoon = comingSoonItems.filter((item) => item.label.toLowerCase().includes(query));
 
   return (
     <div className="flex min-h-screen bg-canvas">
@@ -132,8 +137,22 @@ export default function DashboardLayout() {
             <X size={20} />
           </button>
         </div>
+
+        <div className="px-3 pt-3">
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              type="text"
+              value={sidebarSearch}
+              onChange={(e) => setSidebarSearch(e.target.value)}
+              placeholder="Search menu..."
+              className="w-full pl-8 pr-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+
         <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -150,24 +169,30 @@ export default function DashboardLayout() {
             </NavLink>
           ))}
 
-          <div className="pt-4 mt-4 border-t border-border">
-            <p className="px-3 text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">
-              Coming Soon
-            </p>
-            {comingSoonItems.map((item) => (
-              <div
-                key={item.label}
-                title="Coming soon"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted/50 cursor-not-allowed select-none"
-              >
-                <item.icon size={17} />
-                <span className="flex-1">{item.label}</span>
-                <span className="text-[9px] uppercase tracking-wide bg-white/5 border border-border rounded-full px-1.5 py-0.5">
-                  Soon
-                </span>
-              </div>
-            ))}
-          </div>
+          {filteredNavItems.length === 0 && filteredComingSoon.length === 0 && (
+            <p className="text-xs text-muted text-center py-4">No menu items match "{sidebarSearch}"</p>
+          )}
+
+          {filteredComingSoon.length > 0 && (
+            <div className="pt-4 mt-4 border-t border-border">
+              <p className="px-3 text-[10px] uppercase tracking-wider text-muted font-semibold mb-1.5">
+                Coming Soon
+              </p>
+              {filteredComingSoon.map((item) => (
+                <div
+                  key={item.label}
+                  title="Coming soon"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted/50 cursor-not-allowed select-none"
+                >
+                  <item.icon size={17} />
+                  <span className="flex-1">{item.label}</span>
+                  <span className="text-[9px] uppercase tracking-wide bg-white/5 border border-border rounded-full px-1.5 py-0.5">
+                    Soon
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </nav>
         <div className="p-3 border-t border-border">
           <button
