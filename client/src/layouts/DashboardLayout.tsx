@@ -58,7 +58,6 @@ const navItems = [
 ];
 
 const comingSoonItems = [
-  { label: "Procurement", icon: ShoppingCart },
   { label: "LMS", icon: LMSIcon },
   { label: "Online Exams", icon: MonitorCheck },
   { label: "Website CMS", icon: Globe },
