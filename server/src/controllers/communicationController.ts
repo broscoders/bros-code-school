@@ -8,7 +8,6 @@ import Parent from "../models/Parent";
 import { canAccessStudent } from "../utils/accessControl";
 import LeaveRequest from "../models/LeaveRequest";
 import StudyMaterial from "../models/StudyMaterial";
-import Teacher from "../models/Teacher";
 
 // Messages
 const BLOCKED_PEER_PAIRS = new Set(["STUDENT-STUDENT", "PARENT-PARENT"]);
