@@ -2,14 +2,14 @@ import type { LucideIcon } from "lucide-react";
 
 type Tone = "primary" | "success" | "danger" | "accent" | "violet" | "teal" | "neutral";
 
-const toneStyles: Record<Tone, { border: string; icon: string; bg: string }> = {
-  primary: { border: "border-l-[#1e9fe0]", icon: "text-[#1e9fe0]", bg: "bg-[#1e9fe0]/10" },
-  success: { border: "border-l-success", icon: "text-success", bg: "bg-success-soft" },
-  danger: { border: "border-l-danger", icon: "text-danger", bg: "bg-danger-soft" },
-  accent: { border: "border-l-accent", icon: "text-accent", bg: "bg-accent-soft" },
-  violet: { border: "border-l-violet", icon: "text-violet", bg: "bg-violet/10" },
-  teal: { border: "border-l-teal", icon: "text-teal", bg: "bg-teal/10" },
-  neutral: { border: "border-l-white/20", icon: "text-ink-soft", bg: "bg-white/5" },
+const toneStyles: Record<Tone, { text: string; bg: string }> = {
+  primary: { text: "text-primary", bg: "bg-primary/12" },
+  success: { text: "text-success", bg: "bg-success-soft" },
+  danger: { text: "text-danger", bg: "bg-danger-soft" },
+  accent: { text: "text-accent", bg: "bg-accent-soft" },
+  violet: { text: "text-violet", bg: "bg-violet/12" },
+  teal: { text: "text-teal", bg: "bg-teal/12" },
+  neutral: { text: "text-ink-soft", bg: "bg-white/5" },
 };
 
 interface StatCardProps {
@@ -21,25 +21,27 @@ interface StatCardProps {
   trendGood?: "up" | "down";
 }
 
+// A "register tile": the number leads, the label reads underneath it like
+// a ledger entry, and the tone lives in a small clipped tab in the corner
+// instead of a colored left border - the latter is the templated pattern
+// this replaces.
 export default function StatCard({ label, value, icon: Icon, tone = "neutral", trend, trendGood = "up" }: StatCardProps) {
   const styles = toneStyles[tone];
   const trendIsGood = trend ? trend.direction === trendGood : true;
 
   return (
-    <div className={`bg-surface border border-border border-l-4 ${styles.border} rounded-xl p-4 flex items-start justify-between`}>
-      <div>
-        <p className="text-xs text-muted mb-1.5">{label}</p>
-        <p className="font-display text-2xl font-bold text-ink">{value}</p>
-        {trend && (
-          <p className={`text-xs mt-1.5 font-medium flex items-center gap-1 ${trendIsGood ? "text-success" : "text-danger"}`}>
-            <span>{trend.direction === "up" ? "\u2191" : "\u2193"}</span>
-            {trend.value}
-          </p>
-        )}
+    <div className="relative bg-surface border border-border rounded-xl p-4 pt-5 overflow-hidden">
+      <div className={`absolute top-0 right-0 w-9 h-9 tab-corner flex items-start justify-end p-1.5 ${styles.bg}`}>
+        <Icon size={14} className={styles.text} />
       </div>
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${styles.bg}`}>
-        <Icon size={18} className={styles.icon} />
-      </div>
+      <p className="font-display text-[1.75rem] leading-none font-bold text-ink tabular-nums">{value}</p>
+      <p className="text-xs text-muted mt-2">{label}</p>
+      {trend && (
+        <p className={`text-xs mt-2 font-medium flex items-center gap-1 ${trendIsGood ? "text-success" : "text-danger"}`}>
+          <span>{trend.direction === "up" ? "\u2191" : "\u2193"}</span>
+          {trend.value}
+        </p>
+      )}
     </div>
   );
 }

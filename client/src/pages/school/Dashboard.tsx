@@ -72,12 +72,22 @@ export default function Dashboard() {
   }, []);
 
   const maxFunnel = admissionFunnel[0]?.count || 1;
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
 
   return (
     <div className="p-6 lg:p-8">
-      <p className="text-xs uppercase tracking-wider text-[#1e9fe0] font-semibold">Overview</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Welcome, {user?.name}</h1>
-      <p className="text-muted mt-1 text-sm">Here is what is happening in your school today.</p>
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-5">
+        <div>
+          <p className="section-label mb-1.5">{dateLabel}</p>
+          <h1 className="font-display text-2xl font-bold text-ink">Welcome, {user?.name}</h1>
+          <p className="text-muted mt-1 text-sm">Here is what is happening in your school today.</p>
+        </div>
+        <div className="flex items-center gap-2 bg-surface border border-border rounded-lg px-3 py-2">
+          <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+          <span className="text-xs text-ink-soft">All systems normal</span>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         <StatCard label="Total Students" value={loading ? "..." : counts.students} icon={Users} tone="primary" />
@@ -87,14 +97,15 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-        <div className="lg:col-span-2 bg-surface rounded-2xl border border-border p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-semibold text-ink flex items-center gap-2">
-              <TrendingUp size={16} className="text-[#1e9fe0]" />
+        <div className="lg:col-span-2 bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+            <h2 className="font-display font-semibold text-ink flex items-center gap-2 text-sm">
+              <TrendingUp size={15} className="text-primary" />
               Student Enrollment Trend
             </h2>
             <span className="text-[11px] text-muted">This Year</span>
           </div>
+          <div className="p-5">
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={enrollmentTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -107,10 +118,14 @@ export default function Dashboard() {
               <Line type="monotone" dataKey="students" stroke="#1e9fe0" strokeWidth={2.5} dot={{ r: 3, fill: "#1e9fe0" }} />
             </LineChart>
           </ResponsiveContainer>
+          </div>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border p-5">
-          <h2 className="font-display font-semibold text-ink mb-4">Fee Collection</h2>
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border">
+            <h2 className="font-display font-semibold text-ink text-sm">Fee Collection</h2>
+          </div>
+          <div className="p-5">
           <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie data={feeBreakdown} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={3}>
@@ -134,13 +149,16 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
+          </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-        <div className="bg-surface rounded-2xl border border-border p-5">
-          <h2 className="font-display font-semibold text-ink mb-4">Admission Funnel</h2>
-          <div className="space-y-2.5">
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border">
+            <h2 className="font-display font-semibold text-ink text-sm">Admission Funnel</h2>
+          </div>
+          <div className="p-5 space-y-2.5">
             {admissionFunnel.map((f) => (
               <div key={f.stage}>
                 <div className="flex items-center justify-between text-xs mb-1">
@@ -149,7 +167,7 @@ export default function Dashboard() {
                 </div>
                 <div className="h-2 rounded-full bg-white/5 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-[#1e9fe0]"
+                    className="h-full rounded-full bg-primary"
                     style={{ width: `${(f.count / maxFunnel) * 100}%` }}
                   />
                 </div>
@@ -158,11 +176,14 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border p-5">
-          <h2 className="font-display font-semibold text-ink mb-3 flex items-center gap-2">
-            <CalendarClock size={16} className="text-[#1e9fe0]" />
-            Upcoming Events
-          </h2>
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border">
+            <h2 className="font-display font-semibold text-ink text-sm flex items-center gap-2">
+              <CalendarClock size={15} className="text-primary" />
+              Upcoming Events
+            </h2>
+          </div>
+          <div className="p-5">
           {events.length === 0 ? (
             <p className="text-sm text-muted">Nothing scheduled right now.</p>
           ) : (
@@ -175,13 +196,17 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
+          </div>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border p-5">
-          <h2 className="font-display font-semibold text-ink mb-3 flex items-center gap-2">
-            <Activity size={16} className="text-[#1e9fe0]" />
-            Recent Activity
-          </h2>
+        <div className="bg-surface rounded-xl border border-border overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-border">
+            <h2 className="font-display font-semibold text-ink text-sm flex items-center gap-2">
+              <Activity size={15} className="text-primary" />
+              Recent Activity
+            </h2>
+          </div>
+          <div className="p-5">
           {activity.length === 0 ? (
             <p className="text-sm text-muted">No recent activity yet.</p>
           ) : (
@@ -195,12 +220,15 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
+          </div>
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border p-5 mt-6">
-        <h2 className="font-display font-semibold text-ink mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="bg-surface rounded-xl border border-border overflow-hidden mt-6">
+        <div className="px-5 py-3.5 border-b border-border">
+          <h2 className="font-display font-semibold text-ink text-sm">Quick Actions</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-5">
           <button onClick={() => navigate("/students")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><UserPlus size={16} /> Add Student</button>
           <button onClick={() => navigate("/admissions")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><ClipboardList size={16} /> New Admission</button>
           <button onClick={() => navigate("/attendance")} className="flex items-center gap-2 justify-center bg-white/5 hover:bg-white/10 border border-border rounded-lg py-2.5 text-sm text-ink-soft transition-colors"><ClipboardCheck size={16} /> Mark Attendance</button>

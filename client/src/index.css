@@ -82,3 +82,38 @@ h1, h2, h3, .font-display {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Signature motif: a clipped "register tab" corner, used sparingly on
+   stat tiles and card headers so the product reads like a school
+   register/ledger rather than a generic rounded-card SaaS template. */
+.tab-corner {
+  clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+
+.section-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Faint ruled-paper texture for panels that want a "ledger" feel
+   without being loud. Applied deliberately, not globally. */
+.ledger-rule {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 27px,
+    var(--color-border) 27px,
+    var(--color-border) 28px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
