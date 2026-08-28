@@ -75,9 +75,11 @@ export default function Hostel() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Residential</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Hostel Management</h1>
-      <p className="text-muted mt-1 text-sm">Manage buildings, rooms and student allocation.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Residential</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1">Hostel Management</h1>
+        <p className="text-muted mt-1 text-sm">Manage buildings, rooms and student allocation.</p>
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">

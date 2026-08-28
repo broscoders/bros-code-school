@@ -88,9 +88,11 @@ export default function InventoryAssets() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Resources</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />Inventory &amp; Assets</h1>
-      <p className="text-muted mt-1 text-sm">Track stock, equipment and vendors.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Resources</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />Inventory &amp; Assets</h1>
+        <p className="text-muted mt-1 text-sm">Track stock, equipment and vendors.</p>
+      </div>
 
       <div className="flex gap-1 mt-6 border-b border-border">
         {tabs.map((t) => (

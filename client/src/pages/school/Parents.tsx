@@ -62,13 +62,7 @@ export default function Parents() {
 
   return (
     <div className="p-8">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard label="Total Parents" value={totalCount} icon={Users} tone="primary" />
-        <StatCard label="Linked to a Child" value={linkedCount} icon={UserCheck} tone="success" />
-        <StatCard label="Not Linked Yet" value={unlinkedCount} icon={UserX} tone="danger" />
-      </div>
-
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-end gap-4 border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">People</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1">Parents</h1>
@@ -77,6 +71,12 @@ export default function Parents() {
         <button onClick={() => setShowForm(!showForm)} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
           {showForm ? "Cancel" : "+ Add Parent"}
         </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard label="Total Parents" value={totalCount} icon={Users} tone="primary" />
+        <StatCard label="Linked to a Child" value={linkedCount} icon={UserCheck} tone="success" />
+        <StatCard label="Not Linked Yet" value={unlinkedCount} icon={UserX} tone="danger" />
       </div>
 
       {showForm && (

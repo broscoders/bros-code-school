@@ -34,9 +34,11 @@ export default function Settings() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Configuration</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><SettingsIcon size={22} className="text-primary" />School Settings</h1>
-      <p className="text-muted mt-1 text-sm">Branding and contact information for your school.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Configuration</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><SettingsIcon size={22} className="text-primary" />School Settings</h1>
+        <p className="text-muted mt-1 text-sm">Branding and contact information for your school.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3 max-w-2xl">
         {msg && <p className="text-success text-sm col-span-2">{msg}</p>}

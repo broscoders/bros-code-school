@@ -40,9 +40,11 @@ export default function RolesPermissions() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Access Control</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Lock size={22} className="text-primary" />Roles &amp; Permissions</h1>
-      <p className="text-muted mt-1 text-sm">Configure exactly what each role can view, create, edit, or delete.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Access Control</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Lock size={22} className="text-primary" />Roles &amp; Permissions</h1>
+        <p className="text-muted mt-1 text-sm">Configure exactly what each role can view, create, edit, or delete.</p>
+      </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 flex gap-2">
         <input placeholder="New custom role name (e.g. Campus Coordinator)" value={newRole} onChange={(e) => setNewRole(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-2 text-sm" />

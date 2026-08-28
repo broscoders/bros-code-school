@@ -48,12 +48,14 @@ export default function Library() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Operations</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
-        <LibraryIcon size={22} className="text-primary" />
-        Library
-      </h1>
-      <p className="text-muted mt-1 text-sm">Manage books, copies, and issue/return records.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Operations</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
+          <LibraryIcon size={22} className="text-primary" />
+          Library
+        </h1>
+        <p className="text-muted mt-1 text-sm">Manage books, copies, and issue/return records.</p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <StatCard label="Total Titles" value={books.length} icon={BookOpen} tone="primary" />

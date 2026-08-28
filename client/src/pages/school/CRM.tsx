@@ -38,9 +38,11 @@ export default function CRM() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Admissions</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leads & Inquiries</h1>
-      <p className="text-muted mt-1 text-sm">Track inquiries from first contact to admission.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Admissions</p>
+        <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leads & Inquiries</h1>
+        <p className="text-muted mt-1 text-sm">Track inquiries from first contact to admission.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />

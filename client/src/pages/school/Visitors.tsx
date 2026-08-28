@@ -31,9 +31,11 @@ export default function Visitors() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Front Desk</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><UserCheck size={22} className="text-primary" />Visitor Management</h1>
-      <p className="text-muted mt-1 text-sm">Register and track visitors entering the school.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Front Desk</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><UserCheck size={22} className="text-primary" />Visitor Management</h1>
+        <p className="text-muted mt-1 text-sm">Register and track visitors entering the school.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         <input placeholder="Visitor Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />

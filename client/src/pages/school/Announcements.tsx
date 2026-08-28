@@ -27,9 +27,11 @@ export default function Announcements() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Communication</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Megaphone size={22} className="text-primary" />Announcements</h1>
-      <p className="text-muted mt-1 text-sm">Publish announcements to your school community.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Communication</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Megaphone size={22} className="text-primary" />Announcements</h1>
+        <p className="text-muted mt-1 text-sm">Publish announcements to your school community.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 space-y-3">
         <input placeholder="Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />

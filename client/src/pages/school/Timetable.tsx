@@ -91,9 +91,11 @@ export default function Timetable() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Academics</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Timetable</h1>
-      <p className="text-muted mt-1 text-sm">Build the weekly timetable for each class and section. Clashing teachers or rooms are blocked automatically.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Academics</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1">Timetable</h1>
+        <p className="text-muted mt-1 text-sm">Build the weekly timetable for each class and section. Clashing teachers or rooms are blocked automatically.</p>
+      </div>
 
       <div className="flex gap-3 mt-4">
         <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-border rounded-lg px-3 py-2 text-sm">

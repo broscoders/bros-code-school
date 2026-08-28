@@ -55,12 +55,14 @@ export default function Transport() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Operations</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
-        <Bus size={22} className="text-primary" />
-        Transport
-      </h1>
-      <p className="text-muted mt-1 text-sm">Manage vehicles, routes, and student transport assignments.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Operations</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
+          <Bus size={22} className="text-primary" />
+          Transport
+        </h1>
+        <p className="text-muted mt-1 text-sm">Manage vehicles, routes, and student transport assignments.</p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
         <StatCard label="Vehicles / Routes" value={vehicles.length} icon={Bus} tone="primary" />

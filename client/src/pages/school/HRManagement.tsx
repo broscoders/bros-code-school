@@ -74,9 +74,11 @@ export default function HRManagement() {
 
   return (
     <div className="p-8">
-      <p className="section-label">HR</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Users size={22} className="text-primary" />Staff &amp; HR Management</h1>
-      <p className="text-muted mt-1 text-sm">Manage departments and employee profiles.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">HR</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Users size={22} className="text-primary" />Staff &amp; HR Management</h1>
+        <p className="text-muted mt-1 text-sm">Manage departments and employee profiles.</p>
+      </div>
 
       <div className="grid grid-cols-2 gap-6 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">

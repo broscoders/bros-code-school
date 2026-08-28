@@ -59,7 +59,7 @@ export default function Automation() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">System</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Zap size={22} className="text-primary" />Automation Rules</h1>

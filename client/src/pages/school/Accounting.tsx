@@ -75,9 +75,11 @@ export default function Accounting() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Finance</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Accounting</h1>
-      <p className="text-muted mt-1 text-sm">Income, expenses, discounts and refunds.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Finance</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1">Accounting</h1>
+        <p className="text-muted mt-1 text-sm">Income, expenses, discounts and refunds.</p>
+      </div>
 
       <div className="flex gap-1 mt-6 border-b border-border">
         {tabs.map((t) => (

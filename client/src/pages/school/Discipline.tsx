@@ -36,9 +36,11 @@ export default function Discipline() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Behavior</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShieldAlert size={22} className="text-primary" />Discipline Management</h1>
-      <p className="text-muted mt-1 text-sm">Record and track student discipline incidents.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Behavior</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShieldAlert size={22} className="text-primary" />Discipline Management</h1>
+        <p className="text-muted mt-1 text-sm">Record and track student discipline incidents.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required>

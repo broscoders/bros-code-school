@@ -33,9 +33,11 @@ export default function Reports() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Insights</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1">Reports & Analytics</h1>
-      <p className="text-muted mt-1 text-sm">Overview of school-wide statistics with export options.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Insights</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1">Reports & Analytics</h1>
+        <p className="text-muted mt-1 text-sm">Overview of school-wide statistics with export options.</p>
+      </div>
 
       {summary && (
         <div className="grid grid-cols-3 gap-4 mt-6">

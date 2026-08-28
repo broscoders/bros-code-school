@@ -42,9 +42,11 @@ export default function Homework() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Academics</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ClipboardCheck size={22} className="text-primary" />Homework</h1>
-      <p className="text-muted mt-1 text-sm">Assign and track homework by class.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Academics</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ClipboardCheck size={22} className="text-primary" />Homework</h1>
+        <p className="text-muted mt-1 text-sm">Assign and track homework by class.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: "", subjectId: "" })} className="border border-border rounded-md px-3 py-2 text-sm" required>
