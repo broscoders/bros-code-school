@@ -77,14 +77,14 @@ export default function Attendance() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Operations</p>
+      <p className="section-label">Operations</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
         <CalendarCheck size={22} className="text-primary" />
         Attendance
       </h1>
       <p className="text-muted mt-1 text-sm">Mark attendance for a whole class at once.</p>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 flex flex-wrap gap-3 items-end">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 flex flex-wrap gap-3 items-end">
         <div className="flex-1 min-w-[160px]">
           <label className="block text-xs font-medium text-muted mb-1">Class</label>
           <select value={classId} onChange={(e) => setClassId(e.target.value)} className="w-full">
@@ -106,7 +106,7 @@ export default function Attendance() {
       </div>
 
       {students.length > 0 && (
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div className="flex gap-3 text-sm">
               <span className="text-success font-medium">{presentCount} Present</span>
@@ -166,7 +166,7 @@ export default function Attendance() {
       )}
 
       {sectionId && students.length === 0 && (
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-8 mt-4 text-center text-muted text-sm">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-8 mt-4 text-center text-muted text-sm">
           No active students found in this section.
         </div>
       )}

@@ -28,7 +28,7 @@ export default function TeacherAssignments() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Teaching</p>
+      <p className="section-label">Teaching</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileText size={22} className="text-primary" />Assignments</h1>
       <p className="text-muted mt-1 text-sm">Create assignments for your classes.</p>
 

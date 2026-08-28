@@ -40,7 +40,7 @@ export default function ParentPTM() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Meetings</p>
+      <p className="section-label">Meetings</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
         <Users size={22} className="text-primary" />
         Parent-Teacher Meeting

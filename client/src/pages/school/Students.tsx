@@ -149,7 +149,7 @@ export default function Students() {
 
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>
+          <p className="section-label">People</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1">Students</h1>
           <p className="text-muted mt-1 text-sm">Manage all students of your school.</p>
         </div>
@@ -169,7 +169,7 @@ export default function Students() {
       <p className="text-xs text-muted mt-2">CSV columns required: name, email, admissionNumber, classId, sectionId. Default password will be "changeme123".</p>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
           <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
@@ -205,7 +205,7 @@ export default function Students() {
         <button onClick={() => setStatusFilter("ANY")} className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusFilter === "ANY" ? "bg-primary text-white" : "bg-canvas text-muted"}`}>All</button>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -242,7 +242,7 @@ export default function Students() {
 
       {managingStudent && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setManagingStudent(null)}>
-          <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-surface rounded-xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingStudent.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change lifecycle status</p>
             <select value={statusForm.status} onChange={(e) => setStatusForm({ ...statusForm, status: e.target.value })} className="w-full mb-2">

@@ -24,7 +24,7 @@ export default function ParentResults() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Monitoring</p>
+      <p className="section-label">Monitoring</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Award size={22} className="text-primary" />Results</h1>
       <div className="mt-6"><ChildSwitcher children={children} /></div>
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">

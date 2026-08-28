@@ -48,7 +48,7 @@ export default function Library() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Operations</p>
+      <p className="section-label">Operations</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
         <LibraryIcon size={22} className="text-primary" />
         Library
@@ -62,7 +62,7 @@ export default function Library() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Add Book</h2>
           <form onSubmit={addBook} className="space-y-2">
             <input placeholder="Title" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} className="w-full" required />
@@ -75,7 +75,7 @@ export default function Library() {
           </form>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Issue Book</h2>
           <form onSubmit={issueBook} className="space-y-2">
             {msg && <p className={`text-xs ${msg.includes("success") ? "text-success" : "text-danger"}`}>{msg}</p>}
@@ -97,7 +97,7 @@ export default function Library() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-6 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-white/5 text-ink-soft text-left">
             <tr>

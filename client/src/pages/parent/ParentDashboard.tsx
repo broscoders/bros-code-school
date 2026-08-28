@@ -27,7 +27,7 @@ export default function ParentDashboard() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Overview</p>
+      <p className="section-label">Overview</p>
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Good day, {user?.name}</h1>
       <p className="text-muted mt-1 text-sm">Here's how your children are doing.</p>
 

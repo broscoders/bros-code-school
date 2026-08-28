@@ -26,13 +26,13 @@ export default function PlatformLogin() {
     <div className="min-h-screen flex items-center justify-center bg-canvas px-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-warning-soft0 text-ink flex items-center justify-center font-bold text-lg mb-3">
+          <div className="w-14 h-14 rounded-xl bg-warning-soft0 text-ink flex items-center justify-center font-bold text-lg mb-3">
             BC
           </div>
           <h1 className="text-xl font-bold text-white">Platform Admin</h1>
           <p className="text-muted text-xs mt-1">Bros Code School - internal control panel</p>
         </div>
-        <form onSubmit={handleSubmit} className="bg-surface p-8 rounded-2xl border border-slate-800">
+        <form onSubmit={handleSubmit} className="bg-surface p-8 rounded-xl border border-slate-800">
           {error && <p className="text-danger mb-4 text-sm">{error}</p>}
           <div className="mb-4">
             <label className="block text-xs font-medium text-muted mb-1">Email</label>

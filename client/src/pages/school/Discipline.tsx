@@ -36,11 +36,11 @@ export default function Discipline() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Behavior</p>
+      <p className="section-label">Behavior</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShieldAlert size={22} className="text-primary" />Discipline Management</h1>
       <p className="text-muted mt-1 text-sm">Record and track student discipline incidents.</p>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required>
           <option value="">Select Student</option>
           {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
@@ -58,7 +58,7 @@ export default function Discipline() {
         <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors">+ Record Incident</button>
       </form>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>

@@ -60,14 +60,14 @@ export default function Fees() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Finance</p>
+      <p className="section-label">Finance</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
         <Wallet size={22} className="text-primary" />
         Fees
       </h1>
       <p className="text-muted mt-1 text-sm">Create invoices and track partial or full payments.</p>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-ink mb-3">Create Invoice</h2>
         <form onSubmit={addInvoice} className="grid grid-cols-2 gap-3">
           <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="col-span-2" required>
@@ -83,7 +83,7 @@ export default function Fees() {
         </form>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
         <h2 className="font-display font-semibold text-ink mb-3 flex items-center gap-2">
           <Receipt size={16} className="text-primary" />
           Invoices

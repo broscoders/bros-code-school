@@ -93,7 +93,7 @@ export default function PromoteStudentsModal({ schoolId, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface border border-border rounded-2xl shadow-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
+      <div className="bg-surface border border-border rounded-xl shadow-2xl p-6 w-full max-w-lg max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display font-semibold text-ink">Promote / Graduate Students</h2>
           <button onClick={onClose} className="text-muted hover:text-ink">

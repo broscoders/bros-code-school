@@ -52,7 +52,7 @@ export default function Documents() {
     <div className="p-8">
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-xs uppercase tracking-wider text-accent font-semibold">Records</p>
+          <p className="section-label">Records</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FolderOpen size={22} className="text-primary" />Documents</h1>
           <p className="text-muted mt-1 text-sm">Central store for all school, staff, and student documents.</p>
         </div>
@@ -73,7 +73,7 @@ export default function Documents() {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2">
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -94,7 +94,7 @@ export default function Documents() {
         ))}
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>

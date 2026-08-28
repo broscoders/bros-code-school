@@ -61,7 +61,7 @@ export default function Automation() {
     <div className="p-8">
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-xs uppercase tracking-wider text-accent font-semibold">System</p>
+          <p className="section-label">System</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Zap size={22} className="text-primary" />Automation Rules</h1>
           <p className="text-muted mt-1 text-sm">Turn automatic notifications on or off, and customize their wording.</p>
         </div>
@@ -73,7 +73,7 @@ export default function Automation() {
       {runResult && <p className="text-success text-sm mt-3">{runResult}</p>}
       <p className="text-xs text-muted mt-2">"Run Now" checks fee due dates, upcoming exams, and assignment deadlines and sends any reminders that are due. In production this should be scheduled to run automatically once a day (e.g. via a daily cron job hitting this same endpoint).</p>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-6 divide-y divide-black/5">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 divide-y divide-black/5">
         {rules.map((rule) => (
           <div key={rule._id} className="p-4">
             <div className="flex justify-between items-center">

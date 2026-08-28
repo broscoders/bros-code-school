@@ -37,7 +37,7 @@ export default function TeacherMarks() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Teaching</p>
+      <p className="section-label">Teaching</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Award size={22} className="text-primary" />Marks Entry</h1>
       <p className="text-muted mt-1 text-sm">Enter exam marks for your students.</p>
 

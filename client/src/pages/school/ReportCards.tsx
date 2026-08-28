@@ -66,14 +66,14 @@ export default function ReportCards() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Academics</p>
+      <p className="section-label">Academics</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
         <FileBarChart size={22} className="text-primary" />
         Report Card Generator
       </h1>
       <p className="text-muted mt-1 text-sm">Generate a downloadable PDF report card for any student, including overall percentage and pass/fail status.</p>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 max-w-md">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 max-w-md">
         <select value={selected} onChange={(e) => setSelected(e.target.value)} className="w-full mb-3">
           <option value="">Select Student</option>
           {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}

@@ -23,7 +23,7 @@ export default function LeaveRequests() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Requests</p>
+      <p className="section-label">Requests</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileWarning size={22} className="text-primary" />Leave Requests</h1>
       <p className="text-muted mt-1 text-sm">Approve or reject leave requests from students and teachers.</p>
 

@@ -12,7 +12,7 @@ export default function ActivityFeed() {
   }, [schoolId]);
 
   return (
-    <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+    <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
       <h2 className="font-display font-semibold text-ink mb-3 flex items-center gap-2">
         <Activity size={16} className="text-primary" />
         Recent Activity

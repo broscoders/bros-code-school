@@ -55,7 +55,7 @@ export default function Transport() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Operations</p>
+      <p className="section-label">Operations</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
         <Bus size={22} className="text-primary" />
         Transport
@@ -68,7 +68,7 @@ export default function Transport() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Add Vehicle / Route</h2>
           <form onSubmit={addVehicle} className="space-y-2">
             <input placeholder="Vehicle Number (e.g. LEA-1234)" value={vehicleForm.vehicleNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, vehicleNumber: e.target.value })} className="w-full" required />
@@ -82,7 +82,7 @@ export default function Transport() {
           </form>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Assign Student to Route</h2>
           <form onSubmit={assignStudent} className="space-y-2">
             {msg && <p className="text-danger text-xs">{msg}</p>}
@@ -102,7 +102,7 @@ export default function Transport() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-6 p-5">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 p-5">
         <h2 className="font-display font-semibold text-ink mb-3">Vehicles &amp; Routes</h2>
         <ul className="text-sm divide-y divide-border">
           {vehicles.length === 0 && <li className="py-2 text-muted">No vehicles added yet.</li>}
@@ -116,7 +116,7 @@ export default function Transport() {
         </ul>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-white/5 text-ink-soft text-left">
             <tr>

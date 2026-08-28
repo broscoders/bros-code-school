@@ -100,7 +100,7 @@ export default function StudentQuizzes() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Assessment</p>
+      <p className="section-label">Assessment</p>
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Online Quizzes</h1>
       <p className="text-muted mt-1 text-sm">Timed quizzes assigned to your class.</p>
 

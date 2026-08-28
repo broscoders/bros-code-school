@@ -91,7 +91,7 @@ export default function Timetable() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Academics</p>
+      <p className="section-label">Academics</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Timetable</h1>
       <p className="text-muted mt-1 text-sm">Build the weekly timetable for each class and section. Clashing teachers or rooms are blocked automatically.</p>
 
@@ -107,7 +107,7 @@ export default function Timetable() {
       </div>
 
       {sectionId && (
-        <div className="bg-surface rounded-2xl border border-border shadow-sm mt-6 overflow-x-auto">
+        <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
@@ -161,7 +161,7 @@ export default function Timetable() {
 
       {editCell && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setEditCell(null)}>
-          <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-surface rounded-xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-3">{editCell.day} - Period {editCell.period}</h2>
             {error && <p className="text-danger text-xs mb-2">{error}</p>}
             <div className="space-y-2">

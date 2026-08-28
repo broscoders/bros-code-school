@@ -86,7 +86,7 @@ export default function Teachers() {
 
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>
+          <p className="section-label">People</p>
           <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Teachers</h1>
           <p className="text-muted mt-1 text-sm">Manage all teachers of your school.</p>
         </div>
@@ -153,7 +153,7 @@ export default function Teachers() {
 
       {managingTeacher && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setManagingTeacher(null)}>
-          <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-surface rounded-xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingTeacher.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change employment status</p>
             <select value={statusForm.employmentStatus} onChange={(e) => setStatusForm({ ...statusForm, employmentStatus: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">

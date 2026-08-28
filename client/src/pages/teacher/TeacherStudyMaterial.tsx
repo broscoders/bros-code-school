@@ -23,7 +23,7 @@ export default function TeacherStudyMaterial() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Teaching</p>
+      <p className="section-label">Teaching</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FolderOpen size={22} className="text-primary" />Study Material</h1>
       <p className="text-muted mt-1 text-sm">Upload notes, PDFs and resources for your classes.</p>
 

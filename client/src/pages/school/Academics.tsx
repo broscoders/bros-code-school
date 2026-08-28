@@ -69,7 +69,7 @@ export default function Academics() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Configuration</p>
+      <p className="section-label">Configuration</p>
       <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Academic Structure</h1>
       <p className="text-muted mt-1 text-sm">Manage sessions, classes, sections and academic systems.</p>
 

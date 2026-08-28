@@ -28,7 +28,7 @@ export default function IDCards() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Identification</p>
+      <p className="section-label">Identification</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><IdCard size={22} className="text-primary" />ID Card Generator</h1>
 
       <div className="flex gap-1 mt-6 border-b border-border">
@@ -39,7 +39,7 @@ export default function IDCards() {
       <div className="grid grid-cols-3 gap-4 mt-6">
         {tab === "students" && students.map((s) => (
           <div key={s._id}>
-            <div id={`card-${s._id}`} className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-2xl p-4 w-64 shadow-md">
+            <div id={`card-${s._id}`} className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-xl p-4 w-64 shadow-md">
               <p className="text-[10px] uppercase tracking-wider opacity-70">Student ID Card</p>
               <p className="font-display font-bold mt-1">{s.userId?.name}</p>
               <p className="text-xs opacity-80 mt-1">Admission #: {s.admissionNumber}</p>
@@ -51,7 +51,7 @@ export default function IDCards() {
         ))}
         {tab === "teachers" && teachers.map((t) => (
           <div key={t._id}>
-            <div id={`card-${t._id}`} className="bg-gradient-to-br from-accent to-amber-600 text-white rounded-2xl p-4 w-64 shadow-md">
+            <div id={`card-${t._id}`} className="bg-gradient-to-br from-accent to-amber-600 text-white rounded-xl p-4 w-64 shadow-md">
               <p className="text-[10px] uppercase tracking-wider opacity-70">Staff ID Card</p>
               <p className="font-display font-bold mt-1">{t.userId?.name}</p>
               <p className="text-xs opacity-80 mt-1">Employee ID: {t.employeeId}</p>

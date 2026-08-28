@@ -74,12 +74,12 @@ export default function HRManagement() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">HR</p>
+      <p className="section-label">HR</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Users size={22} className="text-primary" />Staff &amp; HR Management</h1>
       <p className="text-muted mt-1 text-sm">Manage departments and employee profiles.</p>
 
       <div className="grid grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Departments</h2>
           <form onSubmit={addDepartment} className="flex gap-2 mb-4">
             <input placeholder="Department name" value={deptForm.name} onChange={(e) => setDeptForm({ name: e.target.value })} className="flex-1 border border-border rounded-lg px-3 py-2 text-sm" required />
@@ -91,7 +91,7 @@ export default function HRManagement() {
           </ul>
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Add Staff Member</h2>
           <form onSubmit={addStaff} className="space-y-2">
             {error && <p className="text-danger text-xs">{error}</p>}
@@ -121,7 +121,7 @@ export default function HRManagement() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
@@ -158,7 +158,7 @@ export default function HRManagement() {
 
       {managingStaff && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setManagingStaff(null)}>
-          <div className="bg-surface rounded-2xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-surface rounded-xl p-6 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-1">{managingStaff.userId?.name}</h2>
             <p className="text-muted text-xs mb-4">Change employment status</p>
             <select value={statusForm.employmentStatus} onChange={(e) => setStatusForm({ ...statusForm, employmentStatus: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">

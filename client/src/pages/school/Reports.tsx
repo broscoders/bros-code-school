@@ -33,21 +33,21 @@ export default function Reports() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Insights</p>
+      <p className="section-label">Insights</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Reports & Analytics</h1>
       <p className="text-muted mt-1 text-sm">Overview of school-wide statistics with export options.</p>
 
       {summary && (
         <div className="grid grid-cols-3 gap-4 mt-6">
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Total Students</p>
             <p className="text-2xl font-display font-bold text-ink mt-1">{summary.totalStudents}</p>
           </div>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Results Recorded</p>
             <p className="text-2xl font-display font-bold text-ink mt-1">{summary.totalResultsRecorded}</p>
           </div>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Classes</p>
             <p className="text-2xl font-display font-bold text-ink mt-1">{Object.keys(summary.classCounts).length}</p>
           </div>
@@ -55,7 +55,7 @@ export default function Reports() {
       )}
 
       {summary && (
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
           <h2 className="font-display font-semibold text-ink mb-3">Students by Class</h2>
           <div className="space-y-2">
             {Object.entries(summary.classCounts).map(([className, count]: any) => (
@@ -71,7 +71,7 @@ export default function Reports() {
         </div>
       )}
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-ink mb-3">Export Data</h2>
         <button onClick={exportStudentsCSV} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
           Export Students List (CSV)

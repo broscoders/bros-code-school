@@ -43,7 +43,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
         {brandLogo ? (
           <img src={brandLogo} alt="" className="w-11 h-11 rounded-xl object-cover shadow-lg" />
         ) : (
-          <div className="w-11 h-11 rounded-xl bg-[#1e9fe0] text-white flex items-center justify-center font-display font-bold text-sm shadow-lg">
+          <div className="w-11 h-11 tab-corner bg-primary text-white flex items-center justify-center font-display font-bold text-sm shadow-lg">
             BC
           </div>
         )}

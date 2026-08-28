@@ -30,7 +30,7 @@ export default function Certificates() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Recognition</p>
+      <p className="section-label">Recognition</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><BadgeCheck size={22} className="text-primary" />Certificates</h1>
       <p className="text-muted mt-1 text-sm">Issue and track certificates for students.</p>
 

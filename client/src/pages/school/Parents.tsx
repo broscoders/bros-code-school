@@ -70,7 +70,7 @@ export default function Parents() {
 
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-xs uppercase tracking-wider text-accent font-semibold">People</p>
+          <p className="section-label">People</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1">Parents</h1>
           <p className="text-muted mt-1 text-sm">Manage parent accounts and link them to children.</p>
         </div>
@@ -80,7 +80,7 @@ export default function Parents() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
           <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
@@ -106,7 +106,7 @@ export default function Parents() {
         </form>
       )}
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm mt-4 overflow-hidden">
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>

@@ -13,7 +13,7 @@ export default function TeacherAnnouncements() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Communication</p>
+      <p className="section-label">Communication</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Megaphone size={22} className="text-primary" />Announcements</h1>
       <div className="space-y-3 mt-6">
         {list.length === 0 && <p className="text-muted text-sm">No announcements yet.</p>}

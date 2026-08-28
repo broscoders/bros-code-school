@@ -27,7 +27,7 @@ export default function Announcements() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Communication</p>
+      <p className="section-label">Communication</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Megaphone size={22} className="text-primary" />Announcements</h1>
       <p className="text-muted mt-1 text-sm">Publish announcements to your school community.</p>
 

@@ -75,7 +75,7 @@ export default function Accounting() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Finance</p>
+      <p className="section-label">Finance</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Accounting</h1>
       <p className="text-muted mt-1 text-sm">Income, expenses, discounts and refunds.</p>
 
@@ -89,19 +89,19 @@ export default function Accounting() {
 
       {tab === "overview" && summary && (
         <div className="grid grid-cols-4 gap-4 mt-6">
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Collected</p>
             <p className="text-xl font-display font-bold text-success mt-1">Rs. {summary.totalCollected}</p>
           </div>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Pending</p>
             <p className="text-xl font-display font-bold text-accent mt-1">Rs. {summary.totalPending}</p>
           </div>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Expenses</p>
             <p className="text-xl font-display font-bold text-danger mt-1">Rs. {summary.totalExpenses}</p>
           </div>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Net Income</p>
             <p className="text-xl font-display font-bold text-primary mt-1">Rs. {summary.netIncome}</p>
           </div>
@@ -110,14 +110,14 @@ export default function Accounting() {
 
       {tab === "expenses" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addExpense} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addExpense} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <input placeholder="Category (e.g. Utilities)" value={expenseForm.category} onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <input placeholder="Description" value={expenseForm.description} onChange={(e) => setExpenseForm({ ...expenseForm, description: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <input type="number" placeholder="Amount" value={expenseForm.amount} onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <input placeholder="Vendor (optional)" value={expenseForm.vendor} onChange={(e) => setExpenseForm({ ...expenseForm, vendor: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">+ Record Expense</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {expenses.length === 0 && <li className="py-2 text-muted">No expenses recorded.</li>}
               {expenses.map((e) => (
@@ -133,7 +133,7 @@ export default function Accounting() {
 
       {tab === "discounts" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addDiscount} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addDiscount} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <select value={discountForm.studentId} onChange={(e) => setDiscountForm({ ...discountForm, studentId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>
               <option value="">Select Student</option>
               {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
@@ -146,7 +146,7 @@ export default function Accounting() {
             <input type="number" placeholder="Percentage (e.g. 20)" value={discountForm.percentage} onChange={(e) => setDiscountForm({ ...discountForm, percentage: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">+ Add</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {discounts.length === 0 && <li className="py-2 text-muted">No discounts/scholarships yet.</li>}
               {discounts.map((d) => (
@@ -169,7 +169,7 @@ export default function Accounting() {
 
       {tab === "refunds" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addRefund} className="bg-surface rounded-2xl border border-border shadow-sm p-5 space-y-2 h-fit">
+          <form onSubmit={addRefund} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <select value={refundForm.studentId} onChange={(e) => setRefundForm({ ...refundForm, studentId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>
               <option value="">Select Student</option>
               {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
@@ -178,7 +178,7 @@ export default function Accounting() {
             <input placeholder="Reason" value={refundForm.reason} onChange={(e) => setRefundForm({ ...refundForm, reason: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">+ Request Refund</button>
           </form>
-          <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <ul className="text-sm divide-y divide-black/5">
               {refunds.length === 0 && <li className="py-2 text-muted">No refund requests yet.</li>}
               {refunds.map((r) => (

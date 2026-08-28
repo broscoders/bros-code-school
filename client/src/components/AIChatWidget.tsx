@@ -35,7 +35,7 @@ export default function AIChatWidget({ extraBody }: Props) {
   return (
     <>
       {open && (
-        <div className="fixed bottom-20 right-6 w-80 h-96 bg-surface rounded-2xl shadow-xl border border-border flex flex-col z-50">
+        <div className="fixed bottom-20 right-6 w-80 h-96 bg-surface rounded-xl shadow-xl border border-border flex flex-col z-50">
           <div className="bg-primary text-white p-3 rounded-t-2xl flex justify-between items-center">
             <span className="font-display text-sm font-semibold">Ask Assistant</span>
             <button onClick={() => setOpen(false)}><X size={16} /></button>

@@ -32,7 +32,7 @@ export default function StudentStore() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Academy</p>
+      <p className="section-label">Academy</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShoppingBag size={22} className="text-primary" />Notes Store</h1>
       <p className="text-muted mt-1 text-sm">Browse and access study material from the academy.</p>
 

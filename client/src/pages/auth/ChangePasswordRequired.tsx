@@ -63,7 +63,7 @@ export default function ChangePasswordRequired() {
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             placeholder="The password you were emailed"
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-[#1e9fe0]/50"
+            className="w-full bg-white/5 border border-white/15 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-primary/50"
             required
           />
         </div>
@@ -75,7 +75,7 @@ export default function ChangePasswordRequired() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="At least 6 characters"
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-[#1e9fe0]/50"
+            className="w-full bg-white/5 border border-white/15 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-primary/50"
             required
           />
         </div>
@@ -86,7 +86,7 @@ export default function ChangePasswordRequired() {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full bg-white/5 border border-white/15 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-[#1e9fe0]/50"
+            className="w-full bg-white/5 border border-white/15 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-primary/50"
             required
           />
         </div>
@@ -94,7 +94,7 @@ export default function ChangePasswordRequired() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1e9fe0] text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-[#3aacea] disabled:opacity-60 transition-colors"
+          className="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-primary-light disabled:opacity-60 transition-colors"
         >
           {loading ? "Saving..." : "Set Password & Continue"}
         </button>

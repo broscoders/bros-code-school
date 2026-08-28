@@ -35,11 +35,11 @@ export default function Payroll() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">HR / Finance</p>
+      <p className="section-label">HR / Finance</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Wallet size={22} className="text-primary" />Payroll</h1>
       <p className="text-muted mt-1 text-sm">Generate and track staff salary payments.</p>
 
-      <form onSubmit={generate} className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6 grid grid-cols-3 gap-3">
+      <form onSubmit={generate} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-3 gap-3">
         <div className="col-span-3">
           <label className="block text-xs text-muted mb-1">Staff Member</label>
           <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="w-full" required>
@@ -71,7 +71,7 @@ export default function Payroll() {
         <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-3 hover:bg-primary-dark transition-colors">+ Generate Payslip</button>
       </form>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>

@@ -22,11 +22,11 @@ export default function CalendarPage() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Planning</p>
+      <p className="section-label">Planning</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Calendar size={22} className="text-primary" />Unified Calendar</h1>
       <p className="text-muted mt-1 text-sm">All exams, events and meetings in one timeline.</p>
 
-      <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 mt-6">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         {items.length === 0 ? (
           <p className="text-muted text-sm">No upcoming items.</p>
         ) : (

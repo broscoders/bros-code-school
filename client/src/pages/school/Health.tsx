@@ -48,12 +48,12 @@ export default function Health() {
 
   return (
     <div className="p-8">
-      <p className="text-xs uppercase tracking-wider text-accent font-semibold">Wellbeing</p>
+      <p className="section-label">Wellbeing</p>
       <h1 className="font-display text-2xl font-bold text-ink mt-1">Health & Medical Records</h1>
       <p className="text-muted mt-1 text-sm">Manage student health profiles and incidents. Access is restricted to authorized staff.</p>
 
       <div className="grid grid-cols-2 gap-6 mt-6">
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Health Profile</h2>
           {msg && <p className="text-success text-sm mb-2">{msg}</p>}
           <select value={selected} onChange={(e) => setSelected(e.target.value)} className="w-full border border-border rounded-lg px-3 py-2 text-sm mb-2">
@@ -72,7 +72,7 @@ export default function Health() {
           )}
         </div>
 
-        <div className="bg-surface rounded-2xl border border-border shadow-sm p-5">
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Log Medical Incident</h2>
           <form onSubmit={logIncident} className="space-y-2 mb-4">
             <select value={incidentForm.studentId} onChange={(e) => setIncidentForm({ ...incidentForm, studentId: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>

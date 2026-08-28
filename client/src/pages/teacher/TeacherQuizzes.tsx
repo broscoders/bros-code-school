@@ -85,7 +85,7 @@ export default function TeacherQuizzes() {
     <div className="p-8">
       <div className="flex justify-between items-center">
         <div>
-          <p className="text-xs uppercase tracking-wider text-accent font-semibold">Assessment</p>
+          <p className="section-label">Assessment</p>
           <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Online Quizzes</h1>
           <p className="text-muted mt-1 text-sm">Create MCQ quizzes with auto-marking.</p>
         </div>
@@ -173,7 +173,7 @@ export default function TeacherQuizzes() {
 
       {viewingResults && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50" onClick={() => setViewingResults(null)}>
-          <div className="bg-surface rounded-2xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-surface rounded-xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h2 className="font-display font-semibold text-ink mb-3">{viewingResults.title} - Results</h2>
             <ul className="text-sm divide-y divide-black/5">
               {results.length === 0 && <li className="py-2 text-muted">No submissions yet.</li>}
