@@ -77,14 +77,7 @@ export default function Teachers() {
 
   return (
     <div className="p-8">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Total Teachers" value={totalCount} icon={GraduationCap} tone="primary" />
-        <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
-        <StatCard label="On Leave" value={onLeaveCount} icon={Award} tone="accent" />
-        <StatCard label="Resigned / Transferred" value={exitedCount} icon={UserX} tone="danger" />
-      </div>
-
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-end gap-4 border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">People</p>
           <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Teachers</h1>
@@ -93,6 +86,13 @@ export default function Teachers() {
         <button onClick={() => setShowForm(!showForm)} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors">
           {showForm ? "Cancel" : "+ Add Teacher"}
         </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Total Teachers" value={totalCount} icon={GraduationCap} tone="primary" />
+        <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
+        <StatCard label="On Leave" value={onLeaveCount} icon={Award} tone="accent" />
+        <StatCard label="Resigned / Transferred" value={exitedCount} icon={UserX} tone="danger" />
       </div>
 
       {showForm && (

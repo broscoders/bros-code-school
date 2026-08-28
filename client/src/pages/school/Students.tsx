@@ -137,17 +137,7 @@ export default function Students() {
 
   return (
     <div className="p-8">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Showing" value={totalCount} icon={Users} tone="primary" />
-        <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
-        <StatCard label="Withdrawn / Suspended" value={withdrawnCount} icon={UserX} tone="danger" />
-        <StatCard label="Alumni / Graduated" value={alumniCount} icon={GraduationCap} tone="violet" />
-      </div>
-      <button onClick={() => setShowPromoteModal(true)} className="mb-4 bg-primary/10 text-primary text-sm px-4 py-2 rounded-lg font-medium hover:bg-primary/20 transition-colors">
-        Promote / Graduate Students
-      </button>
-
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-end gap-4 border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">People</p>
           <h1 className="font-display text-2xl font-bold text-ink mt-1">Students</h1>
@@ -164,6 +154,16 @@ export default function Students() {
           </button>
         </div>
       </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <StatCard label="Showing" value={totalCount} icon={Users} tone="primary" />
+        <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
+        <StatCard label="Withdrawn / Suspended" value={withdrawnCount} icon={UserX} tone="danger" />
+        <StatCard label="Alumni / Graduated" value={alumniCount} icon={GraduationCap} tone="violet" />
+      </div>
+      <button onClick={() => setShowPromoteModal(true)} className="mb-4 bg-primary/10 text-primary text-sm px-4 py-2 rounded-lg font-medium hover:bg-primary/20 transition-colors">
+        Promote / Graduate Students
+      </button>
 
       {importMsg && <p className="text-success text-sm mt-3">{importMsg}</p>}
       <p className="text-xs text-muted mt-2">CSV columns required: name, email, admissionNumber, classId, sectionId. Default password will be "changeme123".</p>

@@ -77,14 +77,16 @@ export default function Attendance() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Operations</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
-        <CalendarCheck size={22} className="text-primary" />
-        Attendance
-      </h1>
-      <p className="text-muted mt-1 text-sm">Mark attendance for a whole class at once.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Operations</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
+          <CalendarCheck size={22} className="text-primary" />
+          Attendance
+        </h1>
+        <p className="text-muted mt-1 text-sm">Mark attendance for a whole class at once.</p>
+      </div>
 
-      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 flex flex-wrap gap-3 items-end">
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 flex flex-wrap gap-3 items-end">
         <div className="flex-1 min-w-[160px]">
           <label className="block text-xs font-medium text-muted mb-1">Class</label>
           <select value={classId} onChange={(e) => setClassId(e.target.value)} className="w-full">
