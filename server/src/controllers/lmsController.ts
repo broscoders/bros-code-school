@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import { canAccessStudent } from "../utils/accessControl";
 import Course from "../models/Course";
 import Lesson from "../models/Lesson";
 import LessonProgress from "../models/LessonProgress";
@@ -74,6 +75,9 @@ export const getLessons = async (req: AuthRequest, res: Response) => {
 
     const studentId = req.query.studentId as string;
     if (studentId) {
+      const allowed = await canAccessStudent(req, studentId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
       const progress = await LessonProgress.find({ studentId, lessonId: { $in: lessons.map((l) => l._id) } });
       const withProgress = lessons.map((l) => ({
         ...l.toObject(),

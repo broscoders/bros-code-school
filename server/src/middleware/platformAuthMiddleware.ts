@@ -1,5 +1,6 @@
 ﻿import jwt from "jsonwebtoken";
 import type { Request, Response, NextFunction } from "express";
+import { getPlatformJwtSecret } from "../utils/jwtSecret";
 
 export interface PlatformAuthRequest extends Request {
   platformAdmin?: {
@@ -18,7 +19,7 @@ export const protectPlatform = (req: PlatformAuthRequest, res: Response, next: N
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.PLATFORM_JWT_SECRET || process.env.JWT_SECRET as string) as {
+    const decoded = jwt.verify(token, getPlatformJwtSecret()) as {
       platformAdminId: string;
       role: string;
     };

@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import { canAccessStudent } from "../utils/accessControl";
 import Quiz from "../models/Quiz";
 import QuizAttempt from "../models/QuizAttempt";
 import Student from "../models/Student";
@@ -36,6 +37,10 @@ export const getQuizzesForClass = async (req: AuthRequest, res: Response) => {
       .sort({ createdAt: -1 });
 
     const studentId = req.query.studentId as string;
+    if (studentId) {
+      const allowed = await canAccessStudent(req, studentId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+    }
     const attempts = studentId
       ? await QuizAttempt.find({ studentId, quizId: { $in: quizzes.map((q) => q._id) } })
       : [];

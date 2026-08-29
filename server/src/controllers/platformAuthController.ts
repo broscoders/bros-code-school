@@ -2,6 +2,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import PlatformAdmin from "../models/PlatformAdmin";
+import { getPlatformJwtSecret } from "../utils/jwtSecret";
 
 export const platformLogin = async (req: Request, res: Response) => {
   try {
@@ -20,7 +21,7 @@ export const platformLogin = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const secret = process.env.PLATFORM_JWT_SECRET || process.env.JWT_SECRET || "dev_secret_change_this";
+    const secret = getPlatformJwtSecret();
     const token = jwt.sign({ platformAdminId: admin.id.toString(), role: admin.role }, secret, { expiresIn: "7d" });
 
     res.json({

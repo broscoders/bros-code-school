@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import { canAccessStudent } from "../utils/accessControl";
 import Lead from "../models/Lead";
 import Admission from "../models/Admission";
 import Certificate from "../models/Certificate";
@@ -82,6 +83,9 @@ export const getCertificatesBySchool = async (req: AuthRequest, res: Response) =
 
 export const getMyCertificates = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.query.studentId as string);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const certs = await Certificate.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string }).sort({ createdAt: -1 });
     res.json(certs);
   } catch (err) {

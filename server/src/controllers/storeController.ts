@@ -1,10 +1,10 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import { canAccessStudent } from "../utils/accessControl";
 import Survey from "../models/Survey";
 import SurveyResponse from "../models/SurveyResponse";
 import DigitalProduct from "../models/DigitalProduct";
 import Purchase from "../models/Purchase";
-import { canAccessStudent } from "../utils/accessControl";
 
 // Surveys
 export const createSurvey = async (req: AuthRequest, res: Response) => {
@@ -83,6 +83,9 @@ export const purchaseProduct = async (req: AuthRequest, res: Response) => {
 
 export const getMyPurchases = async (req: AuthRequest, res: Response) => {
   try {
+    const allowed = await canAccessStudent(req, req.query.studentId as string);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const purchases = await Purchase.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string }).populate("productId");
     res.json(purchases);
   } catch (err) {

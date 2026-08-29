@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import { canAccessStudent } from "../utils/accessControl";
 import AcademyProgram from "../models/AcademyProgram";
 import AcademyBatch from "../models/AcademyBatch";
 import AcademyEnrollment from "../models/AcademyEnrollment";
@@ -77,7 +78,12 @@ export const enrollInAcademy = async (req: AuthRequest, res: Response) => {
 
 export const getAcademyEnrollments = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await AcademyEnrollment.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string }).populate("batchId");
+    const studentId = req.query.studentId as string | undefined;
+    if (studentId) {
+      const allowed = await canAccessStudent(req, studentId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+    }
+    const list = await AcademyEnrollment.find({ schoolId: req.user!.schoolId, ...(studentId ? { studentId } : {}) }).populate("batchId");
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
