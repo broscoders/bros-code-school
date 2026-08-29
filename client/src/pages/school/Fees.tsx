@@ -18,6 +18,7 @@ export default function Fees() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [form, setForm] = useState({ studentId: "", feeType: "", amount: "", dueDate: "" });
   const [payAmounts, setPayAmounts] = useState<Record<string, string>>({});
+  const [payingId, setPayingId] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
 
   useEffect(() => {
@@ -39,12 +40,14 @@ export default function Fees() {
   };
 
   const recordPayment = async (invoiceId: string) => {
+    if (payingId === invoiceId) return; // already in flight - ignore a double-click/duplicate submit
     const amount = Number(payAmounts[invoiceId]);
     if (!amount || amount <= 0) {
       setMsg("Enter a valid payment amount");
       setTimeout(() => setMsg(""), 2500);
       return;
     }
+    setPayingId(invoiceId);
     try {
       await api.put(`/ops/invoices/${invoiceId}/pay`, { amount });
       setPayAmounts({ ...payAmounts, [invoiceId]: "" });
@@ -52,6 +55,8 @@ export default function Fees() {
     } catch (err: any) {
       setMsg(err.response?.data?.message || "Payment failed");
       setTimeout(() => setMsg(""), 2500);
+    } finally {
+      setPayingId(null);
     }
   };
 
@@ -150,9 +155,10 @@ export default function Fees() {
                           />
                           <button
                             onClick={() => recordPayment(inv._id)}
-                            className="bg-success text-white text-xs px-2.5 py-1 rounded-md font-medium hover:opacity-90"
+                            disabled={payingId === inv._id}
+                            className="bg-success text-white text-xs px-2.5 py-1 rounded-md font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Pay
+                            {payingId === inv._id ? "Saving..." : "Pay"}
                           </button>
                         </div>
                       )}

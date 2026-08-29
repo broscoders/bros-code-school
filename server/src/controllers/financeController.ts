@@ -4,6 +4,8 @@ import Discount from "../models/Discount";
 import Refund from "../models/Refund";
 import Invoice from "../models/Invoice";
 import Expense from "../models/Expense";
+import User from "../models/User";
+import { logAudit } from "../utils/auditLogger";
 
 export const createDiscount = async (req: AuthRequest, res: Response) => {
   try {
@@ -60,23 +62,50 @@ export const getRefunds = async (req: AuthRequest, res: Response) => {
 
 export const updateRefundStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const refund = await Refund.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
-      { status: req.body.status },
-      { new: true }
-    );
-    if (!refund) return res.status(404).json({ message: "Refund not found" });
+    const { status } = req.body;
+    if (!["APPROVED", "REJECTED"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
 
-    if (req.body.status === "APPROVED" && refund.invoiceId) {
-      const invoice = await Invoice.findOne({ _id: refund.invoiceId, schoolId: req.user!.schoolId });
+    const existing = await Refund.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existing) return res.status(404).json({ message: "Refund not found" });
+
+    // A refund's financial effect (reducing the invoice's paid amount) must
+    // only ever be applied once. Without this guard, an accountant
+    // double-clicking Approve - or the request simply being retried after a
+    // slow network response - would deduct refund.amount from the invoice a
+    // second time, silently corrupting the student's fee ledger.
+    if (existing.status === "APPROVED" || existing.status === "REJECTED") {
+      return res.status(400).json({ message: `This refund has already been ${existing.status.toLowerCase()} and cannot be changed again.` });
+    }
+
+    const previousStatus = existing.status;
+    existing.status = status;
+    await existing.save();
+
+    if (status === "APPROVED" && existing.invoiceId) {
+      const invoice = await Invoice.findOne({ _id: existing.invoiceId, schoolId: req.user!.schoolId });
       if (invoice) {
-        invoice.paidAmount = Math.max(0, (invoice.paidAmount || 0) - refund.amount);
+        invoice.paidAmount = Math.max(0, (invoice.paidAmount || 0) - existing.amount);
         invoice.status = invoice.paidAmount >= invoice.amount ? "PAID" : invoice.paidAmount > 0 ? "PARTIAL" : "PENDING";
         await invoice.save();
       }
     }
 
-    res.json(refund);
+    const actingUser = await User.findById(req.user!.userId).select("name");
+    await logAudit({
+      schoolId: req.user!.schoolId,
+      userId: req.user!.userId,
+      userName: actingUser?.name || "Unknown",
+      userRole: req.user!.role,
+      action: `Refund ${status.toLowerCase()}`,
+      recordType: "Refund",
+      recordId: existing._id.toString(),
+      oldValue: { status: previousStatus },
+      newValue: { status, amount: existing.amount },
+    });
+
+    res.json(existing);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
