@@ -7,9 +7,11 @@ export default function TeacherDashboard() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Overview</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Welcome, {user?.name}</h1>
-      <p className="text-muted mt-1 text-sm">Manage today's teaching work.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Overview</p>
+        <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Welcome, {user?.name}</h1>
+        <p className="text-muted mt-1 text-sm">Manage today's teaching work.</p>
+      </div>
 
       {teacher ? (
         <div className="grid grid-cols-3 gap-4 mt-6">

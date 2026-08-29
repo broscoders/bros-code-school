@@ -58,9 +58,11 @@ export default function TeacherAcademy() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Academy</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />My Academy Batches</h1>
-      <p className="text-muted mt-1 text-sm">Batches you are assigned to teach.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Academy</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />My Academy Batches</h1>
+        <p className="text-muted mt-1 text-sm">Batches you are assigned to teach.</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {batches.length === 0 && <p className="text-muted text-sm">You are not assigned to any academy batch.</p>}

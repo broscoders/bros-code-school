@@ -30,9 +30,11 @@ export default function ParentMessages() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Communication</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><MessageSquareText size={22} className="text-primary" />Message Teachers</h1>
-      <p className="text-muted mt-1 text-sm">All communication happens securely within the portal.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Communication</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><MessageSquareText size={22} className="text-primary" />Message Teachers</h1>
+        <p className="text-muted mt-1 text-sm">All communication happens securely within the portal.</p>
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-4">

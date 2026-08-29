@@ -83,7 +83,7 @@ export default function TeacherQuizzes() {
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">Assessment</p>
           <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Online Quizzes</h1>

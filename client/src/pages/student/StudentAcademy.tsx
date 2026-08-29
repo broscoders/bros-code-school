@@ -44,9 +44,11 @@ export default function StudentAcademy() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Academy</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />Academy Programs</h1>
-      <p className="text-muted mt-1 text-sm">Browse programs and manage your enrollments.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Academy</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />Academy Programs</h1>
+        <p className="text-muted mt-1 text-sm">Browse programs and manage your enrollments.</p>
+      </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">My Enrollments</h2>

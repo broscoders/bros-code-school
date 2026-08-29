@@ -34,11 +34,13 @@ export default function TeacherPTM() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Meetings & Availability</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
-        <CalendarClock size={22} className="text-primary" />
-        PTM Slots & Communication Hours
-      </h1>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Meetings & Availability</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
+          <CalendarClock size={22} className="text-primary" />
+          PTM Slots & Communication Hours
+        </h1>
+      </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-ink mb-2">Communication Hours</h2>

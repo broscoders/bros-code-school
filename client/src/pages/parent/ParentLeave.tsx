@@ -46,9 +46,11 @@ export default function ParentLeave() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Requests</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileWarning size={22} className="text-primary" />Leave Request</h1>
-      <div className="mt-6"><ChildSwitcher children={children} /></div>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Requests</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileWarning size={22} className="text-primary" />Leave Request</h1>
+        <div className="mt-6"><ChildSwitcher children={children} /></div>
+      </div>
 
       <form onSubmit={submit} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-3">
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />

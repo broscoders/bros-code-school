@@ -18,9 +18,11 @@ export default function StudentTimetable() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Academics</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Calendar size={22} className="text-primary" />My Timetable</h1>
-      <p className="text-muted mt-1 text-sm">Your weekly class schedule.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Academics</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Calendar size={22} className="text-primary" />My Timetable</h1>
+        <p className="text-muted mt-1 text-sm">Your weekly class schedule.</p>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
         {DAYS.map((day) => {

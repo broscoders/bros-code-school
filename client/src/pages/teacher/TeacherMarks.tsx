@@ -37,9 +37,11 @@ export default function TeacherMarks() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Teaching</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Award size={22} className="text-primary" />Marks Entry</h1>
-      <p className="text-muted mt-1 text-sm">Enter exam marks for your students.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Teaching</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Award size={22} className="text-primary" />Marks Entry</h1>
+        <p className="text-muted mt-1 text-sm">Enter exam marks for your students.</p>
+      </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <div className="grid grid-cols-2 gap-3 mb-4">

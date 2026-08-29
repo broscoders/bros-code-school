@@ -43,7 +43,7 @@ export default function ParentLayout() {
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-5 flex items-center justify-between gap-3 border-b border-border">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-display font-bold text-sm shrink-0">BC</div>
+            <div className="w-10 h-10 tab-corner bg-primary text-white flex items-center justify-center font-display font-bold text-sm shrink-0">BC</div>
             <div className="min-w-0">
               <h1 className="font-display font-semibold text-sm leading-tight text-ink truncate">Bros Code School</h1>
               <p className="text-[11px] text-muted tracking-wide">Parent Portal</p>
@@ -53,7 +53,7 @@ export default function ParentLayout() {
         </div>
         <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? "bg-primary text-white font-medium shadow-sm" : "text-muted hover:bg-white/5 hover:text-ink"}`}>
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 pl-4 pr-3 py-2.5 text-sm transition-colors border-l-2 ${isActive ? "border-l-primary text-primary font-medium bg-primary/[0.07]" : "border-l-transparent text-muted hover:bg-white/5 hover:text-ink hover:border-l-border"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>

@@ -23,9 +23,11 @@ export default function TeacherStudyMaterial() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Teaching</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FolderOpen size={22} className="text-primary" />Study Material</h1>
-      <p className="text-muted mt-1 text-sm">Upload notes, PDFs and resources for your classes.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Teaching</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FolderOpen size={22} className="text-primary" />Study Material</h1>
+        <p className="text-muted mt-1 text-sm">Upload notes, PDFs and resources for your classes.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         {msg && <p className="text-success text-sm col-span-2">{msg}</p>}

@@ -14,8 +14,10 @@ export default function StudentAssignments() {
 
   return (
     <div className="p-8">
-      <p className="section-label">My School Life</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileText size={22} className="text-primary" />Assignments</h1>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">My School Life</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileText size={22} className="text-primary" />Assignments</h1>
+      </div>
       <div className="space-y-3 mt-6">
         {list.length === 0 && <p className="text-muted text-sm">No assignments yet.</p>}
         {list.map((a) => (

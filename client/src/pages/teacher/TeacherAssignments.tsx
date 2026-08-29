@@ -28,9 +28,11 @@ export default function TeacherAssignments() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Teaching</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileText size={22} className="text-primary" />Assignments</h1>
-      <p className="text-muted mt-1 text-sm">Create assignments for your classes.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Teaching</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileText size={22} className="text-primary" />Assignments</h1>
+        <p className="text-muted mt-1 text-sm">Create assignments for your classes.</p>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
         <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: "" })} className="border border-border rounded-md px-3 py-2 text-sm" required>

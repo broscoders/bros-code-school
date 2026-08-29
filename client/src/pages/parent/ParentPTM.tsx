@@ -40,12 +40,14 @@ export default function ParentPTM() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Meetings</p>
-      <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
-        <Users size={22} className="text-primary" />
-        Parent-Teacher Meeting
-      </h1>
-      <div className="mt-6"><ChildSwitcher children={children} /></div>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Meetings</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
+          <Users size={22} className="text-primary" />
+          Parent-Teacher Meeting
+        </h1>
+        <div className="mt-6"><ChildSwitcher children={children} /></div>
+      </div>
 
       {msg && <p className="text-danger text-sm mt-3">{msg}</p>}
 

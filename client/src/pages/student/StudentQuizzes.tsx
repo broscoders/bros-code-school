@@ -100,9 +100,11 @@ export default function StudentQuizzes() {
 
   return (
     <div className="p-8">
-      <p className="section-label">Assessment</p>
-      <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Online Quizzes</h1>
-      <p className="text-muted mt-1 text-sm">Timed quizzes assigned to your class.</p>
+      <div className="border-b border-border pb-5 mb-6">
+        <p className="section-label">Assessment</p>
+        <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Online Quizzes</h1>
+        <p className="text-muted mt-1 text-sm">Timed quizzes assigned to your class.</p>
+      </div>
 
       {result && (
         <div className="bg-success/10 border border-success/20 rounded-xl p-4 mt-4 text-success text-sm font-medium">
