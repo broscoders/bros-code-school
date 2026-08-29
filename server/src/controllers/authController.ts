@@ -4,6 +4,7 @@ import { OAuth2Client } from "google-auth-library";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
+import { isNonEmptyString } from "../utils/validateStrings";
 import {
   sendMail,
   generateSixDigitCode,
@@ -24,6 +25,9 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+    if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+      return res.status(400).json({ message: "Invalid email or password format" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -62,6 +66,9 @@ export const verifyEmail = async (req: Request, res: Response) => {
     const { email, code } = req.body;
     if (!email || !code) {
       return res.status(400).json({ message: "Email and code are required" });
+    }
+    if (!isNonEmptyString(email) || !isNonEmptyString(code)) {
+      return res.status(400).json({ message: "Invalid email or code format" });
     }
 
     const user = await User.findOne({ email }).select("+verificationCode +verificationCodeExpires");
@@ -108,6 +115,9 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
+    if (!isNonEmptyString(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) {
@@ -136,6 +146,9 @@ export const loginUser = async (req: Request, res: Response) => {
 
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
+    }
+    if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const user = await User.findOne({ email }).select(
@@ -268,6 +281,9 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     if (!currentPassword || !newPassword) {
       return res.status(400).json({ message: "Current password and new password are required" });
     }
+    if (!isNonEmptyString(currentPassword) || !isNonEmptyString(newPassword)) {
+      return res.status(400).json({ message: "Invalid password format" });
+    }
     if (newPassword.length < 6) {
       return res.status(400).json({ message: "New password must be at least 6 characters" });
     }
@@ -294,6 +310,9 @@ export const forgotPassword = async (req: Request, res: Response) => {
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
+    if (!isNonEmptyString(email)) {
+      return res.json({ message: "If that email is registered, a reset code has been sent." });
+    }
 
     const user = await User.findOne({ email });
     if (user) {
@@ -315,6 +334,9 @@ export const resetPassword = async (req: Request, res: Response) => {
     const { email, code, newPassword } = req.body;
     if (!email || !code || !newPassword) {
       return res.status(400).json({ message: "Email, code and new password are required" });
+    }
+    if (!isNonEmptyString(email) || !isNonEmptyString(code) || !isNonEmptyString(newPassword)) {
+      return res.status(400).json({ message: "Invalid request format" });
     }
     if (newPassword.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
