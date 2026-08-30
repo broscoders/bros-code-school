@@ -40,6 +40,13 @@ export const getThread = async (req: AuthRequest, res: Response) => {
   try {
     const userA = req.query.userA as string;
     const userB = req.query.userB as string;
+    // Without this check, any logged-in user could read the private
+    // conversation between any two OTHER users just by knowing/guessing
+    // their user IDs - neither userA nor userB was ever checked against
+    // who was actually making the request.
+    if (req.user!.userId !== userA && req.user!.userId !== userB) {
+      return res.status(403).json({ message: "You can only view your own conversations" });
+    }
     const msgs = await Message.find({
       schoolId: req.user!.schoolId,
       $or: [
@@ -55,7 +62,9 @@ export const getThread = async (req: AuthRequest, res: Response) => {
 
 export const getInbox = async (req: AuthRequest, res: Response) => {
   try {
-    const msgs = await Message.find({ schoolId: req.user!.schoolId, toUserId: req.query.userId as string }).populate("fromUserId").sort({ createdAt: -1 });
+    // Always the caller's own inbox - a client-supplied userId query param
+    // would otherwise let anyone read anyone else's received messages.
+    const msgs = await Message.find({ schoolId: req.user!.schoolId, toUserId: req.user!.userId }).populate("fromUserId").sort({ createdAt: -1 });
     res.json(msgs);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -89,7 +98,25 @@ export const createPTMSlot = async (req: AuthRequest, res: Response) => {
 
 export const getPTMSlotsByTeacher = async (req: AuthRequest, res: Response) => {
   try {
-    const slots = await PTMSlot.find({ schoolId: req.user!.schoolId, teacherId: req.query.teacherId as string }).populate("parentId studentId");
+    const teacherId = req.query.teacherId as string;
+    const role = req.user!.role;
+    const STAFF_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR", "RECEPTIONIST"];
+
+    // This returns which parent/student is booked into each slot for a
+    // teacher - real, private booking info. Route allows every role, so
+    // without this check any parent/student could pass an arbitrary
+    // teacherId and see every other family's PTM bookings with that
+    // teacher, not just their own.
+    if (role === "TEACHER" || role === "ACADEMY_TEACHER") {
+      const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!myTeacher || myTeacher._id.toString() !== teacherId) {
+        return res.status(403).json({ message: "You can only view your own PTM slots" });
+      }
+    } else if (!STAFF_ROLES.includes(role)) {
+      return res.status(403).json({ message: "You are not authorized to view this teacher's full slot list" });
+    }
+
+    const slots = await PTMSlot.find({ schoolId: req.user!.schoolId, teacherId }).populate("parentId studentId");
     res.json(slots);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

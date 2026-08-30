@@ -4,6 +4,7 @@ import { canAccessStudent } from "../utils/accessControl";
 import Quiz from "../models/Quiz";
 import QuizAttempt from "../models/QuizAttempt";
 import Student from "../models/Student";
+import Teacher from "../models/Teacher";
 
 export const createQuiz = async (req: AuthRequest, res: Response) => {
   try {
@@ -16,7 +17,19 @@ export const createQuiz = async (req: AuthRequest, res: Response) => {
 
 export const getQuizzesForTeacher = async (req: AuthRequest, res: Response) => {
   try {
-    const quizzes = await Quiz.find({ schoolId: req.user!.schoolId, createdBy: req.query.teacherId as string })
+    const teacherId = req.query.teacherId as string;
+    // Includes correctOptionIndex (no field exclusion, unlike the student-
+    // facing endpoint below) - so without this check, any teacher could
+    // read another teacher's unpublished quizzes, answer key included, by
+    // passing a different teacherId.
+    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    const isOwnQuizzes = myTeacher && myTeacher._id.toString() === teacherId;
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isOwnQuizzes && !isAdmin) {
+      return res.status(403).json({ message: "You can only view your own quizzes" });
+    }
+
+    const quizzes = await Quiz.find({ schoolId: req.user!.schoolId, createdBy: teacherId })
       .populate("classId sectionId subjectId")
       .sort({ createdAt: -1 });
     res.json(quizzes);
@@ -118,8 +131,17 @@ export const startAttempt = async (req: AuthRequest, res: Response) => {
 export const submitAttempt = async (req: AuthRequest, res: Response) => {
   try {
     const { attemptId, answers } = req.body;
+    const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+
     const attempt = await QuizAttempt.findOne({ _id: attemptId, schoolId: req.user!.schoolId });
     if (!attempt) return res.status(404).json({ message: "Attempt not found" });
+    // Without this, any student could submit answers on ANOTHER student's
+    // in-progress attempt just by knowing/guessing its attemptId - route-
+    // level "must be a STUDENT" doesn't verify it's *this* student's attempt.
+    if (attempt.studentId.toString() !== myStudent._id.toString()) {
+      return res.status(403).json({ message: "This is not your quiz attempt" });
+    }
     if (attempt.status === "SUBMITTED") return res.status(400).json({ message: "This attempt was already submitted." });
 
     const quiz = await Quiz.findById(attempt.quizId);

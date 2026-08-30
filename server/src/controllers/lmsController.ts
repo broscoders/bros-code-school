@@ -5,6 +5,7 @@ import Course from "../models/Course";
 import Lesson from "../models/Lesson";
 import LessonProgress from "../models/LessonProgress";
 import Student from "../models/Student";
+import Teacher from "../models/Teacher";
 
 export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
@@ -17,7 +18,15 @@ export const createCourse = async (req: AuthRequest, res: Response) => {
 
 export const getCoursesForTeacher = async (req: AuthRequest, res: Response) => {
   try {
-    const courses = await Course.find({ schoolId: req.user!.schoolId, createdBy: req.query.teacherId as string })
+    const teacherId = req.query.teacherId as string;
+    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    const isOwnCourses = myTeacher && myTeacher._id.toString() === teacherId;
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isOwnCourses && !isAdmin) {
+      return res.status(403).json({ message: "You can only view your own courses" });
+    }
+
+    const courses = await Course.find({ schoolId: req.user!.schoolId, createdBy: teacherId })
       .populate("classId subjectId")
       .sort({ createdAt: -1 });
     res.json(courses);
