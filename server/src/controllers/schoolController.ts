@@ -35,8 +35,15 @@ export const getSchools = async (req: Request, res: Response) => {
   }
 };
 
-export const getSchoolById = async (req: Request, res: Response) => {
+export const getSchoolById = async (req: AuthRequest, res: Response) => {
   try {
+    // Without this check, any logged-in user - regardless of which school
+    // they belong to - could fetch any other school's profile just by
+    // changing the :id in the URL, breaking the isolation the blueprint
+    // requires between organizations/branches.
+    if (req.params.id !== req.user!.schoolId) {
+      return res.status(403).json({ message: "You can only view your own school" });
+    }
     const school = await School.findById(req.params.id);
     if (!school) {
       return res.status(404).json({ message: "School not found" });
