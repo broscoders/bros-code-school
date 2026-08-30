@@ -141,7 +141,11 @@ export const runDueReminders = async (req: AuthRequest, res: Response) => {
 export const runRemindersForAllSchools = async (req: Request, res: Response) => {
   try {
     const authHeader = req.headers.authorization;
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    // If CRON_SECRET is never configured, process.env.CRON_SECRET is
+    // undefined and the comparison target becomes the literal string
+    // "Bearer undefined" - so simply sending that exact header would pass.
+    // Requiring the secret to actually be set closes that bypass.
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
