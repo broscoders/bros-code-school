@@ -164,16 +164,29 @@ export const updatePurchaseOrderStatus = async (req: AuthRequest, res: Response)
     const po = await PurchaseOrder.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!po) return res.status(404).json({ message: "Purchase order not found" });
 
+    // Receiving stock into inventory must only ever happen once per order -
+    // without this guard, marking an already-RECEIVED order as RECEIVED
+    // again (double-click, retry) would add the same items to inventory a
+    // second time, inflating stock counts that were never actually
+    // delivered twice.
+    if (status === "RECEIVED" && po.status === "RECEIVED") {
+      return res.status(400).json({ message: "This purchase order has already been marked as received." });
+    }
+
     po.status = status;
     if (status === "APPROVED") po.approvedBy = req.user!.userId as any;
     if (status === "RECEIVED") {
       po.receivedDate = new Date();
       for (const item of po.items) {
-        const existing = await InventoryItem.findOne({ schoolId: req.user!.schoolId, name: item.itemName });
-        if (existing) {
-          existing.quantity += item.quantity;
-          await existing.save();
-        } else {
+        // Atomic increment, same reasoning as the hostel/library fixes -
+        // avoids a lost-update race if two orders affecting the same
+        // inventory item are received close together.
+        const updated = await InventoryItem.findOneAndUpdate(
+          { schoolId: req.user!.schoolId, name: item.itemName },
+          { $inc: { quantity: item.quantity } },
+          { new: true }
+        );
+        if (!updated) {
           await InventoryItem.create({
             schoolId: req.user!.schoolId,
             name: item.itemName,

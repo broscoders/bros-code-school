@@ -1,6 +1,7 @@
 ﻿import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import SchoolDocument from "../models/SchoolDocument";
+import { canAccessStudent } from "../utils/accessControl";
 
 export const uploadDocument = async (req: AuthRequest, res: Response) => {
   try {
@@ -46,9 +47,16 @@ export const getDocuments = async (req: AuthRequest, res: Response) => {
 
 export const getMyDocuments = async (req: AuthRequest, res: Response) => {
   try {
+    const relatedToId = req.query.relatedToId as string;
+    // getMyDocuments is reachable by every role including PARENT/STUDENT -
+    // without this check, any of them could read another family's
+    // documents just by passing a different relatedToId.
+    const allowed = await canAccessStudent(req, relatedToId);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this record's documents" });
+
     const docs = await SchoolDocument.find({
       schoolId: req.user!.schoolId,
-      relatedToId: req.query.relatedToId as string,
+      relatedToId,
     }).sort({ createdAt: -1 });
     res.json(docs);
   } catch (err) {

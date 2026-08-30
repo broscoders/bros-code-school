@@ -97,9 +97,25 @@ export const getMyCertificates = async (req: AuthRequest, res: Response) => {
 // since anyone holding a certificate number should be able to confirm it's genuine.
 export const verifyCertificate = async (req: AuthRequest, res: Response) => {
   try {
-    const cert = await Certificate.findOne({ certificateNumber: req.params.number }).populate({ path: "studentId", populate: { path: "userId" } });
+    // This route is intentionally public - no login required - so the
+    // student's contact details (email etc, pulled in by populate) must
+    // never be part of the response. Only the minimal fields needed to
+    // confirm a certificate's authenticity are returned; anyone who finds
+    // or guesses a certificate number should not be able to harvest a
+    // student's email from a "verify this certificate" page.
+    const cert = await Certificate.findOne({ certificateNumber: req.params.number })
+      .populate({ path: "studentId", select: "admissionNumber", populate: { path: "userId", select: "name" } })
+      .populate({ path: "schoolId", select: "name logoUrl" });
     if (!cert) return res.status(404).json({ message: "Certificate not found" });
-    res.json(cert);
+
+    res.json({
+      certificateNumber: cert.certificateNumber,
+      title: cert.title,
+      type: cert.type,
+      issueDate: cert.issueDate,
+      studentName: (cert.studentId as any)?.userId?.name,
+      schoolName: (cert.schoolId as any)?.name,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
