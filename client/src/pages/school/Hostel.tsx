@@ -23,6 +23,17 @@ export default function Hostel() {
     setAllocations(res.data);
   };
 
+  const vacateRoom = async (allocationId: string) => {
+    if (!window.confirm("Vacate this bed? The student will be removed from the room.")) return;
+    try {
+      await api.put(`/hostel/allocations/${allocationId}/deallocate`);
+      loadAllocations();
+    } catch (err: any) {
+      setAllocMsg(err.response?.data?.message || "Failed to vacate room");
+      setTimeout(() => setAllocMsg(""), 2500);
+    }
+  };
+
   useEffect(() => {
     if (schoolId) {
       loadBuildings();
@@ -142,17 +153,25 @@ export default function Hostel() {
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
-            <tr><th className="p-3 font-medium">Student</th><th className="p-3 font-medium">Room</th><th className="p-3 font-medium">Monthly Fee</th></tr>
+            <tr><th className="p-3 font-medium">Student</th><th className="p-3 font-medium">Room</th><th className="p-3 font-medium">Monthly Fee</th><th className="p-3 font-medium">Action</th></tr>
           </thead>
           <tbody>
             {allocations.length === 0 ? (
-              <tr><td colSpan={3} className="p-6 text-center text-muted">No allocations yet.</td></tr>
+              <tr><td colSpan={4} className="p-6 text-center text-muted">No allocations yet.</td></tr>
             ) : (
               allocations.map((a) => (
                 <tr key={a._id} className="border-t border-border">
                   <td className="p-3">{a.studentId?.userId?.name}</td>
                   <td className="p-3">Room {a.roomId?.roomNumber}</td>
                   <td className="p-3">Rs. {a.monthlyFee}</td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => vacateRoom(a._id)}
+                      className="text-danger text-xs font-medium hover:underline"
+                    >
+                      Vacate
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
