@@ -242,9 +242,23 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // Only these fields may be set from marks entry. isPublished/publishedAt
+    // must never come from this endpoint's body - that would let a teacher
+    // (who is not allowed to call the separate, admin-only publish endpoint)
+    // self-publish a result simply by including "isPublished": true in the
+    // request, skipping the review/approval step and the parent-notification
+    // logic that only the publish endpoint runs.
+    const updatePayload = {
+      examId: req.body.examId,
+      studentId: req.body.studentId,
+      marksObtained,
+      ...(req.body.grade !== undefined ? { grade: req.body.grade } : {}),
+      ...(req.body.remarks !== undefined ? { remarks: req.body.remarks } : {}),
+    };
+
     const result = await Result.findOneAndUpdate(
       { examId: req.body.examId, studentId: req.body.studentId },
-      req.body,
+      updatePayload,
       { upsert: true, new: true }
     );
 

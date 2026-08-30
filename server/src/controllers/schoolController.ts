@@ -1,4 +1,5 @@
 ﻿import type { Request, Response } from "express";
+import type { AuthRequest } from "../middleware/authMiddleware";
 import School from "../models/School";
 
 export const createSchool = async (req: Request, res: Response) => {
@@ -46,9 +47,33 @@ export const getSchoolById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateSchool = async (req: Request, res: Response) => {
+export const updateSchool = async (req: AuthRequest, res: Response) => {
   try {
-    const school = await School.findByIdAndUpdate(req.params.id, req.body, {
+    // A school admin/principal must only ever be able to edit their own
+    // school - without this check, PUT /schools/:id took whatever :id was
+    // given, so an admin from one school could edit (or deactivate) any
+    // other school in the system just by changing the URL.
+    if (req.params.id !== req.user!.schoolId) {
+      return res.status(403).json({ message: "You can only update your own school" });
+    }
+
+    // isActive is a platform-level suspension flag (set by Super Admin when
+    // a subscription lapses, etc.) - a school-level admin must never be able
+    // to toggle it back on for themselves, so it - along with any other
+    // platform-controlled field - is deliberately excluded here even though
+    // the model allows it.
+    const { name, logoUrl, primaryColor, secondaryColor, address, contactEmail, contactPhone } = req.body;
+    const updatePayload = {
+      ...(name !== undefined ? { name } : {}),
+      ...(logoUrl !== undefined ? { logoUrl } : {}),
+      ...(primaryColor !== undefined ? { primaryColor } : {}),
+      ...(secondaryColor !== undefined ? { secondaryColor } : {}),
+      ...(address !== undefined ? { address } : {}),
+      ...(contactEmail !== undefined ? { contactEmail } : {}),
+      ...(contactPhone !== undefined ? { contactPhone } : {}),
+    };
+
+    const school = await School.findByIdAndUpdate(req.params.id, updatePayload, {
       new: true,
       runValidators: true,
     });
