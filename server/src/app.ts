@@ -36,6 +36,7 @@ import hrRoutes from "./routes/hrRoutes";
 import hostelRoutes from "./routes/hostelRoutes";
 import assetsRoutes from "./routes/assetsRoutes";
 import healthRoutes from "./routes/healthRoutes";
+import websiteRoutes, { publicWebsiteRouter } from "./routes/websiteRoutes";
 
 const app = express();
 
@@ -84,5 +85,9 @@ app.use("/api/hr", hrRoutes);
 app.use("/api/hostel", hostelRoutes);
 app.use("/api/assets", assetsRoutes);
 app.use("/api/health", healthRoutes);
+app.use("/api/website", websiteRoutes);
+// Public, unauthenticated marketing-site data - deliberately outside /api
+// auth middleware, mounted at its own path so it's obviously the public one.
+app.use("/api/public/site", publicWebsiteRouter);
 
 export default app;

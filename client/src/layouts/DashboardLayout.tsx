@@ -80,6 +80,7 @@ const navGroups: NavGroup[] = [
       { to: "/id-cards", label: "ID Cards", icon: IdCard },
       { to: "/documents", label: "Documents", icon: FolderOpen },
       { to: "/automation", label: "Automation", icon: Zap },
+      { to: "/website-cms", label: "Website / CMS", icon: Globe },
       { to: "/announcements", label: "Announcements", icon: Megaphone },
       { to: "/surveys", label: "Surveys", icon: MessageSquareText },
       { to: "/calendar", label: "Calendar", icon: Calendar },
@@ -99,7 +100,6 @@ const navGroups: NavGroup[] = [
 const comingSoonItems = [
   { label: "LMS", icon: LMSIcon },
   { label: "Online Exams", icon: MonitorCheck },
-  { label: "Website CMS", icon: Globe },
   { label: "Integrations", icon: Plug },
   { label: "Mobile Apps", icon: Smartphone },
 ];

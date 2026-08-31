@@ -14,6 +14,8 @@ import Documents from "./pages/school/Documents";
 import Library from "./pages/school/Library";
 import Transport from "./pages/school/Transport";
 import Automation from "./pages/school/Automation";
+import WebsiteCMS from "./pages/school/WebsiteCMS";
+import PublicSite from "./pages/public/PublicSite";
 import Fees from "./pages/school/Fees";
 import Announcements from "./pages/school/Announcements";
 import Attendance from "./pages/school/Attendance";
@@ -107,6 +109,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/site/:slug" element={<PublicSite />} />
         <Route path="/platform/login" element={<PlatformLogin />} />
 
         <Route element={<PlatformProtectedRoute><PlatformLayout /></PlatformProtectedRoute>}>
@@ -129,6 +132,7 @@ function App() {
         <Route path="/library" element={<Library />} />
         <Route path="/transport" element={<Transport />} />
           <Route path="/automation" element={<Automation />} />
+          <Route path="/website-cms" element={<WebsiteCMS />} />
           <Route path="/fees" element={<Fees />} />
           <Route path="/announcements" element={<Announcements />} />
           <Route path="/attendance" element={<Attendance />} />
