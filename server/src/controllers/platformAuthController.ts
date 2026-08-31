@@ -3,12 +3,21 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import PlatformAdmin from "../models/PlatformAdmin";
 import { getPlatformJwtSecret } from "../utils/jwtSecret";
+import { isNonEmptyString } from "../utils/validateStrings";
 
 export const platformLogin = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
+    }
+    // Same class of bug fixed in authController's login: without this,
+    // an object like { "$ne": null } would pass the truthy check above and
+    // reach PlatformAdmin.findOne({ email }) as a query operator instead of
+    // a literal value - and this endpoint controls the single
+    // highest-privilege account type in the whole system.
+    if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const admin = await PlatformAdmin.findOne({ email });

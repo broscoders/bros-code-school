@@ -33,3 +33,26 @@ export async function canAccessStudent(req: AuthRequest, studentId: string): Pro
 
   return false;
 }
+
+// Checks that a STUDENT or PARENT caller actually has a child in the given
+// class before letting them view class-scoped content (homework,
+// assignments, exams) for it - without this, any student/parent could
+// browse another class's content just by passing a different classId.
+// Staff roles are trusted for any class within their own school.
+export async function isOwnClass(req: AuthRequest, classId: string): Promise<boolean> {
+  const role = req.user!.role;
+
+  if (role === "STUDENT") {
+    const student = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    return !!student && student.classId?.toString() === classId;
+  }
+
+  if (role === "PARENT") {
+    const parent = await Parent.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    if (!parent) return false;
+    const children = await Student.find({ _id: { $in: parent.children }, schoolId: req.user!.schoolId });
+    return children.some((c) => c.classId?.toString() === classId);
+  }
+
+  return false;
+}

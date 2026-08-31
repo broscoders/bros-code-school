@@ -12,7 +12,7 @@ import Student from "../models/Student";
 import Section from "../models/Section";
 import Parent from "../models/Parent";
 import Discount from "../models/Discount";
-import { canAccessStudent } from "../utils/accessControl";
+import { canAccessStudent, isOwnClass } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
 import { notify } from "../utils/notifier";
 import type { AuthRequest } from "../middleware/authMiddleware";
@@ -122,7 +122,15 @@ export const createHomework = async (req: AuthRequest, res: Response) => {
 
 export const getHomework = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await Homework.find({ schoolId: req.user!.schoolId, classId: req.query.classId as string });
+    const classId = req.query.classId as string;
+    // Homework for a class is only relevant/appropriate to see for staff or
+    // people actually in that class - without this, any parent/student
+    // could browse another class's homework by passing a different classId.
+    if (["STUDENT", "PARENT"].includes(req.user!.role)) {
+      const allowed = await isOwnClass(req, classId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to this class" });
+    }
+    const list = await Homework.find({ schoolId: req.user!.schoolId, classId });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -166,7 +174,12 @@ export const createAssignment = async (req: AuthRequest, res: Response) => {
 
 export const getAssignments = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await Assignment.find({ schoolId: req.user!.schoolId, classId: req.query.classId as string });
+    const classId = req.query.classId as string;
+    if (["STUDENT", "PARENT"].includes(req.user!.role)) {
+      const allowed = await isOwnClass(req, classId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to this class" });
+    }
+    const list = await Assignment.find({ schoolId: req.user!.schoolId, classId });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -210,7 +223,12 @@ export const createExam = async (req: AuthRequest, res: Response) => {
 
 export const getExams = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await Exam.find({ schoolId: req.user!.schoolId, classId: req.query.classId as string });
+    const classId = req.query.classId as string;
+    if (["STUDENT", "PARENT"].includes(req.user!.role)) {
+      const allowed = await isOwnClass(req, classId);
+      if (!allowed) return res.status(403).json({ message: "You do not have access to this class" });
+    }
+    const list = await Exam.find({ schoolId: req.user!.schoolId, classId });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -466,6 +484,12 @@ export const bulkCreateInvoices = async (req: AuthRequest, res: Response) => {
 
 export const getInvoices = async (req: AuthRequest, res: Response) => {
   try {
+    // Route is reachable by EVERYONE (incl. STUDENT/PARENT) - without this,
+    // any family could see any other student's fee amounts and payment
+    // history just by changing the studentId query param.
+    const allowed = await canAccessStudent(req, req.query.studentId as string);
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student" });
+
     const invoices = await Invoice.find({ schoolId: req.user!.schoolId, studentId: req.query.studentId as string });
     res.json(invoices);
   } catch (err) {
@@ -478,22 +502,38 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
     const existing = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!existing) return res.status(404).json({ message: "Invoice not found" });
 
+    // This route is reachable directly by PARENT - without checking the
+    // invoice's own student against the caller, a parent could record a
+    // payment against (and flip the status of) ANY student's invoice, not
+    // just their own child's.
+    const allowed = await canAccessStudent(req, existing.studentId.toString());
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student's invoice" });
+
     const paymentNow = Number(req.body.amount) || 0;
     if (paymentNow <= 0) return res.status(400).json({ message: "Payment amount must be greater than zero" });
 
-    const newPaidAmount = (existing.paidAmount || 0) + paymentNow;
-    const newStatus = newPaidAmount >= existing.amount ? "PAID" : "PARTIAL";
-
+    // Atomic read-and-write in one step: the previous version read
+    // existing.paidAmount, computed the new total in application code, then
+    // wrote it back separately. Two payments landing close together could
+    // both read the same starting paidAmount and each compute their own
+    // "new total" from that stale value - whichever write finished last
+    // would silently overwrite (lose) the other payment. $inc lets MongoDB
+    // do the addition atomically so no payment can be dropped this way.
     const invoice = await Invoice.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
       {
-        status: newStatus,
-        paidAmount: newPaidAmount,
-        paidDate: newStatus === "PAID" ? new Date() : existing.paidDate,
+        $inc: { paidAmount: paymentNow },
+        $set: { paidDate: new Date() },
       },
       { new: true }
     );
     if (!invoice) return res.status(404).json({ message: "Invoice not found" });
+
+    const newStatus = (invoice.paidAmount || 0) >= invoice.amount ? "PAID" : "PARTIAL";
+    if (invoice.status !== newStatus) {
+      invoice.status = newStatus;
+      await invoice.save();
+    }
 
     if (req.user) {
       await logAudit({
@@ -501,10 +541,10 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
         userId: req.user.userId,
         userName: (req.body.markedByName as string) || "Unknown",
         userRole: req.user.role,
-        action: "Marked invoice as paid",
+        action: "Recorded invoice payment",
         recordType: "Invoice",
         recordId: invoice._id.toString(),
-        newValue: { status: "PAID", amount: invoice.amount },
+        newValue: { status: invoice.status, paidAmount: invoice.paidAmount, paymentNow },
       });
     }
 
