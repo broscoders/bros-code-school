@@ -6,6 +6,7 @@ import Lesson from "../models/Lesson";
 import LessonProgress from "../models/LessonProgress";
 import Student from "../models/Student";
 import Teacher from "../models/Teacher";
+import Certificate from "../models/Certificate";
 
 export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
@@ -129,7 +130,33 @@ export const markLessonProgress = async (req: AuthRequest, res: Response) => {
       },
       { upsert: true, new: true }
     );
-    res.status(201).json(progress);
+
+    // Blueprint 80 ties a course's "Certificate eligibility" to finishing
+    // it - completing the last remaining lesson now auto-issues a
+    // completion certificate, once, the same way a staff member issuing one
+    // manually would (same model, same numbering scheme).
+    let issuedCertificate = null;
+    if (status === "COMPLETED") {
+      const [course, totalLessons, completedCount, alreadyIssued] = await Promise.all([
+        Course.findById(courseId),
+        Lesson.countDocuments({ courseId }),
+        LessonProgress.countDocuments({ studentId, courseId, status: "COMPLETED" }),
+        Certificate.findOne({ schoolId: req.user!.schoolId, studentId, courseId }),
+      ]);
+      if (course && totalLessons > 0 && completedCount >= totalLessons && !alreadyIssued) {
+        issuedCertificate = await Certificate.create({
+          schoolId: req.user!.schoolId,
+          studentId,
+          title: `Course Completion: ${course.title}`,
+          type: "COMPLETION",
+          certificateNumber: `CERT-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          issueDate: new Date(),
+          courseId,
+        });
+      }
+    }
+
+    res.status(201).json({ ...progress.toObject(), issuedCertificate });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -139,6 +166,13 @@ export const getCourseProgressSummary = async (req: AuthRequest, res: Response) 
   try {
     const course = await Course.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!course) return res.status(404).json({ message: "Course not found" });
+
+    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    const isOwner = myTeacher && myTeacher._id.toString() === course.createdBy?.toString();
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "You can only view progress for your own courses" });
+    }
 
     const lessons = await Lesson.find({ courseId: req.params.id });
     const progress = await LessonProgress.find({ courseId: req.params.id, status: "COMPLETED" })

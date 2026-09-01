@@ -36,9 +36,15 @@ export default function StudentCourses() {
     }
   };
 
+  const [certToast, setCertToast] = useState("");
+
   const markComplete = async () => {
     if (!activeLesson) return;
-    await api.post("/lms/progress", { lessonId: activeLesson._id, courseId: activeCourse._id, studentId: student._id, status: "COMPLETED" });
+    const res = await api.post("/lms/progress", { lessonId: activeLesson._id, courseId: activeCourse._id, studentId: student._id, status: "COMPLETED" });
+    if (res.data?.issuedCertificate) {
+      setCertToast(`Congratulations! You earned a completion certificate for "${activeCourse.title}".`);
+      setTimeout(() => setCertToast(""), 6000);
+    }
     openCourse(activeCourse);
     setActiveLesson(null);
   };
@@ -78,10 +84,24 @@ export default function StudentCourses() {
   }
 
   if (activeCourse) {
+    const completedCount = lessons.filter((l: any) => l.myStatus === "COMPLETED").length;
+    const pct = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
     return (
       <div className="p-8">
         <button onClick={() => setActiveCourse(null)} className="text-primary text-sm underline mb-4">&larr; Back to Courses</button>
         <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
+        {certToast && <p className="text-sm text-success bg-success-soft border border-success/30 rounded-lg px-3 py-2 mt-3">{certToast}</p>}
+        {lessons.length > 0 && (
+          <div className="mt-3 max-w-sm">
+            <div className="flex justify-between text-xs text-muted mb-1">
+              <span>{completedCount}/{lessons.length} lessons complete</span>
+              <span>{pct}%</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        )}
         <div className="mt-4 space-y-2">
           {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
           {lessons.map((l: any, i: number) => (

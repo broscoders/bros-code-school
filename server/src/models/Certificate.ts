@@ -9,6 +9,10 @@ export interface ICertificate extends Document {
   certificateNumber: string;
   issueDate: Date;
   fileUrl?: string;
+  // Set only for course-completion certificates auto-issued by the LMS, so
+  // that module can check "has this student already gotten a certificate
+  // for this course" without parsing the title string.
+  courseId?: mongoose.Types.ObjectId;
 }
 
 const certificateSchema = new Schema<ICertificate>(
@@ -20,6 +24,7 @@ const certificateSchema = new Schema<ICertificate>(
     certificateNumber: { type: String, required: true, unique: true },
     issueDate: { type: Date, default: Date.now },
     fileUrl: { type: String },
+    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
   },
   { timestamps: true }
 );
