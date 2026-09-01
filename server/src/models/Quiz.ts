@@ -19,6 +19,10 @@ export interface IQuiz extends Document {
   createdBy: mongoose.Types.ObjectId;
   isPublished: boolean;
   allowRetake: boolean;
+  // Optional explicit cap on attempts. When unset, behavior falls back to
+  // allowRetake (true = unlimited, false = a single attempt) so existing
+  // quizzes created before this field existed keep working unchanged.
+  maxAttempts?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +49,7 @@ const quizSchema = new Schema<IQuiz>(
     createdBy: { type: Schema.Types.ObjectId, ref: "Teacher", required: true },
     isPublished: { type: Boolean, default: false },
     allowRetake: { type: Boolean, default: false },
+    maxAttempts: { type: Number },
   },
   { timestamps: true }
 );

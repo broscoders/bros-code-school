@@ -1,0 +1,130 @@
+diff --git a/server/src/models/Certificate.ts b/server/src/models/Certificate.ts
+index c95ad73..8b22303 100644
+--- a/server/src/models/Certificate.ts
++++ b/server/src/models/Certificate.ts
+@@ -9,6 +9,10 @@ export interface ICertificate extends Document {
+   certificateNumber: string;
+   issueDate: Date;
+   fileUrl?: string;
++  // Set only for course-completion certificates auto-issued by the LMS, so
++  // that module can check "has this student already gotten a certificate
++  // for this course" without parsing the title string.
++  courseId?: mongoose.Types.ObjectId;
+ }
+ 
+ const certificateSchema = new Schema<ICertificate>(
+@@ -20,6 +24,7 @@ const certificateSchema = new Schema<ICertificate>(
+     certificateNumber: { type: String, required: true, unique: true },
+     issueDate: { type: Date, default: Date.now },
+     fileUrl: { type: String },
++    courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+   },
+   { timestamps: true }
+ );
+diff --git a/server/src/controllers/lmsController.ts b/server/src/controllers/lmsController.ts
+index a49a016..c963313 100644
+--- a/server/src/controllers/lmsController.ts
++++ b/server/src/controllers/lmsController.ts
+@@ -6,6 +6,7 @@ import Lesson from "../models/Lesson";
+ import LessonProgress from "../models/LessonProgress";
+ import Student from "../models/Student";
+ import Teacher from "../models/Teacher";
++import Certificate from "../models/Certificate";
+ 
+ export const createCourse = async (req: AuthRequest, res: Response) => {
+   try {
+@@ -129,7 +130,33 @@ export const markLessonProgress = async (req: AuthRequest, res: Response) => {
+       },
+       { upsert: true, new: true }
+     );
+-    res.status(201).json(progress);
++
++    // Blueprint 80 ties a course's "Certificate eligibility" to finishing
++    // it - completing the last remaining lesson now auto-issues a
++    // completion certificate, once, the same way a staff member issuing one
++    // manually would (same model, same numbering scheme).
++    let issuedCertificate = null;
++    if (status === "COMPLETED") {
++      const [course, totalLessons, completedCount, alreadyIssued] = await Promise.all([
++        Course.findById(courseId),
++        Lesson.countDocuments({ courseId }),
++        LessonProgress.countDocuments({ studentId, courseId, status: "COMPLETED" }),
++        Certificate.findOne({ schoolId: req.user!.schoolId, studentId, courseId }),
++      ]);
++      if (course && totalLessons > 0 && completedCount >= totalLessons && !alreadyIssued) {
++        issuedCertificate = await Certificate.create({
++          schoolId: req.user!.schoolId,
++          studentId,
++          title: `Course Completion: ${course.title}`,
++          type: "COMPLETION",
++          certificateNumber: `CERT-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
++          issueDate: new Date(),
++          courseId,
++        });
++      }
++    }
++
++    res.status(201).json({ ...progress.toObject(), issuedCertificate });
+   } catch (err) {
+     res.status(500).json({ message: "Server error", error: (err as Error).message });
+   }
+@@ -140,6 +167,13 @@ export const getCourseProgressSummary = async (req: AuthRequest, res: Response)
+     const course = await Course.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+     if (!course) return res.status(404).json({ message: "Course not found" });
+ 
++    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
++    const isOwner = myTeacher && myTeacher._id.toString() === course.createdBy?.toString();
++    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
++    if (!isOwner && !isAdmin) {
++      return res.status(403).json({ message: "You can only view progress for your own courses" });
++    }
++
+     const lessons = await Lesson.find({ courseId: req.params.id });
+     const progress = await LessonProgress.find({ courseId: req.params.id, status: "COMPLETED" })
+       .populate({ path: "studentId", populate: { path: "userId" } });
+diff --git a/client/src/pages/student/StudentCourses.tsx b/client/src/pages/student/StudentCourses.tsx
+index 3914f31..187ee91 100644
+--- a/client/src/pages/student/StudentCourses.tsx
++++ b/client/src/pages/student/StudentCourses.tsx
+@@ -36,9 +36,15 @@ export default function StudentCourses() {
+     }
+   };
+ 
++  const [certToast, setCertToast] = useState("");
++
+   const markComplete = async () => {
+     if (!activeLesson) return;
+-    await api.post("/lms/progress", { lessonId: activeLesson._id, courseId: activeCourse._id, studentId: student._id, status: "COMPLETED" });
++    const res = await api.post("/lms/progress", { lessonId: activeLesson._id, courseId: activeCourse._id, studentId: student._id, status: "COMPLETED" });
++    if (res.data?.issuedCertificate) {
++      setCertToast(`Congratulations! You earned a completion certificate for "${activeCourse.title}".`);
++      setTimeout(() => setCertToast(""), 6000);
++    }
+     openCourse(activeCourse);
+     setActiveLesson(null);
+   };
+@@ -78,10 +84,24 @@ export default function StudentCourses() {
+   }
+ 
+   if (activeCourse) {
++    const completedCount = lessons.filter((l: any) => l.myStatus === "COMPLETED").length;
++    const pct = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
+     return (
+       <div className="p-8">
+         <button onClick={() => setActiveCourse(null)} className="text-primary text-sm underline mb-4">&larr; Back to Courses</button>
+         <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
++        {certToast && <p className="text-sm text-success bg-success-soft border border-success/30 rounded-lg px-3 py-2 mt-3">{certToast}</p>}
++        {lessons.length > 0 && (
++          <div className="mt-3 max-w-sm">
++            <div className="flex justify-between text-xs text-muted mb-1">
++              <span>{completedCount}/{lessons.length} lessons complete</span>
++              <span>{pct}%</span>
++            </div>
++            <div className="h-2 rounded-full bg-white/5 overflow-hidden">
++              <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
++            </div>
++          </div>
++        )}
+         <div className="mt-4 space-y-2">
+           {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
+           {lessons.map((l: any, i: number) => (

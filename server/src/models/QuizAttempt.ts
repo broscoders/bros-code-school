@@ -5,6 +5,7 @@ export interface IQuizAttempt extends Document {
   schoolId: mongoose.Types.ObjectId;
   quizId: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
+  attemptNumber: number;
   answers: number[];
   score?: number;
   totalQuestions: number;
@@ -20,6 +21,11 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
     schoolId: { type: Schema.Types.ObjectId, ref: "School", required: true },
     quizId: { type: Schema.Types.ObjectId, ref: "Quiz", required: true },
     studentId: { type: Schema.Types.ObjectId, ref: "Student", required: true },
+    // Each retake is its own attempt document now (rather than reusing a
+    // single per-student-per-quiz record), so a full attempt history is
+    // preserved per the blueprint's "Results, History" requirement, and
+    // maxAttempts on the Quiz can be enforced by counting these.
+    attemptNumber: { type: Number, required: true, default: 1 },
     answers: { type: [Number], default: [] },
     score: { type: Number },
     totalQuestions: { type: Number, required: true },
@@ -30,6 +36,6 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
   { timestamps: true }
 );
 
-quizAttemptSchema.index({ quizId: 1, studentId: 1 }, { unique: true });
+quizAttemptSchema.index({ quizId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
 
 export default mongoose.model<IQuizAttempt>("QuizAttempt", quizAttemptSchema);

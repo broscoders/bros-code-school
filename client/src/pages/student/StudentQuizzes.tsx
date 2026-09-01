@@ -118,11 +118,15 @@ export default function StudentQuizzes() {
           <div key={q._id} className="bg-surface rounded-xl border border-border shadow-sm p-4">
             <p className="font-display font-semibold text-ink">{q.title}</p>
             <p className="text-muted text-xs mt-1">{q.subjectId?.name} - {q.questionCount} questions - {q.timeLimitMinutes} min</p>
-            {q.myAttemptStatus === "SUBMITTED" ? (
-              <p className="text-success text-sm mt-3 font-medium">Completed - Score: {q.myScore}/{q.questionCount}</p>
-            ) : (
+            {q.myAttemptStatus === "SUBMITTED" && (
+              <p className="text-success text-sm mt-3 font-medium">
+                Best score: {q.myScore}/{q.questionCount}
+                {q.maxAttempts > 0 && <span className="text-muted font-normal"> · {q.myAttemptsUsed}/{q.maxAttempts} attempts used</span>}
+              </p>
+            )}
+            {(q.myAttemptStatus !== "SUBMITTED" || q.maxAttempts === 0 || q.myAttemptsUsed < q.maxAttempts) && (
               <button onClick={() => startQuiz(q)} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium mt-3 hover:bg-primary-dark transition-colors">
-                {q.myAttemptStatus === "IN_PROGRESS" ? "Resume Quiz" : "Start Quiz"}
+                {q.myAttemptStatus === "IN_PROGRESS" ? "Resume Quiz" : q.myAttemptStatus === "SUBMITTED" ? "Retake Quiz" : "Start Quiz"}
               </button>
             )}
           </div>

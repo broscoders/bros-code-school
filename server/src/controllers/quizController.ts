@@ -59,13 +59,23 @@ export const getQuizzesForClass = async (req: AuthRequest, res: Response) => {
       : [];
 
     const result = quizzes.map((q: any) => {
-      const attempt = attempts.find((a) => a.quizId.toString() === q._id.toString());
+      const myAttempts = attempts.filter((a) => a.quizId.toString() === q._id.toString());
+      // Multiple attempts can now exist per quiz - prefer an attempt still
+      // in progress (so the student sees "resume"), otherwise show the
+      // best submitted score rather than an arbitrary one.
+      const inProgress = myAttempts.find((a) => a.status === "IN_PROGRESS");
+      const submitted = myAttempts.filter((a) => a.status === "SUBMITTED");
+      const best = submitted.reduce((max, a) => (max === null || (a.score || 0) > (max.score || 0) ? a : max), null as (typeof submitted)[number] | null);
+      const limit = typeof q.maxAttempts === "number" ? q.maxAttempts : q.allowRetake ? 0 : 1;
+
       return {
         ...q.toObject(),
         questionCount: q.questions.length,
         questions: undefined,
-        myAttemptStatus: attempt?.status || null,
-        myScore: attempt?.status === "SUBMITTED" ? attempt.score : null,
+        myAttemptStatus: inProgress ? "IN_PROGRESS" : best ? "SUBMITTED" : null,
+        myScore: best?.score ?? null,
+        myAttemptsUsed: submitted.length,
+        maxAttempts: limit,
       };
     });
 
@@ -99,29 +109,53 @@ export const startAttempt = async (req: AuthRequest, res: Response) => {
     const quiz = await Quiz.findOne({ _id: quizId, schoolId: req.user!.schoolId, isPublished: true });
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
 
-    let attempt = await QuizAttempt.findOne({ quizId, studentId });
-
-    if (attempt?.status === "SUBMITTED" && !quiz.allowRetake) {
-      return res.status(400).json({ message: "You have already submitted this quiz." });
+    // Resume an attempt that's already open rather than starting a new one -
+    // this is how "prevent accidental loss of attempts" is honored: closing
+    // the browser mid-quiz and coming back should continue the same attempt,
+    // not silently consume another one of a limited number of tries.
+    const inProgress = await QuizAttempt.findOne({ quizId, studentId, status: "IN_PROGRESS" });
+    if (inProgress) {
+      const safeQuestions = quiz.questions.map((q) => ({ questionText: q.questionText, options: q.options }));
+      return res.json({
+        attemptId: inProgress._id,
+        quizTitle: quiz.title,
+        timeLimitMinutes: quiz.timeLimitMinutes,
+        startedAt: inProgress.startedAt,
+        questions: safeQuestions,
+        existingAnswers: inProgress.answers,
+      });
     }
 
-    if (!attempt || (attempt.status === "SUBMITTED" && quiz.allowRetake)) {
-      attempt = await QuizAttempt.findOneAndUpdate(
-        { quizId, studentId },
-        { schoolId: req.user!.schoolId, quizId, studentId, answers: [], totalQuestions: quiz.questions.length, status: "IN_PROGRESS", startedAt: new Date(), submittedAt: undefined },
-        { upsert: true, new: true }
-      );
+    const submittedAttempts = await QuizAttempt.find({ quizId, studentId, status: "SUBMITTED" }).sort({ attemptNumber: -1 });
+    // maxAttempts (when explicitly set) takes precedence; otherwise fall
+    // back to the older allowRetake boolean for quizzes created before
+    // maxAttempts existed - unlimited when true, one attempt when false.
+    const limit = typeof quiz.maxAttempts === "number" ? quiz.maxAttempts : quiz.allowRetake ? 0 : 1;
+    if (limit > 0 && submittedAttempts.length >= limit) {
+      return res.status(400).json({ message: `You have used all ${limit} allowed attempt(s) for this quiz.` });
     }
+
+    const nextAttemptNumber = (submittedAttempts[0]?.attemptNumber || 0) + 1;
+    const attempt = await QuizAttempt.create({
+      schoolId: req.user!.schoolId,
+      quizId,
+      studentId,
+      attemptNumber: nextAttemptNumber,
+      answers: [],
+      totalQuestions: quiz.questions.length,
+      status: "IN_PROGRESS",
+      startedAt: new Date(),
+    });
 
     const safeQuestions = quiz.questions.map((q) => ({ questionText: q.questionText, options: q.options }));
 
     res.json({
-      attemptId: attempt!._id,
+      attemptId: attempt._id,
       quizTitle: quiz.title,
       timeLimitMinutes: quiz.timeLimitMinutes,
-      startedAt: attempt!.startedAt,
+      startedAt: attempt.startedAt,
       questions: safeQuestions,
-      existingAnswers: attempt!.answers,
+      existingAnswers: attempt.answers,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -168,6 +202,15 @@ export const getQuizResults = async (req: AuthRequest, res: Response) => {
   try {
     const quiz = await Quiz.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    // Same ownership gap as getQuizzesForTeacher - without this, any teacher
+    // could view another teacher's quiz results/student scores.
+    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    const isOwner = myTeacher && myTeacher._id.toString() === quiz.createdBy?.toString();
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "You can only view results for your own quizzes" });
+    }
 
     const attempts = await QuizAttempt.find({ quizId: req.params.id, status: "SUBMITTED" })
       .populate({ path: "studentId", populate: { path: "userId" } })

@@ -8,7 +8,7 @@ export default function TeacherQuizzes() {
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ classId: "", subjectId: "", title: "", description: "", timeLimitMinutes: "20", allowRetake: false });
+  const [form, setForm] = useState({ classId: "", subjectId: "", title: "", description: "", timeLimitMinutes: "20", allowRetake: false, maxAttempts: "" });
   const [questions, setQuestions] = useState([{ questionText: "", options: ["", "", "", ""], correctOptionIndex: 0 }]);
   const [error, setError] = useState("");
   const [viewingResults, setViewingResults] = useState<any>(null);
@@ -58,11 +58,12 @@ export default function TeacherQuizzes() {
       await api.post("/quizzes", {
         ...form,
         timeLimitMinutes: Number(form.timeLimitMinutes),
+        maxAttempts: form.maxAttempts ? Number(form.maxAttempts) : undefined,
         createdBy: teacher._id,
         questions,
       });
       setShowForm(false);
-      setForm({ classId: "", subjectId: "", title: "", description: "", timeLimitMinutes: "20", allowRetake: false });
+      setForm({ classId: "", subjectId: "", title: "", description: "", timeLimitMinutes: "20", allowRetake: false, maxAttempts: "" });
       setQuestions([{ questionText: "", options: ["", "", "", ""], correctOptionIndex: 0 }]);
       load();
     } catch (err: any) {
@@ -113,6 +114,17 @@ export default function TeacherQuizzes() {
             <input type="checkbox" checked={form.allowRetake} onChange={(e) => setForm({ ...form, allowRetake: e.target.checked })} />
             Allow students to retake this quiz
           </label>
+          <div className="flex items-center gap-2 text-sm mt-2">
+            <label className="text-ink-soft">Max attempts (optional, overrides retake toggle):</label>
+            <input
+              type="number"
+              min="1"
+              value={form.maxAttempts}
+              onChange={(e) => setForm({ ...form, maxAttempts: e.target.value })}
+              placeholder="Unlimited"
+              className="border border-border rounded-md px-2 py-1 text-sm w-24"
+            />
+          </div>
 
           <div className="space-y-3 mt-3">
             <p className="text-sm font-medium text-ink">Questions</p>
