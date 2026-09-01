@@ -13,6 +13,8 @@ export interface ICertificate extends Document {
   // that module can check "has this student already gotten a certificate
   // for this course" without parsing the title string.
   courseId?: mongoose.Types.ObjectId;
+  // Same idea, for academy-batch completion certificates.
+  batchId?: mongoose.Types.ObjectId;
 }
 
 const certificateSchema = new Schema<ICertificate>(
@@ -25,6 +27,7 @@ const certificateSchema = new Schema<ICertificate>(
     issueDate: { type: Date, default: Date.now },
     fileUrl: { type: String },
     courseId: { type: Schema.Types.ObjectId, ref: "Course" },
+    batchId: { type: Schema.Types.ObjectId, ref: "AcademyBatch" },
   },
   { timestamps: true }
 );

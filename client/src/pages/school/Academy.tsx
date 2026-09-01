@@ -11,7 +11,7 @@ export default function Academy() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [programForm, setProgramForm] = useState({ name: "", description: "" });
-  const [batchForm, setBatchForm] = useState({ programId: "", name: "", days: "", startTime: "", endTime: "", teacherId: "" });
+  const [batchForm, setBatchForm] = useState({ programId: "", name: "", days: "", startTime: "", endTime: "", teacherId: "", startDate: "", endDate: "", capacity: "", room: "" });
   const [productForm, setProductForm] = useState({ title: "", description: "", subjectName: "", className: "", price: "0", isFree: false, fileUrl: "" });
 
   const loadPrograms = async () => {
@@ -49,10 +49,23 @@ export default function Academy() {
 
   const addBatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/academy/batches", { ...batchForm, schoolId, days: batchForm.days.split(",").map((d) => d.trim()) });
-    setBatchForm({ ...batchForm, name: "", days: "", startTime: "", endTime: "", teacherId: "" });
+    await api.post("/academy/batches", {
+      ...batchForm,
+      schoolId,
+      days: batchForm.days.split(",").map((d) => d.trim()),
+      capacity: batchForm.capacity ? Number(batchForm.capacity) : undefined,
+    });
+    setBatchForm({ ...batchForm, name: "", days: "", startTime: "", endTime: "", teacherId: "", startDate: "", endDate: "", capacity: "", room: "" });
     const res = await api.get(`/academy/batches?programId=${batchForm.programId}`);
     setBatches(res.data);
+  };
+
+  const setBatchStatus = async (batchId: string, status: string) => {
+    if (status === "COMPLETED" && !window.confirm("Mark this batch as completed? This will issue completion certificates to all enrolled students.")) return;
+    const res = await api.put(`/academy/batches/${batchId}/status`, { status });
+    if (res.data.certificatesIssued) alert(`${res.data.certificatesIssued} completion certificate(s) issued.`);
+    const refreshed = await api.get(`/academy/batches?programId=${batchForm.programId}`);
+    setBatches(refreshed.data);
   };
 
   const addProduct = async (e: React.FormEvent) => {
@@ -102,14 +115,34 @@ export default function Academy() {
               <option value="">Select Teacher</option>
               {teachers.map((t) => <option key={t._id} value={t._id}>{t.userId?.name}</option>)}
             </select>
+            <div className="flex gap-2">
+              <input type="date" placeholder="Start Date" value={batchForm.startDate} onChange={(e) => setBatchForm({ ...batchForm, startDate: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
+              <input type="date" placeholder="End Date" value={batchForm.endDate} onChange={(e) => setBatchForm({ ...batchForm, endDate: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
+            </div>
+            <div className="flex gap-2">
+              <input type="number" min="1" placeholder="Capacity (optional)" value={batchForm.capacity} onChange={(e) => setBatchForm({ ...batchForm, capacity: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
+              <input placeholder="Room" value={batchForm.room} onChange={(e) => setBatchForm({ ...batchForm, room: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
+            </div>
             <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Batch</button>
           </form>
           <ul className="text-sm divide-y divide-black/5">
             {batches.length === 0 && <li className="py-2 text-muted">Select a program to see batches.</li>}
             {batches.map((b) => (
-              <li key={b._id} className="py-2 flex justify-between">
-                <span>{b.name}</span>
-                <span className="text-muted text-xs">{b.days?.join(", ")} - {b.startTime}-{b.endTime}</span>
+              <li key={b._id} className="py-2 flex justify-between items-center gap-2">
+                <div>
+                  <span>{b.name}</span>
+                  <p className="text-muted text-xs">{b.days?.join(", ")} - {b.startTime}-{b.endTime}{b.room ? ` - Room ${b.room}` : ""}{b.capacity ? ` - Cap ${b.capacity}` : ""}</p>
+                </div>
+                <select
+                  value={b.status || "UPCOMING"}
+                  onChange={(e) => setBatchStatus(b._id, e.target.value)}
+                  className="border border-border rounded-md px-2 py-1 text-xs shrink-0"
+                >
+                  <option value="UPCOMING">Upcoming</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="COMPLETED">Completed</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </select>
               </li>
             ))}
           </ul>

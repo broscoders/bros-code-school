@@ -1,7 +1,7 @@
 ﻿import { Router } from "express";
 import {
   createAcademyProgram, getAcademyPrograms,
-  createAcademyBatch, getAcademyBatches, getMyAcademyBatches, getBatchStudents,
+  createAcademyBatch, getAcademyBatches, getMyAcademyBatches, getBatchStudents, setAcademyBatchStatus,
   enrollInAcademy, getAcademyEnrollments,
 } from "../controllers/academyController";
 import { protect, requireRole } from "../middleware/authMiddleware";
@@ -16,6 +16,7 @@ router.post("/batches", protect, requireRole(...ACADEMY_STAFF), createAcademyBat
 router.get("/batches", protect, requireRole(...EVERYONE), getAcademyBatches);
 router.get("/batches/mine", protect, requireRole(...EVERYONE), getMyAcademyBatches);
 router.get("/batches/:batchId/students", protect, requireRole(...EVERYONE), getBatchStudents);
+router.put("/batches/:id/status", protect, requireRole(...ACADEMY_STAFF), setAcademyBatchStatus);
 
 router.post("/enroll", protect, requireRole(ROLES.PARENT, ROLES.STUDENT, ...ACADEMY_STAFF), enrollInAcademy);
 router.get("/enrollments", protect, requireRole(...EVERYONE), getAcademyEnrollments);

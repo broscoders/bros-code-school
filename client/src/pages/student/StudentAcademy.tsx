@@ -38,8 +38,12 @@ export default function StudentAcademy() {
   const isEnrolled = (batchId: string) => enrollments.some((e) => e.batchId?._id === batchId && e.isActive);
 
   const enroll = async (batchId: string) => {
-    await api.post("/academy/enroll", { schoolId: student.schoolId, studentId: student._id, batchId });
-    loadEnrollments();
+    try {
+      await api.post("/academy/enroll", { schoolId: student.schoolId, studentId: student._id, batchId });
+      loadEnrollments();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to enroll");
+    }
   };
 
   return (
@@ -84,10 +88,15 @@ export default function StudentAcademy() {
                   <div key={b._id} className="flex justify-between items-center text-sm border border-border rounded-lg p-3">
                     <div>
                       <p className="font-medium text-ink">{b.name}</p>
-                      <p className="text-muted text-xs">{b.days?.join(", ")} - {b.startTime}-{b.endTime}</p>
+                      <p className="text-muted text-xs">
+                        {b.days?.join(", ")} - {b.startTime}-{b.endTime}
+                        {b.capacity ? ` - ${b.capacity} seats` : ""}
+                      </p>
                     </div>
                     {isEnrolled(b._id) ? (
                       <span className="text-xs bg-success/10 text-success px-2 py-0.5 rounded-full font-medium">Enrolled</span>
+                    ) : b.status === "COMPLETED" || b.status === "CANCELLED" ? (
+                      <span className="text-xs bg-white/5 text-muted px-2 py-0.5 rounded-full font-medium">{b.status === "COMPLETED" ? "Completed" : "Cancelled"}</span>
                     ) : (
                       <button onClick={() => enroll(b._id)} className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-dark transition-colors">Enroll</button>
                     )}
