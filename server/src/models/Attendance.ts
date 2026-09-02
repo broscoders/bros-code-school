@@ -24,4 +24,10 @@ const attendanceSchema = new Schema<IAttendance>(
   { timestamps: true }
 );
 
+// Enforced at the database level, not just in application code - even if
+// two "mark attendance" requests for the same student on the same day
+// somehow race each other, Mongo guarantees only one document survives
+// rather than silently allowing duplicate attendance rows.
+attendanceSchema.index({ studentId: 1, date: 1 }, { unique: true });
+
 export default mongoose.model<IAttendance>("Attendance", attendanceSchema);

@@ -12,6 +12,7 @@ import Student from "../models/Student";
 import Section from "../models/Section";
 import Parent from "../models/Parent";
 import Discount from "../models/Discount";
+import User from "../models/User";
 import { canAccessStudent, isOwnClass } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
 import { notify } from "../utils/notifier";
@@ -22,7 +23,32 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
     const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
     if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
 
-    const record = await Attendance.create({ ...req.body, schoolId: req.user!.schoolId });
+    // Upsert on (studentId, date) rather than always creating a new row -
+    // without this, a teacher re-submitting the same day's attendance (e.g.
+    // to correct one student's status) created a duplicate record for
+    // every student in the class, corrupting attendance percentages and
+    // reports. Blueprint also calls for corrections to be audit-logged.
+    const existing = await Attendance.findOne({ studentId: req.body.studentId, date: new Date(req.body.date), schoolId: req.user!.schoolId });
+    const record = await Attendance.findOneAndUpdate(
+      { studentId: req.body.studentId, date: new Date(req.body.date), schoolId: req.user!.schoolId },
+      { ...req.body, schoolId: req.user!.schoolId },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    if (existing && existing.status !== record.status) {
+      const actingUser = await User.findById(req.user!.userId).select("name");
+      await logAudit({
+        schoolId: req.user!.schoolId,
+        userId: req.user!.userId,
+        userName: actingUser?.name || "Unknown",
+        userRole: req.user!.role,
+        action: "Corrected attendance",
+        recordType: "Attendance",
+        recordId: record._id.toString(),
+        oldValue: { status: existing.status },
+        newValue: { status: record.status },
+      });
+    }
 
     if (req.body.status === "ABSENT" || req.body.status === "LATE") {
       const student = await Student.findById(req.body.studentId).populate("userId");
