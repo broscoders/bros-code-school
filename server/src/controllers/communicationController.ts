@@ -171,7 +171,12 @@ export const createLeaveRequest = async (req: AuthRequest, res: Response) => {
       req.body.teacherId = myTeacher._id;
     }
 
-    const leave = await LeaveRequest.create({ ...req.body, requestedBy: req.user!.userId, schoolId });
+    // Leave requests can only ever be approved via updateLeaveStatus (a
+    // separate, more-privileged endpoint) - without stripping these here, a
+    // teacher or parent could self-approve their own leave request just by
+    // including "status": "APPROVED" in this request body.
+    const { status, ...safeBody } = req.body;
+    const leave = await LeaveRequest.create({ ...safeBody, requestedBy: req.user!.userId, schoolId });
     res.status(201).json(leave);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

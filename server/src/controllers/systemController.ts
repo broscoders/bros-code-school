@@ -38,7 +38,11 @@ export const createIncident = async (req: AuthRequest, res: Response) => {
     const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
     if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
 
-    const incident = await DisciplineIncident.create({ ...req.body, schoolId: req.user!.schoolId });
+    // A reporting teacher can create the incident but only admin staff can
+    // mark it resolved/add action-taken notes (see updateIncidentStatus) -
+    // stripping these keeps a teacher from closing out their own report.
+    const { status, actionTaken, ...safeBody } = req.body;
+    const incident = await DisciplineIncident.create({ ...safeBody, schoolId: req.user!.schoolId });
 
     if (req.body.parentNotified) {
       const parent = await Parent.findOne({ children: req.body.studentId }).populate("userId");

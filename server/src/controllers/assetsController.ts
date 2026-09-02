@@ -101,7 +101,12 @@ export const getVendors = async (req: AuthRequest, res: Response) => {
 
 export const createTicket = async (req: AuthRequest, res: Response) => {
   try {
-    const ticket = await MaintenanceTicket.create({ ...req.body, schoolId: req.user!.schoolId });
+    // Any staff/teacher can report a maintenance issue, but only admin
+    // staff can move it through Assigned/In-Progress/Resolved (see
+    // updateTicket) - stripping these keeps a reporter from marking their
+    // own ticket resolved/assigned at creation time.
+    const { status, assignedTo, resolutionNotes, cost, ...safeBody } = req.body;
+    const ticket = await MaintenanceTicket.create({ ...safeBody, schoolId: req.user!.schoolId });
     res.status(201).json(ticket);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

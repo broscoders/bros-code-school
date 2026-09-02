@@ -9,7 +9,13 @@ import { logAudit } from "../utils/auditLogger";
 
 export const createDiscount = async (req: AuthRequest, res: Response) => {
   try {
-    const discount = await Discount.create({ ...req.body, schoolId: req.user!.schoolId });
+    // FINANCE_STAFF may create a discount request but only TOP_ADMIN can
+    // approve one (see updateDiscountStatus below) - without stripping
+    // these fields, a finance-staff member could include "status":
+    // "APPROVED" in this request body and self-approve, skipping the
+    // separate, more-privileged approval step entirely.
+    const { status, approvedBy, isActive, ...safeBody } = req.body;
+    const discount = await Discount.create({ ...safeBody, schoolId: req.user!.schoolId });
     res.status(201).json(discount);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -36,6 +42,22 @@ export const updateDiscountStatus = async (req: AuthRequest, res: Response) => {
       { new: true }
     );
     if (!discount) return res.status(404).json({ message: "Discount not found" });
+
+    // Blueprint explicitly requires discount/scholarship approvals to be
+    // audited - this reduces a family's fee, so who approved it and when
+    // needs to be traceable the same way refunds already are.
+    const actingUser = await User.findById(req.user!.userId).select("name");
+    await logAudit({
+      schoolId: req.user!.schoolId,
+      userId: req.user!.userId,
+      userName: actingUser?.name || "Unknown",
+      userRole: req.user!.role,
+      action: `Discount ${status.toLowerCase()}`,
+      recordType: "Discount",
+      recordId: discount._id.toString(),
+      newValue: { status, percentage: discount.percentage, fixedAmount: discount.fixedAmount },
+    });
+
     res.json(discount);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -44,7 +66,13 @@ export const updateDiscountStatus = async (req: AuthRequest, res: Response) => {
 
 export const createRefund = async (req: AuthRequest, res: Response) => {
   try {
-    const refund = await Refund.create({ ...req.body, schoolId: req.user!.schoolId });
+    // The invoice-adjustment logic (deducting the refunded amount) only
+    // runs inside updateRefundStatus when a refund transitions to APPROVED
+    // - if a caller could set status: "APPROVED" here at creation time, the
+    // refund would be recorded as approved while the invoice was never
+    // actually adjusted, silently desyncing the fee ledger from its status.
+    const { status, approvedBy, ...safeBody } = req.body;
+    const refund = await Refund.create({ ...safeBody, schoolId: req.user!.schoolId });
     res.status(201).json(refund);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
