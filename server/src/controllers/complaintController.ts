@@ -4,9 +4,14 @@ import Complaint from "../models/Complaint";
 
 export const createComplaint = async (req: AuthRequest, res: Response) => {
   try {
+    // Reachable by EVERYONE (including parents/students) to file a
+    // complaint, but only front-desk staff should move it through its
+    // status workflow (see updateComplaintStatus) - stripping these keeps
+    // a complainant from marking their own complaint resolved/closed.
+    const { status, ...safeBody } = req.body;
     const ticketNumber = "SC-" + Date.now().toString(36).toUpperCase();
     const complaint = await Complaint.create({
-      ...req.body,
+      ...safeBody,
       schoolId: req.user!.schoolId,
       raisedBy: req.user!.userId,
       ticketNumber,

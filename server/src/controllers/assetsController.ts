@@ -138,9 +138,14 @@ export const updateTicket = async (req: AuthRequest, res: Response) => {
 
 export const createPurchaseOrder = async (req: AuthRequest, res: Response) => {
   try {
-    const totalEstimatedCost = (req.body.items || []).reduce((sum: number, i: any) => sum + i.quantity * i.estimatedCost, 0);
+    // A broader set of admin staff can request a purchase, but only
+    // TOP_ADMIN can approve/receive it (see updatePurchaseOrderStatus) -
+    // stripping these keeps a requester from self-approving their own
+    // purchase order.
+    const { status, approvedBy, receivedDate, ...safeBody } = req.body;
+    const totalEstimatedCost = (safeBody.items || []).reduce((sum: number, i: any) => sum + i.quantity * i.estimatedCost, 0);
     const po = await PurchaseOrder.create({
-      ...req.body,
+      ...safeBody,
       schoolId: req.user!.schoolId,
       requestedBy: req.user!.userId,
       totalEstimatedCost,
