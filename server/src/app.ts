@@ -38,6 +38,7 @@ import assetsRoutes from "./routes/assetsRoutes";
 import healthRoutes from "./routes/healthRoutes";
 import websiteRoutes, { publicWebsiteRouter } from "./routes/websiteRoutes";
 import idCardRoutes from "./routes/idCardRoutes";
+import curriculumRoutes from "./routes/curriculumRoutes";
 
 const app = express();
 
@@ -91,5 +92,6 @@ app.use("/api/website", websiteRoutes);
 // auth middleware, mounted at its own path so it's obviously the public one.
 app.use("/api/public/site", publicWebsiteRouter);
 app.use("/api/id-cards", idCardRoutes);
+app.use("/api/curriculum", curriculumRoutes);
 
 export default app;

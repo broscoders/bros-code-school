@@ -141,6 +141,39 @@ export default function Academics() {
           </ul>
         </div>
       </div>
+
+      <CurriculumProgressWidget />
+    </div>
+  );
+}
+
+function CurriculumProgressWidget() {
+  const [rows, setRows] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.get("/curriculum/progress-summary").then((res) => setRows(res.data));
+  }, []);
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-hidden">
+      <div className="px-5 py-3.5 border-b border-border">
+        <h2 className="font-display font-semibold text-ink text-sm">Curriculum / Syllabus Progress</h2>
+      </div>
+      <div className="p-5 space-y-3">
+        {rows.map((r, i) => (
+          <div key={i}>
+            <div className="flex justify-between text-xs mb-1">
+              <span className="text-ink-soft">{r.className} - {r.subjectName}</span>
+              <span className="text-ink font-medium">{r.completed}/{r.total} topics ({r.percentComplete}%)</span>
+            </div>
+            <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+              <div className="h-full rounded-full bg-primary" style={{ width: `${r.percentComplete}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

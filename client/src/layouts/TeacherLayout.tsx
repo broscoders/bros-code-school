@@ -1,13 +1,14 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen, ListChecks, BookOpen, GraduationCap, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen, ListChecks, BookOpen, BookMarked, GraduationCap, Menu, X } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 
 const navItems = [
   { to: "/teacher/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/teacher/classes", label: "My Classes", icon: Users },
+  { to: "/teacher/curriculum", label: "Curriculum", icon: BookMarked },
   { to: "/teacher/timetable", label: "Timetable", icon: Calendar },
   { to: "/teacher/attendance", label: "Attendance", icon: CalendarCheck },
   { to: "/teacher/homework", label: "Homework", icon: ClipboardCheck },

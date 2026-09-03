@@ -72,6 +72,7 @@ import StudentCertificates from "./pages/student/StudentCertificates";
 import TeacherLayout from "./layouts/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import TeacherClasses from "./pages/teacher/TeacherClasses";
+import TeacherCurriculum from "./pages/teacher/TeacherCurriculum";
 import TeacherTimetable from "./pages/teacher/TeacherTimetable";
 import TeacherQuizzes from "./pages/teacher/TeacherQuizzes";
 import TeacherCourses from "./pages/teacher/TeacherCourses";
@@ -194,6 +195,7 @@ function App() {
         <Route element={<RoleProtectedRoute allowedRoles={TEACHER_ROLES}><TeacherLayout /></RoleProtectedRoute>}>
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
+          <Route path="/teacher/curriculum" element={<TeacherCurriculum />} />
           <Route path="/teacher/timetable" element={<TeacherTimetable />} />
           <Route path="/teacher/quizzes" element={<TeacherQuizzes />} />
           <Route path="/teacher/courses" element={<TeacherCourses />} />
