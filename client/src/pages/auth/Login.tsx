@@ -4,6 +4,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import AuthBackdrop from "../../components/AuthBackdrop";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -64,11 +65,8 @@ export default function Login() {
   };
 
   return (
-    <div
-      className="min-h-screen relative flex items-center justify-end px-6 lg:px-20 py-10 bg-[#05060d] bg-cover bg-center"
-      style={{ backgroundImage: "url('/login-bg.jpg')" }}
-    >
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+    <div className="min-h-screen relative flex items-center justify-end px-6 lg:px-20 py-10">
+      <AuthBackdrop />
 
       <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
         {brandLogo ? (

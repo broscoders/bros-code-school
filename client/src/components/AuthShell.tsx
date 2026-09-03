@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import api from "../services/api";
+import AuthBackdrop from "./AuthBackdrop";
 
 interface AuthShellProps {
   eyebrow?: string;
@@ -21,11 +22,8 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
   }, []);
 
   return (
-    <div
-      className="min-h-screen relative flex items-center justify-end px-6 lg:px-20 py-10 bg-[#05060d] bg-cover bg-center"
-      style={{ backgroundImage: "url('/login-bg.jpg')" }}
-    >
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+    <div className="min-h-screen relative flex items-center justify-end px-6 lg:px-20 py-10">
+      <AuthBackdrop />
 
       {brandLogo && (
         <img
