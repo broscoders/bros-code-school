@@ -20,6 +20,7 @@ export interface IOrganization extends Document {
   studentLimit?: number;
   staffLimit?: number;
   branchLimit?: number;
+  subscriptionExpiresAt?: Date;
   status: "PENDING" | "ACTIVE" | "SUSPENDED" | "ARCHIVED";
   onboardingCompleted: boolean;
   createdAt: Date;
@@ -51,6 +52,10 @@ const organizationSchema = new Schema<IOrganization>(
     studentLimit: { type: Number },
     staffLimit: { type: Number },
     branchLimit: { type: Number, default: 1 },
+    // When set and in the past, the org is treated as expired regardless of
+    // subscriptionStatus - blueprint requires a grace-period/expiry concept,
+    // not just a manually-toggled status.
+    subscriptionExpiresAt: { type: Date },
     status: {
       type: String,
       enum: ["PENDING", "ACTIVE", "SUSPENDED", "ARCHIVED"],

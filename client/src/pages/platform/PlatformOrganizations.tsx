@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import platformApi from "../../services/platformApi";
 
 const ORG_TYPES = ["SCHOOL", "ACADEMY", "COLLEGE", "INSTITUTE", "TRAINING_CENTER", "TUITION_CENTER", "EDUCATION_NETWORK", "OTHER"];
+const PLAN_NAMES = ["Trial", "Basic", "Pro", "Enterprise"];
 
 export default function PlatformOrganizations() {
   const [orgs, setOrgs] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
+  const [planModalOrg, setPlanModalOrg] = useState<any>(null);
+  const [usage, setUsage] = useState<any>(null);
+  const [planForm, setPlanForm] = useState({ planName: "Trial", subscriptionStatus: "TRIAL", subscriptionExpiresAt: "" });
   const [form, setForm] = useState({
     name: "", type: "SCHOOL", ownerName: "", ownerEmail: "", ownerPhone: "",
     country: "", city: "", adminName: "", adminEmail: "", adminPassword: "",
@@ -37,6 +41,20 @@ export default function PlatformOrganizations() {
   const toggleStatus = async (org: any) => {
     const newStatus = org.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
     await platformApi.put(`/organizations/${org._id}/status`, { status: newStatus });
+    load();
+  };
+
+  const openPlanModal = async (org: any) => {
+    setPlanModalOrg(org);
+    setPlanForm({ planName: org.planName || "Trial", subscriptionStatus: org.subscriptionStatus || "TRIAL", subscriptionExpiresAt: org.subscriptionExpiresAt ? org.subscriptionExpiresAt.slice(0, 10) : "" });
+    const res = await platformApi.get(`/organizations/${org._id}/usage`);
+    setUsage(res.data);
+  };
+
+  const savePlan = async () => {
+    await platformApi.put(`/organizations/${planModalOrg._id}/plan`, planForm);
+    setPlanModalOrg(null);
+    setUsage(null);
     load();
   };
 
@@ -107,12 +125,13 @@ export default function PlatformOrganizations() {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[org.status]}`}>{org.status}</span>
                   </td>
                   <td className="p-3 text-muted">{org.planName}</td>
-                  <td className="p-3">
+                  <td className="p-3 flex gap-3">
                     {org.status !== "ARCHIVED" && (
                       <button onClick={() => toggleStatus(org)} className="text-warning text-xs underline">
                         {org.status === "SUSPENDED" ? "Reactivate" : "Suspend"}
                       </button>
                     )}
+                    <button onClick={() => openPlanModal(org)} className="text-warning text-xs underline">Manage Plan</button>
                   </td>
                 </tr>
               ))
@@ -120,6 +139,48 @@ export default function PlatformOrganizations() {
           </tbody>
         </table>
       </div>
+
+      {planModalOrg && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setPlanModalOrg(null)}>
+          <div className="bg-surface border border-slate-800 rounded-xl p-5 w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-white font-semibold mb-1">Manage Plan - {planModalOrg.name}</h2>
+            {usage && (
+              <div className="text-xs text-muted space-y-1 my-3 bg-surface-soft rounded-lg p-3">
+                <div className="flex justify-between">
+                  <span>Students</span>
+                  <span className={usage.studentLimit && usage.studentCount >= usage.studentLimit ? "text-danger font-medium" : "text-ink"}>
+                    {usage.studentCount}{usage.studentLimit ? ` / ${usage.studentLimit}` : " (unlimited)"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Staff</span>
+                  <span className={usage.staffLimit && usage.staffCount >= usage.staffLimit ? "text-danger font-medium" : "text-ink"}>
+                    {usage.staffCount}{usage.staffLimit ? ` / ${usage.staffLimit}` : " (unlimited)"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Branches</span>
+                  <span className="text-ink">{usage.branchCount} / {usage.branchLimit}</span>
+                </div>
+              </div>
+            )}
+            <label className="block text-xs text-muted mt-3 mb-1">Plan</label>
+            <select value={planForm.planName} onChange={(e) => setPlanForm({ ...planForm, planName: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full">
+              {PLAN_NAMES.map((p) => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <label className="block text-xs text-muted mt-3 mb-1">Subscription Status</label>
+            <select value={planForm.subscriptionStatus} onChange={(e) => setPlanForm({ ...planForm, subscriptionStatus: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full">
+              {["TRIAL", "ACTIVE", "PAST_DUE", "SUSPENDED", "CANCELLED", "EXPIRED"].map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+            </select>
+            <label className="block text-xs text-muted mt-3 mb-1">Renews / Expires On</label>
+            <input type="date" value={planForm.subscriptionExpiresAt} onChange={(e) => setPlanForm({ ...planForm, subscriptionExpiresAt: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full" />
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setPlanModalOrg(null)} className="flex-1 bg-surface-soft text-ink px-4 py-2 rounded-lg text-sm">Cancel</button>
+              <button onClick={savePlan} className="flex-1 bg-warning-soft0 text-ink px-4 py-2 rounded-lg text-sm font-semibold hover:bg-warning transition-colors">Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
 import Student from "../models/Student";
+import { checkOrgLimit } from "../utils/orgLimits";
 
 interface RowInput {
   name: string;
@@ -42,6 +43,16 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
         if (existingAdmission) {
           results.skipped++;
           results.errors.push(`Skipped ${row.email}: admission number ${row.admissionNumber} already in use`);
+          continue;
+        }
+
+        // Checked per-row (not once before the loop) so the plan limit is
+        // enforced against the count as it grows during this same import,
+        // not just the count from before the import started.
+        const limitCheck = await checkOrgLimit(schoolId, "STUDENT");
+        if (!limitCheck.allowed) {
+          results.skipped++;
+          results.errors.push(`Skipped ${row.email}: ${limitCheck.message}`);
           continue;
         }
 

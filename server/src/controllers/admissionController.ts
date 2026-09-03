@@ -6,6 +6,7 @@ import User from "../models/User";
 import Student from "../models/Student";
 import Parent from "../models/Parent";
 import { sendMail, generateSixDigitCode, verificationEmailHtml } from "../utils/mailer";
+import { checkOrgLimit } from "../utils/orgLimits";
 
 const CODE_EXPIRY_MS = 15 * 60 * 1000;
 
@@ -68,6 +69,11 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
     const existingAdmissionNo = await Student.findOne({ schoolId, admissionNumber });
     if (existingAdmissionNo) {
       return res.status(400).json({ message: "This admission number is already in use" });
+    }
+
+    const limitCheck = await checkOrgLimit(schoolId, "STUDENT");
+    if (!limitCheck.allowed) {
+      return res.status(403).json({ message: limitCheck.message });
     }
 
     // 1. Student user account

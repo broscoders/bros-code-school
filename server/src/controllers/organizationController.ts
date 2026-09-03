@@ -86,6 +86,71 @@ export const setOrganizationStatus = async (req: PlatformAuthRequest, res: Respo
   }
 };
 
+// A few standard named packages a Super Admin can apply in one click,
+// rather than typing raw limit numbers every time. "Custom" limits can
+// still be set directly via the body for anything outside these presets.
+const PLAN_PRESETS: Record<string, { studentLimit?: number; staffLimit?: number; branchLimit: number }> = {
+  Trial: { studentLimit: 50, staffLimit: 10, branchLimit: 1 },
+  Basic: { studentLimit: 300, staffLimit: 40, branchLimit: 1 },
+  Pro: { studentLimit: 1500, staffLimit: 150, branchLimit: 5 },
+  Enterprise: { staffLimit: undefined, studentLimit: undefined, branchLimit: 50 }, // unlimited students/staff
+};
+
+export const setOrganizationPlan = async (req: PlatformAuthRequest, res: Response) => {
+  try {
+    const { planName, subscriptionStatus, subscriptionExpiresAt, studentLimit, staffLimit, branchLimit } = req.body;
+
+    const preset = planName && PLAN_PRESETS[planName];
+    const update: Record<string, any> = {};
+    if (planName) update.planName = planName;
+    if (subscriptionStatus) update.subscriptionStatus = subscriptionStatus;
+    if (subscriptionExpiresAt !== undefined) update.subscriptionExpiresAt = subscriptionExpiresAt || undefined;
+    // Explicit custom limits in the body always win over a preset's
+    // defaults, so a Super Admin can pick "Pro" and then still bump the
+    // student limit for one specific customer.
+    update.studentLimit = studentLimit !== undefined ? studentLimit : preset?.studentLimit;
+    update.staffLimit = staffLimit !== undefined ? staffLimit : preset?.staffLimit;
+    update.branchLimit = branchLimit !== undefined ? branchLimit : preset?.branchLimit;
+
+    const org = await Organization.findByIdAndUpdate(req.params.id, update, { new: true });
+    if (!org) return res.status(404).json({ message: "Organization not found" });
+    res.json(org);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// So a Super Admin (or the org itself, eventually) can see "380/300
+// students - over their plan limit" rather than limits being invisible
+// numbers nobody checks.
+export const getOrganizationUsage = async (req: PlatformAuthRequest, res: Response) => {
+  try {
+    const org = await Organization.findById(req.params.id);
+    if (!org) return res.status(404).json({ message: "Organization not found" });
+
+    const schools = await School.find({ organizationId: org._id }).select("_id");
+    const schoolIds = schools.map((s) => s._id);
+
+    const [studentCount, staffCount] = await Promise.all([
+      User.countDocuments({ schoolId: { $in: schoolIds }, role: "STUDENT" }),
+      User.countDocuments({ schoolId: { $in: schoolIds }, role: "TEACHER" }),
+    ]);
+
+    res.json({
+      branchCount: schoolIds.length,
+      branchLimit: org.branchLimit,
+      studentCount,
+      studentLimit: org.studentLimit,
+      staffCount,
+      staffLimit: org.staffLimit,
+      subscriptionStatus: org.subscriptionStatus,
+      subscriptionExpiresAt: org.subscriptionExpiresAt,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const addBranch = async (req: PlatformAuthRequest, res: Response) => {
   try {
     const org = await Organization.findById(req.params.id);

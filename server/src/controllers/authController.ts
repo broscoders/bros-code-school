@@ -5,6 +5,7 @@ import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
 import { generateToken } from "../utils/generateToken";
 import { isNonEmptyString } from "../utils/validateStrings";
+import { checkOrgLimit } from "../utils/orgLimits";
 import {
   sendMail,
   generateSixDigitCode,
@@ -33,6 +34,13 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
+    }
+
+    if (role === "STUDENT" || role === "TEACHER") {
+      const limitCheck = await checkOrgLimit(schoolId, role);
+      if (!limitCheck.allowed) {
+        return res.status(403).json({ message: limitCheck.message });
+      }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
