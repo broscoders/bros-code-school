@@ -5,7 +5,13 @@ import TimetableSlot from "../models/TimetableSlot";
 export const upsertSlot = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user!.schoolId;
-    const { classId, sectionId, dayOfWeek, periodNumber, startTime, endTime, subjectId, teacherId, room, isBreak } = req.body;
+    const { classId, sectionId, dayOfWeek, periodNumber, startTime, endTime, room, isBreak } = req.body;
+    // Empty-string form fields (e.g. subject/teacher left blank when marking
+    // a period as a break) must never reach Mongoose as literal "" values -
+    // casting "" to an ObjectId throws, which is exactly what was
+    // surfacing as "Server error" when saving a break period.
+    const subjectId = req.body.subjectId || undefined;
+    const teacherId = req.body.teacherId || undefined;
 
     if (!isBreak && teacherId) {
       const teacherConflict = await TimetableSlot.findOne({
@@ -37,9 +43,21 @@ export const upsertSlot = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    const setFields: Record<string, any> = { schoolId, classId, sectionId, dayOfWeek, periodNumber, startTime, endTime, room, isBreak: !!isBreak };
+    const unsetFields: Record<string, any> = {};
+    if (isBreak) {
+      // A break period shouldn't retain a leftover subject/teacher from
+      // before it was marked as a break.
+      unsetFields.subjectId = "";
+      unsetFields.teacherId = "";
+    } else {
+      if (subjectId) setFields.subjectId = subjectId;
+      if (teacherId) setFields.teacherId = teacherId;
+    }
+
     const slot = await TimetableSlot.findOneAndUpdate(
       { schoolId, sectionId, dayOfWeek, periodNumber },
-      { schoolId, classId, sectionId, dayOfWeek, periodNumber, startTime, endTime, subjectId, teacherId, room, isBreak: !!isBreak },
+      { $set: setFields, ...(Object.keys(unsetFields).length ? { $unset: unsetFields } : {}) },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 

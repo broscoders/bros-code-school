@@ -168,7 +168,11 @@ export default function Timetable() {
             {error && <p className="text-danger text-xs mb-2">{error}</p>}
             <div className="space-y-2">
               <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={cellForm.isBreak} onChange={(e) => setCellForm({ ...cellForm, isBreak: e.target.checked })} />
+                <input
+                  type="checkbox"
+                  checked={cellForm.isBreak}
+                  onChange={(e) => setCellForm({ ...cellForm, isBreak: e.target.checked, subjectId: "", teacherId: "" })}
+                />
                 This is a break / free period
               </label>
               <div className="flex gap-2">

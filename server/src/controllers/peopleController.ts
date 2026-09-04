@@ -5,6 +5,7 @@ import { canAccessStudent } from "../utils/accessControl";
 import Parent from "../models/Parent";
 import Teacher from "../models/Teacher";
 import Section from "../models/Section";
+import User from "../models/User";
 import { logAudit } from "../utils/auditLogger";
 
 export const createStudent = async (req: AuthRequest, res: Response) => {
@@ -39,6 +40,19 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
     const status = req.query.status as string | undefined;
     if (!status || status === "ACTIVE") filter.status = "ACTIVE";
     else if (status !== "ANY") filter.status = status;
+
+    const role = req.user!.role;
+    // This list had no per-role scoping at all - any PARENT or STUDENT
+    // could hit it and get every student in the school (name, email via
+    // populated userId, class). Staff keep full visibility; a parent only
+    // gets their own children, and a student only gets their own record.
+    if (role === "PARENT") {
+      const parent = await Parent.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      filter._id = { $in: parent?.children || [] };
+    } else if (role === "STUDENT") {
+      const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      filter._id = myStudent?._id || null;
+    }
 
     const students = await Student.find(filter).populate("userId classId sectionId");
     res.json(students);
@@ -143,8 +157,43 @@ export const transferStudent = async (req: AuthRequest, res: Response) => {
 
 export const createParent = async (req: AuthRequest, res: Response) => {
   try {
+    const { userId, children, relationship } = req.body;
+
+    // A parent account is meant to support multiple children - if this
+    // userId already has a Parent profile (they were already linked to
+    // one child and are now being linked to another, or a previous attempt
+    // partially failed after the User account was created but before this
+    // profile was), merge the new children into the existing record
+    // instead of trying to create a second Parent document for the same
+    // person, which the frontend has no way to recover from.
+    const existing = await Parent.findOne({ userId, schoolId: req.user!.schoolId });
+    if (existing) {
+      const merged = Array.from(new Set([...existing.children.map((c) => c.toString()), ...(children || [])]));
+      existing.children = merged as any;
+      if (relationship) existing.relationship = relationship;
+      await existing.save();
+      return res.json(existing);
+    }
+
     const parent = await Parent.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(parent);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Lets the frontend recover when "create parent" hits an email that
+// already belongs to an existing account: rather than dead-ending on
+// "user already exists", it can look up that account's Parent profile (if
+// any) and link the new child to it instead.
+export const findParentByEmail = async (req: AuthRequest, res: Response) => {
+  try {
+    const email = req.query.email as string;
+    const user = await User.findOne({ email, schoolId: req.user!.schoolId, role: "PARENT" });
+    if (!user) return res.status(404).json({ message: "No parent account found with this email" });
+
+    const parent = await Parent.findOne({ userId: user._id, schoolId: req.user!.schoolId });
+    res.json({ userId: user._id, name: user.name, email: user.email, parent: parent || null });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

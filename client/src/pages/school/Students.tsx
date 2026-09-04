@@ -28,6 +28,7 @@ export default function Students() {
   const [showPromoteModal, setShowPromoteModal] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
   const [statusFilter, setStatusFilter] = useState("ACTIVE");
   const [managingStudent, setManagingStudent] = useState<any>(null);
@@ -78,7 +79,9 @@ export default function Students() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return; // prevents the double-click that created an account but then showed "already exists"
     setError("");
+    setSubmitting(true);
     try {
       const userRes = await api.post("/auth/register", {
         name: form.name,
@@ -87,18 +90,33 @@ export default function Students() {
         role: "STUDENT",
         schoolId,
       });
-      await api.post("/people/students", {
-        schoolId,
-        userId: userRes.data.user.id,
-        admissionNumber: form.admissionNumber,
-        classId: form.classId,
-        sectionId: form.sectionId,
-      });
+      try {
+        await api.post("/people/students", {
+          schoolId,
+          userId: userRes.data.user.id,
+          admissionNumber: form.admissionNumber,
+          classId: form.classId,
+          sectionId: form.sectionId,
+        });
+      } catch (profileErr: any) {
+        // The account itself was created (and its verification email sent)
+        // in the step above - a failure here means only the student profile
+        // (admission number/class/section) didn't save, not that nothing
+        // happened. Saying so avoids the confusing "failed" message someone
+        // then re-tries, hits "already exists", and assumes nothing worked.
+        setError(
+          `The login account for ${form.email} was created, but saving the student profile failed: ${profileErr.response?.data?.message || "unknown error"}. Please check the Students list before retrying - the account may already exist.`
+        );
+        setSubmitting(false);
+        return;
+      }
       setShowForm(false);
       setForm({ name: "", email: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
       loadStudents();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add student");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -183,7 +201,9 @@ export default function Students() {
             <option value="">Select Section</option>
             {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
           </select>
-          <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors">Save Student</button>
+          <button type="submit" disabled={submitting} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {submitting ? "Saving..." : "Save Student"}
+          </button>
         </form>
       )}
 

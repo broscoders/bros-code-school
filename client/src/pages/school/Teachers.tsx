@@ -20,6 +20,7 @@ export default function Teachers() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", employeeId: "", qualification: "" });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ACTIVE");
   const [managingTeacher, setManagingTeacher] = useState<any>(null);
   const [statusForm, setStatusForm] = useState({ employmentStatus: "ACTIVE", reason: "" });
@@ -35,7 +36,9 @@ export default function Teachers() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setError("");
+    setSubmitting(true);
     try {
       const userRes = await api.post("/auth/register", {
         name: form.name,
@@ -44,17 +47,27 @@ export default function Teachers() {
         role: "TEACHER",
         schoolId,
       });
-      await api.post("/people/teachers", {
-        schoolId,
-        userId: userRes.data.user.id,
-        employeeId: form.employeeId,
-        qualification: form.qualification,
-      });
+      try {
+        await api.post("/people/teachers", {
+          schoolId,
+          userId: userRes.data.user.id,
+          employeeId: form.employeeId,
+          qualification: form.qualification,
+        });
+      } catch (profileErr: any) {
+        setError(
+          `The login account for ${form.email} was created, but saving the teacher profile failed: ${profileErr.response?.data?.message || "unknown error"}. Please check the Teachers list before retrying.`
+        );
+        setSubmitting(false);
+        return;
+      }
       setShowForm(false);
       setForm({ name: "", email: "", password: "", employeeId: "", qualification: "" });
       loadTeachers();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add teacher");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -103,7 +116,9 @@ export default function Teachers() {
           <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
           <input placeholder="Employee ID" value={form.employeeId} onChange={(e) => setForm({ ...form, employeeId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
           <input placeholder="Qualification" value={form.qualification} onChange={(e) => setForm({ ...form, qualification: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" />
-          <button type="submit" className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors">Save Teacher</button>
+          <button type="submit" disabled={submitting} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium col-span-2 hover:bg-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {submitting ? "Saving..." : "Save Teacher"}
+          </button>
         </form>
       )}
 

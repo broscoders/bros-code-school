@@ -11,6 +11,7 @@ export default function Parents() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", relationship: "Father", childrenIds: [] as string[] });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const loadParents = async () => {
     const res = await api.get(`/people/parents?schoolId=${schoolId}`);
@@ -33,18 +34,42 @@ export default function Parents() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     setError("");
+    setSubmitting(true);
     try {
-      const userRes = await api.post("/auth/register", {
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: "PARENT",
-        schoolId,
-      });
+      let userId: string;
+      try {
+        const userRes = await api.post("/auth/register", {
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: "PARENT",
+          schoolId,
+        });
+        userId = userRes.data.user.id;
+      } catch (registerErr: any) {
+        // "Already exists" isn't a dead end here - a parent account is
+        // meant to cover multiple children, so this email may simply
+        // belong to a parent who was already linked to a different child
+        // (or a previous attempt got this far but failed on the next
+        // step). Look up that existing account and link to it instead of
+        // giving up.
+        const message = registerErr.response?.data?.message || "";
+        if (!message.toLowerCase().includes("already exists")) throw registerErr;
+
+        const lookup = await api.get(`/people/parents/by-email?email=${encodeURIComponent(form.email)}`).catch(() => null);
+        if (!lookup?.data?.userId) {
+          setError(`An account with this email already exists, but it is not a parent account, so it can't be linked here.`);
+          setSubmitting(false);
+          return;
+        }
+        userId = lookup.data.userId;
+      }
+
       await api.post("/people/parents", {
         schoolId,
-        userId: userRes.data.user.id,
+        userId,
         relationship: form.relationship,
         children: form.childrenIds,
       });
@@ -53,6 +78,8 @@ export default function Parents() {
       loadParents();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add parent");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -102,7 +129,9 @@ export default function Parents() {
               ))}
             </div>
           </div>
-          <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors">Save Parent</button>
+          <button type="submit" disabled={submitting} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-2 hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {submitting ? "Saving..." : "Save Parent"}
+          </button>
         </form>
       )}
 
