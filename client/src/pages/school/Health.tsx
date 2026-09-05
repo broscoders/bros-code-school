@@ -9,8 +9,21 @@ export default function Health() {
   const [selected, setSelected] = useState("");
   const [profile, setProfile] = useState({ studentId: "", bloodGroup: "", allergies: "", emergencyContactName: "", emergencyContactPhone: "", medicalNotes: "" });
   const [incidents, setIncidents] = useState<any[]>([]);
-  const [incidentForm, setIncidentForm] = useState({ studentId: "", description: "", actionTaken: "" });
+  const [incidentForm, setIncidentForm] = useState({ studentId: "", description: "", actionTaken: "", severity: "MINOR" });
   const [msg, setMsg] = useState("");
+
+  const STATUS_COLORS: Record<string, string> = {
+    OPEN: "bg-warning/10 text-warning",
+    MONITORING: "bg-accent-soft text-accent",
+    RESOLVED: "bg-success/10 text-success",
+    REFERRED_TO_HOSPITAL: "bg-danger/10 text-danger",
+  };
+  const SEVERITY_COLORS: Record<string, string> = {
+    MINOR: "bg-white/5 text-muted",
+    MODERATE: "bg-accent-soft text-accent",
+    SEVERE: "bg-danger/10 text-danger",
+    EMERGENCY: "bg-danger text-white",
+  };
 
   useEffect(() => {
     if (schoolId) {
@@ -41,7 +54,13 @@ export default function Health() {
   const logIncident = async (e: React.FormEvent) => {
     e.preventDefault();
     await api.post("/health/medical-incidents", { ...incidentForm, schoolId, recordedBy: userId });
-    setIncidentForm({ studentId: "", description: "", actionTaken: "" });
+    setIncidentForm({ studentId: "", description: "", actionTaken: "", severity: "MINOR" });
+    const res = await api.get(`/health/medical-incidents?schoolId=${schoolId}`);
+    setIncidents(res.data);
+  };
+
+  const updateIncident = async (id: string, field: string, value: any) => {
+    await api.put(`/health/medical-incidents/${id}`, { [field]: value });
     const res = await api.get(`/health/medical-incidents?schoolId=${schoolId}`);
     setIncidents(res.data);
   };
@@ -83,14 +102,36 @@ export default function Health() {
             </select>
             <textarea placeholder="What happened" value={incidentForm.description} onChange={(e) => setIncidentForm({ ...incidentForm, description: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" rows={2} required />
             <textarea placeholder="Action taken (first aid, sent home, etc.)" value={incidentForm.actionTaken} onChange={(e) => setIncidentForm({ ...incidentForm, actionTaken: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" rows={2} required />
+            <select value={incidentForm.severity} onChange={(e) => setIncidentForm({ ...incidentForm, severity: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm">
+              <option value="MINOR">Minor</option>
+              <option value="MODERATE">Moderate (parent auto-notified)</option>
+              <option value="SEVERE">Severe (parent auto-notified)</option>
+              <option value="EMERGENCY">Emergency (parent auto-notified)</option>
+            </select>
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">+ Log Incident</button>
           </form>
-          <ul className="text-sm divide-y divide-black/5 max-h-48 overflow-y-auto">
+          <ul className="text-sm divide-y divide-black/5 max-h-64 overflow-y-auto">
             {incidents.length === 0 && <li className="py-2 text-muted">No incidents logged.</li>}
             {incidents.map((i) => (
-              <li key={i._id} className="py-2">
-                <p className="font-medium">{i.studentId?.userId?.name}</p>
-                <p className="text-xs text-muted">{i.description}</p>
+              <li key={i._id} className="py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium">{i.studentId?.userId?.name}</p>
+                  <div className="flex gap-1.5 items-center shrink-0">
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${SEVERITY_COLORS[i.severity]}`}>{i.severity}</span>
+                    <select
+                      value={i.status}
+                      onChange={(e) => updateIncident(i._id, "status", e.target.value)}
+                      className={`text-[10px] font-medium rounded-full px-1.5 py-0.5 border-0 ${STATUS_COLORS[i.status]}`}
+                    >
+                      <option value="OPEN">Open</option>
+                      <option value="MONITORING">Monitoring</option>
+                      <option value="RESOLVED">Resolved</option>
+                      <option value="REFERRED_TO_HOSPITAL">Referred to Hospital</option>
+                    </select>
+                  </div>
+                </div>
+                <p className="text-xs text-muted mt-1">{i.description}</p>
+                {i.parentNotified && <p className="text-[10px] text-success mt-1">Parent notified</p>}
               </li>
             ))}
           </ul>

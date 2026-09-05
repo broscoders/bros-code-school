@@ -5,7 +5,7 @@ interface NotifyParams {
   userId: string;
   title: string;
   message: string;
-  category: "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION";
+  category: "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION" | "HEALTH";
 }
 
 export const notify = async (params: NotifyParams) => {

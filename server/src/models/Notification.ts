@@ -6,7 +6,7 @@ export interface INotification extends Document {
   userId: mongoose.Types.ObjectId;
   title: string;
   message: string;
-  category: "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION";
+  category: "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION" | "HEALTH";
   isRead: boolean;
 }
 
@@ -16,7 +16,7 @@ const notificationSchema = new Schema<INotification>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
-    category: { type: String, enum: ["ACADEMIC", "FINANCE", "ATTENDANCE", "ADMISSION", "SYSTEM", "COMMUNICATION"], default: "SYSTEM" },
+    category: { type: String, enum: ["ACADEMIC", "FINANCE", "ATTENDANCE", "ADMISSION", "SYSTEM", "COMMUNICATION", "HEALTH"], default: "SYSTEM" },
     isRead: { type: Boolean, default: false },
   },
   { timestamps: true }
