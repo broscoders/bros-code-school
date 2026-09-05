@@ -168,11 +168,50 @@ export const getFinancialSummary = async (req: AuthRequest, res: Response) => {
     const totalPending = activeInvoices.reduce((sum, i) => sum + (i.amount - (i.paidAmount || 0)), 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
+    // Blueprint's Accounting module calls for "account categories" and a
+    // real ledger view, not just four flat totals - break both income and
+    // expenses down by category so a principal can see where money is
+    // actually coming from and going to.
+    const expenseByCategory: Record<string, number> = {};
+    for (const e of expenses) {
+      expenseByCategory[e.category] = (expenseByCategory[e.category] || 0) + e.amount;
+    }
+
+    const incomeByFeeType: Record<string, number> = {};
+    for (const i of activeInvoices) {
+      incomeByFeeType[i.feeType] = (incomeByFeeType[i.feeType] || 0) + (i.paidAmount || 0);
+    }
+
+    // Last 6 months of income vs expense, so the trend is visible without
+    // needing a separate reports screen.
+    const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    const monthly: Record<string, { income: number; expense: number }> = {};
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(sixMonthsAgo);
+      d.setMonth(d.getMonth() + i);
+      monthly[monthKey(d)] = { income: 0, expense: 0 };
+    }
+    for (const inv of activeInvoices) {
+      const key = monthKey(new Date(inv.paidDate || inv.createdAt));
+      if (monthly[key] && inv.paidAmount) monthly[key].income += inv.paidAmount;
+    }
+    for (const e of expenses) {
+      const key = monthKey(new Date(e.date));
+      if (monthly[key]) monthly[key].expense += e.amount;
+    }
+    const monthlyTrend = Object.entries(monthly).map(([month, v]) => ({ month, ...v }));
+
     res.json({
       totalCollected,
       totalPending,
       totalExpenses,
       netIncome: totalCollected - totalExpenses,
+      expenseByCategory,
+      incomeByFeeType,
+      monthlyTrend,
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

@@ -110,6 +110,62 @@ export default function Accounting() {
         </div>
       )}
 
+      {tab === "overview" && summary?.monthlyTrend && (
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
+          <h2 className="font-display font-semibold text-ink text-sm mb-4">Income vs Expenses (Last 6 Months)</h2>
+          <div className="space-y-2">
+            {summary.monthlyTrend.map((m: any) => {
+              const maxVal = Math.max(...summary.monthlyTrend.map((x: any) => Math.max(x.income, x.expense)), 1);
+              return (
+                <div key={m.month} className="flex items-center gap-3 text-xs">
+                  <span className="w-16 text-muted shrink-0">{m.month}</span>
+                  <div className="flex-1 space-y-1">
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-success" style={{ width: `${(m.income / maxVal) * 100}%` }} />
+                    </div>
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-danger" style={{ width: `${(m.expense / maxVal) * 100}%` }} />
+                    </div>
+                  </div>
+                  <span className="w-32 text-right text-ink-soft shrink-0">+{m.income} / -{m.expense}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {tab === "overview" && summary && (
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
+            <h2 className="font-display font-semibold text-ink text-sm mb-3">Income by Fee Type</h2>
+            {Object.entries(summary.incomeByFeeType || {}).length === 0 ? (
+              <p className="text-xs text-muted">No income recorded yet.</p>
+            ) : (
+              Object.entries(summary.incomeByFeeType).map(([type, amt]: any) => (
+                <div key={type} className="flex justify-between text-xs py-1.5 border-b border-border last:border-0">
+                  <span className="text-ink-soft">{type}</span>
+                  <span className="text-ink font-medium">Rs. {amt}</span>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
+            <h2 className="font-display font-semibold text-ink text-sm mb-3">Expenses by Category</h2>
+            {Object.entries(summary.expenseByCategory || {}).length === 0 ? (
+              <p className="text-xs text-muted">No expenses recorded yet.</p>
+            ) : (
+              Object.entries(summary.expenseByCategory).map(([cat, amt]: any) => (
+                <div key={cat} className="flex justify-between text-xs py-1.5 border-b border-border last:border-0">
+                  <span className="text-ink-soft">{cat}</span>
+                  <span className="text-ink font-medium">Rs. {amt}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
       {tab === "expenses" && (
         <div className="grid grid-cols-2 gap-6 mt-6">
           <form onSubmit={addExpense} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">

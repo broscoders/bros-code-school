@@ -12,6 +12,8 @@ export interface IInvoice extends Document {
   paidAmount?: number;
   originalAmount?: number;
   discountApplied?: mongoose.Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const invoiceSchema = new Schema<IInvoice>(
