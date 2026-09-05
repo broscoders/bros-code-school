@@ -59,12 +59,79 @@ Recent Homework: ${JSON.stringify(homework.map((h) => ({ title: h.title })))}
 Recent Assignments: ${JSON.stringify(assignments.map((a) => ({ title: a.title })))}`;
   }
 
-  const studentCount = await Student.countDocuments({ schoolId });
+  // Admin/staff: a thin "student/teacher counts" summary isn't the
+  // "insights" the blueprint calls for (at-risk students, attendance/fee
+  // trends). Compute those here so the assistant can actually answer
+  // questions like "which students are at risk" or "how's attendance
+  // trending" instead of only ever seeing raw counts.
+  const studentCount = await Student.countDocuments({ schoolId, status: "ACTIVE" });
   const teacherCount = await Teacher.countDocuments({ schoolId });
   const pendingFees = await Invoice.countDocuments({ schoolId, status: { $ne: "PAID" } });
   const upcomingExams = await Exam.find({ schoolId }).sort({ date: 1 }).limit(5);
-  return `School overview: ${studentCount} students, ${teacherCount} teachers, ${pendingFees} pending fee invoices.
-Upcoming Exams: ${JSON.stringify(upcomingExams.map((e) => ({ name: e.name, date: e.date })))}`;
+
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  // At-risk students: attendance rate below 75% over the last 30 days.
+  // A single aggregation instead of one query per student keeps this fast
+  // even for a large school, since this recomputes on every AI message.
+  const attendanceAgg = await Attendance.aggregate([
+    { $match: { date: { $gte: thirtyDaysAgo } } },
+    {
+      $group: {
+        _id: "$studentId",
+        total: { $sum: 1 },
+        present: { $sum: { $cond: [{ $in: ["$status", ["PRESENT", "LATE"]] }, 1, 0] } },
+      },
+    },
+    { $match: { total: { $gte: 5 } } },
+    { $addFields: { rate: { $divide: ["$present", "$total"] } } },
+    { $match: { rate: { $lt: 0.75 } } },
+    { $sort: { rate: 1 } },
+    { $limit: 15 },
+    { $lookup: { from: "students", localField: "_id", foreignField: "_id", as: "student" } },
+    { $unwind: "$student" },
+    { $match: { "student.schoolId": schoolId } },
+    { $lookup: { from: "users", localField: "student.userId", foreignField: "_id", as: "user" } },
+    { $unwind: "$user" },
+    { $lookup: { from: "classmodels", localField: "student.classId", foreignField: "_id", as: "class" } },
+  ]);
+  const atRisk = attendanceAgg.map((r: any) => `${r.user?.name} (${r.class?.[0]?.name || "?"}) - ${Math.round(r.rate * 100)}% attendance`);
+
+  // Attendance trend: this week vs the prior 3 weeks, school-wide.
+  const [recentAttendance, olderAttendance] = await Promise.all([
+    Attendance.find({ schoolId, date: { $gte: sevenDaysAgo } }),
+    Attendance.find({ schoolId, date: { $gte: thirtyDaysAgo, $lt: sevenDaysAgo } }),
+  ]);
+  const rateOf = (records: any[]) => (records.length ? Math.round((records.filter((r) => r.status === "PRESENT" || r.status === "LATE").length / records.length) * 100) : null);
+  const recentRate = rateOf(recentAttendance);
+  const olderRate = rateOf(olderAttendance);
+
+  // Fee trend: collected vs pending this month.
+  const invoicesThisMonth = await Invoice.find({ schoolId, createdAt: { $gte: thirtyDaysAgo } });
+  const totalDue = invoicesThisMonth.reduce((sum, i) => sum + (i.amount || 0), 0);
+  const totalCollected = invoicesThisMonth.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+  const overdueCount = await Invoice.countDocuments({ schoolId, status: "PENDING", dueDate: { $lt: new Date() } });
+
+  // Academic trend: average result percentage from recently published exams.
+  const recentResults = await Result.find({ schoolId, isPublished: true }).sort({ createdAt: -1 }).limit(200).populate("examId");
+  let avgPercent: number | null = null;
+  if (recentResults.length) {
+    const percents = recentResults
+      .map((r) => {
+        const total = (r.examId as any)?.totalMarks;
+        return total ? (r.marksObtained / total) * 100 : null;
+      })
+      .filter((p): p is number => p !== null);
+    if (percents.length) avgPercent = Math.round(percents.reduce((a, b) => a + b, 0) / percents.length);
+  }
+
+  return `School overview: ${studentCount} active students, ${teacherCount} teachers, ${pendingFees} pending fee invoices (${overdueCount} overdue).
+Upcoming Exams: ${JSON.stringify(upcomingExams.map((e) => ({ name: e.name, date: e.date })))}
+At-risk students (attendance under 75% in the last 30 days): ${atRisk.length ? atRisk.join("; ") : "None currently flagged"}
+Attendance trend: this week ${recentRate !== null ? recentRate + "%" : "no data"}, prior 3 weeks ${olderRate !== null ? olderRate + "%" : "no data"}
+Fee trend (last 30 days): Rs. ${totalCollected} collected of Rs. ${totalDue} invoiced
+Academic trend: average result score across recent published exams is ${avgPercent !== null ? avgPercent + "%" : "no published results yet"}`;
 }
 
 export const chatWithAI = async (req: AuthRequest, res: Response) => {

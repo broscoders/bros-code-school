@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
 import Student from "../models/Student";
+import Teacher from "../models/Teacher";
 import { checkOrgLimit } from "../utils/orgLimits";
 
 interface RowInput {
@@ -11,6 +12,13 @@ interface RowInput {
   admissionNumber: string;
   classId: string;
   sectionId: string;
+}
+
+interface TeacherRowInput {
+  name: string;
+  email: string;
+  employeeId: string;
+  qualification?: string;
 }
 
 export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
@@ -74,6 +82,81 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
           classId: row.classId,
           sectionId: row.sectionId,
           classHistory: [{ classId: row.classId, sectionId: row.sectionId, fromDate: new Date() }],
+        });
+
+        results.created++;
+      } catch (err) {
+        results.skipped++;
+        results.errors.push(`Error on ${row.email}: ${(err as Error).message}`);
+      }
+    }
+
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const bulkImportTeachers = async (req: AuthRequest, res: Response) => {
+  try {
+    const { rows } = req.body as { rows: TeacherRowInput[] };
+    const schoolId = req.user!.schoolId;
+
+    if (!rows || !Array.isArray(rows)) {
+      return res.status(400).json({ message: "rows array is required" });
+    }
+
+    const results = { created: 0, skipped: 0, errors: [] as string[] };
+
+    for (const row of rows) {
+      try {
+        if (!row.name || !row.email || !row.employeeId) {
+          results.skipped++;
+          results.errors.push(`Skipped row for ${row.email || "unknown"}: missing fields`);
+          continue;
+        }
+
+        const existingUser = await User.findOne({ email: row.email });
+        if (existingUser) {
+          results.skipped++;
+          results.errors.push(`Skipped ${row.email}: email already exists`);
+          continue;
+        }
+
+        const existingEmployee = await Teacher.findOne({ schoolId, employeeId: row.employeeId });
+        if (existingEmployee) {
+          results.skipped++;
+          results.errors.push(`Skipped ${row.email}: employee ID ${row.employeeId} already in use`);
+          continue;
+        }
+
+        const limitCheck = await checkOrgLimit(schoolId, "TEACHER");
+        if (!limitCheck.allowed) {
+          results.skipped++;
+          results.errors.push(`Skipped ${row.email}: ${limitCheck.message}`);
+          continue;
+        }
+
+        const defaultPassword = await bcrypt.hash("changeme123", 10);
+        const user = await User.create({
+          name: row.name,
+          email: row.email,
+          password: defaultPassword,
+          role: "TEACHER",
+          schoolId,
+          isEmailVerified: true,
+          mustChangePassword: true,
+        });
+
+        await Teacher.create({
+          schoolId,
+          userId: user._id,
+          employeeId: row.employeeId,
+          qualification: row.qualification,
+          subjects: [],
+          assignedClasses: [],
+          joiningDate: new Date(),
+          employmentStatus: "ACTIVE",
         });
 
         results.created++;

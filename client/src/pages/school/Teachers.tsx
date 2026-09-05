@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { GraduationCap, UserCheck, UserX, Award } from "lucide-react";
+import { GraduationCap, UserCheck, UserX, Award, Upload } from "lucide-react";
 import StatCard from "../../components/StatCard";
+import Papa from "papaparse";
 
 const STATUS_TABS = ["ACTIVE", "ON_LEAVE", "TRANSFERRED", "RESIGNED", "TERMINATED"];
 const statusColors: Record<string, string> = {
@@ -71,6 +72,23 @@ export default function Teachers() {
     }
   };
 
+  const [importMsg, setImportMsg] = useState("");
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const rows = results.data as any[];
+        setImportMsg("Importing...");
+        const res = await api.post("/bulk/teachers", { rows, schoolId });
+        setImportMsg(`Imported: ${res.data.created}, Skipped: ${res.data.skipped}`);
+        loadTeachers();
+      },
+    });
+  };
+
   const openManage = (teacher: any) => {
     setManagingTeacher(teacher);
     setStatusForm({ employmentStatus: teacher.employmentStatus || "ACTIVE", reason: "" });
@@ -96,10 +114,18 @@ export default function Teachers() {
           <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Teachers</h1>
           <p className="text-muted mt-1 text-sm">Manage all teachers of your school.</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors">
-          {showForm ? "Cancel" : "+ Add Teacher"}
-        </button>
+        <div className="flex gap-2">
+          <label className="flex items-center gap-2 bg-surface border border-border text-ink px-4 py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-canvas">
+            <Upload size={15} />
+            Bulk Import CSV
+            <input type="file" accept=".csv" onChange={handleCSVUpload} className="hidden" />
+          </label>
+          <button onClick={() => setShowForm(!showForm)} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-light transition-colors">
+            {showForm ? "Cancel" : "+ Add Teacher"}
+          </button>
+        </div>
       </div>
+      {importMsg && <p className="text-success text-sm mb-3">{importMsg}</p>}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <StatCard label="Total Teachers" value={totalCount} icon={GraduationCap} tone="primary" />
