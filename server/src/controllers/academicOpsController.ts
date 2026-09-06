@@ -523,6 +523,21 @@ export const getInvoices = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Admin/finance-staff only (route-level restriction) - every invoice in
+// the school, for exports and full-ledger views rather than one student
+// at a time.
+export const getAllInvoices = async (req: AuthRequest, res: Response) => {
+  try {
+    const invoices = await Invoice.find({ schoolId: req.user!.schoolId })
+      .populate({ path: "studentId", populate: { path: "userId" } })
+      .sort({ createdAt: -1 })
+      .limit(2000);
+    res.json(invoices);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const payInvoice = async (req: AuthRequest, res: Response) => {
   try {
     const existing = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });

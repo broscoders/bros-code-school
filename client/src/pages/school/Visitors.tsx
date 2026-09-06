@@ -29,6 +29,28 @@ export default function Visitors() {
     load();
   };
 
+  const printPass = (v: any) => {
+    const win = window.open("", "_blank");
+    if (!win) return;
+    win.document.write(`
+      <html><head><title>Visitor Pass</title></head>
+      <body style="font-family: sans-serif; padding: 24px;">
+        <div style="width: 340px; border: 2px solid #1e9fe0; border-radius: 12px; padding: 20px;">
+          <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 0;">Visitor Pass</p>
+          <h2 style="margin: 6px 0;">${v.name}</h2>
+          <p style="margin: 4px 0; font-size: 13px;"><b>Purpose:</b> ${v.purpose}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><b>Meeting:</b> ${v.personToMeet}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><b>Contact:</b> ${v.contact}</p>
+          <p style="margin: 4px 0; font-size: 13px;"><b>Checked in:</b> ${new Date(v.checkInTime).toLocaleString()}</p>
+          <hr style="margin: 12px 0; border: none; border-top: 1px solid #ddd;" />
+          <p style="font-size: 10px; color: #aaa; margin: 0;">Please wear this pass visibly at all times and return it at checkout.</p>
+        </div>
+      </body></html>
+    `);
+    win.document.close();
+    win.print();
+  };
+
   return (
     <div className="p-8">
       <div className="border-b border-border pb-5 mb-6">
@@ -71,7 +93,10 @@ export default function Visitors() {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${v.status === "CHECKED_IN" ? "bg-warning-soft text-warning" : "bg-success-soft text-success"}`}>{v.status}</span>
                   </td>
                   <td className="p-3">
-                    {v.status === "CHECKED_IN" && <button onClick={() => checkout(v._id)} className="text-primary text-xs underline">Check Out</button>}
+                    <div className="flex gap-2">
+                      <button onClick={() => printPass(v)} className="text-primary text-xs underline">Print Pass</button>
+                      {v.status === "CHECKED_IN" && <button onClick={() => checkout(v._id)} className="text-primary text-xs underline">Check Out</button>}
+                    </div>
                   </td>
                 </tr>
               ))
