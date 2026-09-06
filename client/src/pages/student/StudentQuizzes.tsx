@@ -6,10 +6,10 @@ export default function StudentQuizzes() {
   const student = useMyStudentRecord();
   const [quizzes, setQuizzes] = useState<any[]>([]);
   const [activeQuiz, setActiveQuiz] = useState<any>(null);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const answersRef = useRef<number[]>([]);
+  const [answers, setAnswers] = useState<any[]>([]);
+  const answersRef = useRef<any[]>([]);
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const [result, setResult] = useState<{ score: number; totalQuestions: number } | null>(null);
+  const [result, setResult] = useState<{ score: number; totalQuestions: number; needsReview?: boolean } | null>(null);
   const timerRef = useRef<any>(null);
 
   const load = async () => {
@@ -50,14 +50,14 @@ export default function StudentQuizzes() {
     }, 1000);
   };
 
-  const selectAnswer = (qIndex: number, optionIndex: number) => {
+  const selectAnswer = (qIndex: number, value: number | string) => {
     const copy = [...answers];
-    copy[qIndex] = optionIndex;
+    copy[qIndex] = value;
     setAnswers(copy);
     answersRef.current = copy;
   };
 
-  const doSubmit = async (attemptId: string, finalAnswers: number[]) => {
+  const doSubmit = async (attemptId: string, finalAnswers: any[]) => {
     clearInterval(timerRef.current);
     const res = await api.post("/quizzes/attempt/submit", { attemptId, answers: finalAnswers });
     setResult(res.data);
@@ -80,12 +80,22 @@ export default function StudentQuizzes() {
             <div key={qi} className="bg-surface rounded-xl border border-border shadow-sm p-4">
               <p className="text-sm font-medium text-ink mb-3">{qi + 1}. {q.questionText}</p>
               <div className="space-y-2">
-                {q.options.map((opt: string, oi: number) => (
-                  <label key={oi} className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="radio" name={`q-${qi}`} checked={answers[qi] === oi} onChange={() => selectAnswer(qi, oi)} />
-                    {opt}
-                  </label>
-                ))}
+                {q.questionType === "SHORT_ANSWER" ? (
+                  <input
+                    type="text"
+                    value={answers[qi] || ""}
+                    onChange={(e) => selectAnswer(qi, e.target.value)}
+                    placeholder="Type your answer"
+                    className="w-full border border-border rounded-md px-3 py-2 text-sm"
+                  />
+                ) : (
+                  q.options.map((opt: string, oi: number) => (
+                    <label key={oi} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input type="radio" name={`q-${qi}`} checked={answers[qi] === oi} onChange={() => selectAnswer(qi, oi)} />
+                      {opt}
+                    </label>
+                  ))
+                )}
               </div>
             </div>
           ))}

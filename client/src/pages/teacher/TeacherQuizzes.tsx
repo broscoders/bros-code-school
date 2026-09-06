@@ -9,7 +9,7 @@ export default function TeacherQuizzes() {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ classId: "", subjectId: "", title: "", description: "", timeLimitMinutes: "20", allowRetake: false, maxAttempts: "" });
-  const [questions, setQuestions] = useState([{ questionText: "", options: ["", "", "", ""], correctOptionIndex: 0 }]);
+  const [questions, setQuestions] = useState<any[]>([{ questionType: "MCQ", questionText: "", options: ["", "", "", ""], correctOptionIndex: 0, correctAnswerText: "" }]);
   const [error, setError] = useState("");
   const [viewingResults, setViewingResults] = useState<any>(null);
   const [results, setResults] = useState<any[]>([]);
@@ -35,7 +35,7 @@ export default function TeacherQuizzes() {
     }
   }, [form.classId]);
 
-  const addQuestion = () => setQuestions([...questions, { questionText: "", options: ["", "", "", ""], correctOptionIndex: 0 }]);
+  const addQuestion = () => setQuestions([...questions, { questionType: "MCQ", questionText: "", options: ["", "", "", ""], correctOptionIndex: 0, correctAnswerText: "" }]);
 
   const updateQuestion = (i: number, field: string, value: any) => {
     const copy = [...questions];
@@ -64,7 +64,7 @@ export default function TeacherQuizzes() {
       });
       setShowForm(false);
       setForm({ classId: "", subjectId: "", title: "", description: "", timeLimitMinutes: "20", allowRetake: false, maxAttempts: "" });
-      setQuestions([{ questionText: "", options: ["", "", "", ""], correctOptionIndex: 0 }]);
+      setQuestions([{ questionType: "MCQ", questionText: "", options: ["", "", "", ""], correctOptionIndex: 0, correctAnswerText: "" }]);
       load();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to create quiz");
@@ -132,14 +132,27 @@ export default function TeacherQuizzes() {
               <div key={qi} className="border border-border rounded-lg p-3 space-y-2">
                 <div className="flex justify-between items-start gap-2">
                   <input placeholder={`Question ${qi + 1}`} value={q.questionText} onChange={(e) => updateQuestion(qi, "questionText", e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm w-full" required />
+                  <select value={q.questionType} onChange={(e) => updateQuestion(qi, "questionType", e.target.value)} className="border border-border rounded-md px-2 py-2 text-xs shrink-0">
+                    <option value="MCQ">Multiple Choice</option>
+                    <option value="SHORT_ANSWER">Short Answer</option>
+                  </select>
                   {questions.length > 1 && <button type="button" onClick={() => removeQuestion(qi)} className="text-danger text-xs whitespace-nowrap">Remove</button>}
                 </div>
-                {q.options.map((opt, oi) => (
-                  <div key={oi} className="flex items-center gap-2">
-                    <input type="radio" checked={q.correctOptionIndex === oi} onChange={() => updateQuestion(qi, "correctOptionIndex", oi)} title="Mark as correct answer" />
-                    <input placeholder={`Option ${oi + 1}`} value={opt} onChange={(e) => updateOption(qi, oi, e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm w-full" required />
-                  </div>
-                ))}
+                {q.questionType === "SHORT_ANSWER" ? (
+                  <input
+                    placeholder="Expected answer (for auto-grading reference; you can override scores later)"
+                    value={q.correctAnswerText}
+                    onChange={(e) => updateQuestion(qi, "correctAnswerText", e.target.value)}
+                    className="border border-border rounded-md px-3 py-2 text-sm w-full"
+                  />
+                ) : (
+                  q.options.map((opt: string, oi: number) => (
+                    <div key={oi} className="flex items-center gap-2">
+                      <input type="radio" checked={q.correctOptionIndex === oi} onChange={() => updateQuestion(qi, "correctOptionIndex", oi)} title="Mark as correct answer" />
+                      <input placeholder={`Option ${oi + 1}`} value={opt} onChange={(e) => updateOption(qi, oi, e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm w-full" required />
+                    </div>
+                  ))
+                )}
               </div>
             ))}
             <button type="button" onClick={addQuestion} className="text-primary text-xs underline">+ Add another question</button>
@@ -190,9 +203,25 @@ export default function TeacherQuizzes() {
             <ul className="text-sm divide-y divide-black/5">
               {results.length === 0 && <li className="py-2 text-muted">No submissions yet.</li>}
               {results.map((r) => (
-                <li key={r._id} className="py-2 flex justify-between">
+                <li key={r._id} className="py-2 flex justify-between items-center gap-2">
                   <span>{r.studentId?.userId?.name}</span>
-                  <span className="text-muted">{r.score}/{r.totalQuestions}</span>
+                  <div className="flex items-center gap-2">
+                    {r.needsReview && (
+                      <button
+                        onClick={async () => {
+                          const val = window.prompt(`Override score for ${r.studentId?.userId?.name} (out of ${r.totalQuestions}):`, String(r.score));
+                          if (val === null) return;
+                          await api.put(`/quizzes/attempt/${r._id}/override-score`, { score: Number(val) });
+                          const refreshed = await api.get(`/quizzes/${viewingResults._id}/results`);
+                          setResults(refreshed.data);
+                        }}
+                        className="text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded-full font-medium"
+                      >
+                        Needs Review
+                      </button>
+                    )}
+                    <span className="text-muted">{r.score}/{r.totalQuestions}</span>
+                  </div>
                 </li>
               ))}
             </ul>

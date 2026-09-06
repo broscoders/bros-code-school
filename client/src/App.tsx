@@ -73,6 +73,8 @@ import TeacherLayout from "./layouts/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import TeacherClasses from "./pages/teacher/TeacherClasses";
 import TeacherCurriculum from "./pages/teacher/TeacherCurriculum";
+import Canteen from "./pages/school/Canteen";
+import StudentCanteen from "./pages/student/StudentCanteen";
 import TeacherTimetable from "./pages/teacher/TeacherTimetable";
 import TeacherQuizzes from "./pages/teacher/TeacherQuizzes";
 import TeacherCourses from "./pages/teacher/TeacherCourses";
@@ -184,6 +186,7 @@ function App() {
           <Route path="/student/quizzes" element={<StudentQuizzes />} />
           <Route path="/student/courses" element={<StudentCourses />} />
           <Route path="/student/academy" element={<StudentAcademy />} />
+          <Route path="/student/canteen" element={<StudentCanteen />} />
           <Route path="/student/homework" element={<StudentHomework />} />
           <Route path="/student/assignments" element={<StudentAssignments />} />
           <Route path="/student/results" element={<StudentResults />} />
@@ -196,6 +199,7 @@ function App() {
           <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
           <Route path="/teacher/classes" element={<TeacherClasses />} />
           <Route path="/teacher/curriculum" element={<TeacherCurriculum />} />
+          <Route path="/canteen" element={<Canteen />} />
           <Route path="/teacher/timetable" element={<TeacherTimetable />} />
           <Route path="/teacher/quizzes" element={<TeacherQuizzes />} />
           <Route path="/teacher/courses" element={<TeacherCourses />} />

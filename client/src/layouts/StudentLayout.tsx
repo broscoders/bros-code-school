@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck, Calendar, ListChecks, BookOpen, GraduationCap, Menu, X } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck, Calendar, ListChecks, BookOpen, GraduationCap, Utensils, Menu, X } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 
@@ -15,6 +15,7 @@ const navItems = [
   { to: "/student/quizzes", label: "Quizzes", icon: ListChecks },
   { to: "/student/courses", label: "Courses", icon: BookOpen },
   { to: "/student/academy", label: "Academy", icon: GraduationCap },
+  { to: "/student/canteen", label: "Canteen", icon: Utensils },
   { to: "/student/store", label: "Notes Store", icon: ShoppingBag },
   { to: "/student/certificates", label: "Certificates", icon: BadgeCheck },
   { to: "/student/announcements", label: "Announcements", icon: Megaphone },

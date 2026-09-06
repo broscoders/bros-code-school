@@ -7,6 +7,7 @@ import {
   startAttempt,
   submitAttempt,
   getQuizResults,
+  overrideAttemptScore,
 } from "../controllers/quizController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { TEACHING_STAFF, ROLES } from "../middleware/permissions";
@@ -18,6 +19,7 @@ router.get("/teacher", protect, requireRole(...TEACHING_STAFF), getQuizzesForTea
 router.get("/class", protect, requireRole(...TEACHING_STAFF, ROLES.STUDENT), getQuizzesForClass);
 router.put("/:id/publish", protect, requireRole(...TEACHING_STAFF), togglePublish);
 router.get("/:id/results", protect, requireRole(...TEACHING_STAFF), getQuizResults);
+router.put("/attempt/:id/override-score", protect, requireRole(...TEACHING_STAFF), overrideAttemptScore);
 
 router.post("/attempt/start", protect, requireRole(ROLES.STUDENT), startAttempt);
 router.post("/attempt/submit", protect, requireRole(ROLES.STUDENT), submitAttempt);

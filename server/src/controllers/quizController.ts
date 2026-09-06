@@ -115,7 +115,7 @@ export const startAttempt = async (req: AuthRequest, res: Response) => {
     // not silently consume another one of a limited number of tries.
     const inProgress = await QuizAttempt.findOne({ quizId, studentId, status: "IN_PROGRESS" });
     if (inProgress) {
-      const safeQuestions = quiz.questions.map((q) => ({ questionText: q.questionText, options: q.options }));
+      const safeQuestions = quiz.questions.map((q) => ({ questionType: q.questionType, questionText: q.questionText, options: q.options }));
       return res.json({
         attemptId: inProgress._id,
         quizTitle: quiz.title,
@@ -147,7 +147,7 @@ export const startAttempt = async (req: AuthRequest, res: Response) => {
       startedAt: new Date(),
     });
 
-    const safeQuestions = quiz.questions.map((q) => ({ questionText: q.questionText, options: q.options }));
+    const safeQuestions = quiz.questions.map((q) => ({ questionType: q.questionType, questionText: q.questionText, options: q.options }));
 
     res.json({
       attemptId: attempt._id,
@@ -182,17 +182,60 @@ export const submitAttempt = async (req: AuthRequest, res: Response) => {
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
 
     let score = 0;
+    let needsReview = false;
     quiz.questions.forEach((q, i) => {
-      if (answers[i] === q.correctOptionIndex) score += 1;
+      if (q.questionType === "SHORT_ANSWER") {
+        const given = String(answers[i] ?? "").trim().toLowerCase();
+        const expected = String(q.correctAnswerText ?? "").trim().toLowerCase();
+        if (expected && given === expected) {
+          score += 1;
+        } else {
+          // Text matching is unreliable (typos, wording) - flag for a
+          // teacher to review and adjust the score rather than trusting a
+          // strict string match as the final word on a written answer.
+          needsReview = true;
+        }
+      } else if (answers[i] === q.correctOptionIndex) {
+        score += 1;
+      }
     });
 
     attempt.answers = answers;
     attempt.score = score;
+    attempt.needsReview = needsReview;
     attempt.status = "SUBMITTED";
     attempt.submittedAt = new Date();
     await attempt.save();
 
-    res.json({ score, totalQuestions: quiz.questions.length });
+    res.json({ score, totalQuestions: quiz.questions.length, needsReview });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Teacher-only override for one attempt's score - the escape hatch for
+// short-answer questions that auto-grading couldn't confidently mark.
+export const overrideAttemptScore = async (req: AuthRequest, res: Response) => {
+  try {
+    const { score } = req.body;
+    const attempt = await QuizAttempt.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!attempt) return res.status(404).json({ message: "Attempt not found" });
+
+    const quiz = await Quiz.findOne({ _id: attempt.quizId, schoolId: req.user!.schoolId });
+    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+
+    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    const isOwner = myTeacher && myTeacher._id.toString() === quiz.createdBy?.toString();
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: "You can only grade your own quizzes" });
+    }
+
+    attempt.score = Math.max(0, Math.min(score, attempt.totalQuestions));
+    attempt.needsReview = false;
+    await attempt.save();
+
+    res.json(attempt);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

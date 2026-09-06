@@ -6,10 +6,16 @@ export interface IQuizAttempt extends Document {
   quizId: mongoose.Types.ObjectId;
   studentId: mongoose.Types.ObjectId;
   attemptNumber: number;
-  answers: number[];
+  // Mixed so each entry can be either a selected option index (MCQ) or the
+  // typed text (SHORT_ANSWER) - existing attempts with plain numbers still
+  // read back fine since Mixed accepts both.
+  answers: any[];
   score?: number;
   totalQuestions: number;
   status: "IN_PROGRESS" | "SUBMITTED";
+  // True when at least one short-answer response couldn't be confidently
+  // auto-graded and a teacher should look at it before the score is final.
+  needsReview: boolean;
   startedAt: Date;
   submittedAt?: Date;
   createdAt: Date;
@@ -26,10 +32,11 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
     // preserved per the blueprint's "Results, History" requirement, and
     // maxAttempts on the Quiz can be enforced by counting these.
     attemptNumber: { type: Number, required: true, default: 1 },
-    answers: { type: [Number], default: [] },
+    answers: [{ type: Schema.Types.Mixed }],
     score: { type: Number },
     totalQuestions: { type: Number, required: true },
     status: { type: String, enum: ["IN_PROGRESS", "SUBMITTED"], default: "IN_PROGRESS" },
+    needsReview: { type: Boolean, default: false },
     startedAt: { type: Date, default: Date.now },
     submittedAt: { type: Date },
   },

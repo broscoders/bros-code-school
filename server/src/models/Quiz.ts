@@ -2,9 +2,15 @@
 import type { Document } from "mongoose";
 
 export interface IQuizQuestion {
+  questionType: "MCQ" | "SHORT_ANSWER";
   questionText: string;
   options: string[];
   correctOptionIndex: number;
+  // Only used when questionType is SHORT_ANSWER. Auto-graded with a
+  // forgiving case-insensitive/trimmed match; a mismatch doesn't block
+  // submission, it's just marked wrong until a teacher reviews it (see
+  // needsReview on the attempt).
+  correctAnswerText?: string;
 }
 
 export interface IQuiz extends Document {
@@ -29,9 +35,11 @@ export interface IQuiz extends Document {
 
 const quizQuestionSchema = new Schema<IQuizQuestion>(
   {
+    questionType: { type: String, enum: ["MCQ", "SHORT_ANSWER"], default: "MCQ" },
     questionText: { type: String, required: true },
-    options: { type: [String], required: true },
-    correctOptionIndex: { type: Number, required: true },
+    options: { type: [String], default: [] },
+    correctOptionIndex: { type: Number },
+    correctAnswerText: { type: String },
   },
   { _id: false }
 );
