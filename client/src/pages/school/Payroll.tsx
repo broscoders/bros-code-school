@@ -7,11 +7,15 @@ export default function Payroll() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const [staff, setStaff] = useState<any[]>([]);
   const [records, setRecords] = useState<any[]>([]);
+  const [loans, setLoans] = useState<any[]>([]);
+  const [loanForm, setLoanForm] = useState({ staffId: "", amount: "", reason: "", monthlyDeduction: "" });
   const [form, setForm] = useState({ staffId: "", month: "", year: new Date().getFullYear().toString(), allowances: "0", deductions: "0", bonus: "0" });
 
   const load = async () => {
     const res = await api.get(`/hr/payroll?schoolId=${schoolId}`);
     setRecords(res.data);
+    const loanRes = await api.get(`/hr/loans?schoolId=${schoolId}`);
+    setLoans(loanRes.data);
   };
 
   useEffect(() => {
@@ -30,6 +34,18 @@ export default function Payroll() {
 
   const markPaid = async (id: string) => {
     await api.put(`/hr/payroll/${id}/pay`, {});
+    load();
+  };
+
+  const requestLoan = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await api.post("/hr/loans", { ...loanForm, schoolId, amount: Number(loanForm.amount), monthlyDeduction: Number(loanForm.monthlyDeduction) });
+    setLoanForm({ staffId: "", amount: "", reason: "", monthlyDeduction: "" });
+    load();
+  };
+
+  const setLoanStatus = async (id: string, status: string) => {
+    await api.put(`/hr/loans/${id}/status`, { status });
     load();
   };
 
@@ -104,6 +120,52 @@ export default function Payroll() {
             )}
           </tbody>
         </table>
+      </div>
+
+      <div className="border-t border-border mt-8 pt-6">
+        <h2 className="font-display font-semibold text-ink mb-3">Staff Loans / Advances</h2>
+        <form onSubmit={requestLoan} className="bg-surface rounded-xl border border-border shadow-sm p-5 grid grid-cols-4 gap-3">
+          <select value={loanForm.staffId} onChange={(e) => setLoanForm({ ...loanForm, staffId: e.target.value })} className="w-full" required>
+            <option value="">Select Staff</option>
+            {staff.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
+          </select>
+          <input type="number" placeholder="Amount (Rs.)" value={loanForm.amount} onChange={(e) => setLoanForm({ ...loanForm, amount: e.target.value })} className="w-full" required />
+          <input type="number" placeholder="Monthly Deduction (Rs.)" value={loanForm.monthlyDeduction} onChange={(e) => setLoanForm({ ...loanForm, monthlyDeduction: e.target.value })} className="w-full" required />
+          <input placeholder="Reason" value={loanForm.reason} onChange={(e) => setLoanForm({ ...loanForm, reason: e.target.value })} className="w-full" required />
+          <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium col-span-4 hover:bg-primary-dark transition-colors">+ Request Loan</button>
+        </form>
+
+        <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-4">
+          <table className="w-full text-sm">
+            <thead className="bg-canvas text-ink text-left">
+              <tr><th className="p-3 font-medium">Staff</th><th className="p-3 font-medium">Amount</th><th className="p-3 font-medium">Remaining</th><th className="p-3 font-medium">Status</th><th className="p-3 font-medium">Action</th></tr>
+            </thead>
+            <tbody>
+              {loans.length === 0 ? (
+                <tr><td colSpan={5} className="p-6 text-center text-muted">No loans yet.</td></tr>
+              ) : (
+                loans.map((l) => (
+                  <tr key={l._id} className="border-t border-border">
+                    <td className="p-3">{l.staffId?.userId?.name}</td>
+                    <td className="p-3">Rs. {l.amount}</td>
+                    <td className="p-3">Rs. {l.remainingBalance}</td>
+                    <td className="p-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${l.status === "APPROVED" ? "bg-success-soft text-success" : l.status === "REJECTED" ? "bg-danger/10 text-danger" : l.status === "COMPLETED" ? "bg-white/5 text-muted" : "bg-warning-soft text-warning"}`}>{l.status}</span>
+                    </td>
+                    <td className="p-3">
+                      {l.status === "PENDING" && (
+                        <div className="flex gap-2">
+                          <button onClick={() => setLoanStatus(l._id, "APPROVED")} className="text-success text-xs underline">Approve</button>
+                          <button onClick={() => setLoanStatus(l._id, "REJECTED")} className="text-danger text-xs underline">Reject</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

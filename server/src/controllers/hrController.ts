@@ -3,6 +3,7 @@ import type { AuthRequest } from "../middleware/authMiddleware";
 import Department from "../models/Department";
 import StaffProfile from "../models/StaffProfile";
 import PayrollRecord from "../models/PayrollRecord";
+import StaffLoan from "../models/StaffLoan";
 import { logAudit } from "../utils/auditLogger";
 
 export const createDepartment = async (req: AuthRequest, res: Response) => {
@@ -93,7 +94,14 @@ export const generatePayroll = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: `A payslip for ${month} ${year} already exists for this staff member.` });
     }
 
-    const netSalary = staff.basicSalary + Number(allowances || 0) + Number(bonus || 0) - Number(deductions || 0);
+    // Blueprint 39 explicitly calls for loan/advance repayments to be part
+    // of payroll - an approved loan's monthly installment is deducted here
+    // automatically, and the loan's remaining balance is paid down by that
+    // same amount so it eventually completes on its own.
+    const activeLoan = await StaffLoan.findOne({ schoolId: req.user!.schoolId, staffId, status: "APPROVED" });
+    const loanDeduction = activeLoan ? Math.min(activeLoan.monthlyDeduction, activeLoan.remainingBalance) : 0;
+
+    const netSalary = staff.basicSalary + Number(allowances || 0) + Number(bonus || 0) - Number(deductions || 0) - loanDeduction;
 
     const record = await PayrollRecord.create({
       schoolId: staff.schoolId,
@@ -102,12 +110,70 @@ export const generatePayroll = async (req: AuthRequest, res: Response) => {
       year,
       basicSalary: staff.basicSalary,
       allowances: allowances || 0,
-      deductions: deductions || 0,
+      deductions: (deductions || 0) + loanDeduction,
       bonus: bonus || 0,
       netSalary,
     });
 
-    res.status(201).json(record);
+    if (activeLoan && loanDeduction > 0) {
+      activeLoan.remainingBalance -= loanDeduction;
+      if (activeLoan.remainingBalance <= 0) activeLoan.status = "COMPLETED";
+      await activeLoan.save();
+    }
+
+    res.status(201).json({ ...record.toObject(), loanDeduction });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const requestStaffLoan = async (req: AuthRequest, res: Response) => {
+  try {
+    const { staffId, amount, reason, monthlyDeduction } = req.body;
+    const staff = await StaffProfile.findOne({ _id: staffId, schoolId: req.user!.schoolId });
+    if (!staff) return res.status(404).json({ message: "Staff not found" });
+
+    const loan = await StaffLoan.create({
+      schoolId: req.user!.schoolId,
+      staffId,
+      amount,
+      reason,
+      monthlyDeduction,
+      remainingBalance: amount,
+      requestedBy: req.user!.userId,
+    });
+    res.status(201).json(loan);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// HR/admin-only route restriction - staff can request a loan, but approval
+// (like every other approval workflow in this app) is a separate, more
+// privileged step so a requester can never self-approve their own loan.
+export const updateStaffLoanStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.body;
+    if (!["APPROVED", "REJECTED"].includes(status)) return res.status(400).json({ message: "Invalid status" });
+
+    const loan = await StaffLoan.findOneAndUpdate(
+      { _id: req.params.id, schoolId: req.user!.schoolId, status: "PENDING" },
+      { status, approvedBy: req.user!.userId },
+      { new: true }
+    );
+    if (!loan) return res.status(400).json({ message: "Loan not found or already processed" });
+    res.json(loan);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const getStaffLoans = async (req: AuthRequest, res: Response) => {
+  try {
+    const loans = await StaffLoan.find({ schoolId: req.user!.schoolId })
+      .populate({ path: "staffId", populate: { path: "userId" } })
+      .sort({ createdAt: -1 });
+    res.json(loans);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
