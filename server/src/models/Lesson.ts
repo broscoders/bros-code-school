@@ -6,6 +6,10 @@ export type LessonContentType = "VIDEO" | "PDF" | "TEXT" | "LINK";
 export interface ILesson extends Document {
   schoolId: mongoose.Types.ObjectId;
   courseId: mongoose.Types.ObjectId;
+  // Optional grouping label (e.g. "Module 1: Basics") so a course's
+  // lessons can be organized into modules/units rather than one flat
+  // list - blank keeps existing lessons/courses working exactly as before.
+  moduleName?: string;
   title: string;
   contentType: LessonContentType;
   contentUrl?: string;
@@ -19,6 +23,7 @@ const lessonSchema = new Schema<ILesson>(
   {
     schoolId: { type: Schema.Types.ObjectId, ref: "School", required: true },
     courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
+    moduleName: { type: String },
     title: { type: String, required: true },
     contentType: { type: String, enum: ["VIDEO", "PDF", "TEXT", "LINK"], required: true },
     contentUrl: { type: String },

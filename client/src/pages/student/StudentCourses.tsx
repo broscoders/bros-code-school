@@ -106,7 +106,10 @@ export default function StudentCourses() {
           {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
           {lessons.map((l: any, i: number) => (
             <button key={l._id} onClick={() => openLesson(l)} className="w-full bg-surface rounded-xl border border-border shadow-sm p-4 flex justify-between items-center text-left hover:border-primary/30 transition-colors">
-              <span className="text-sm">{i + 1}. {l.title}</span>
+              <span className="text-sm">
+                {l.moduleName && <span className="text-[10px] uppercase tracking-wide text-accent font-semibold mr-2">{l.moduleName}</span>}
+                {i + 1}. {l.title}
+              </span>
               {statusBadge(l.myStatus)}
             </button>
           ))}

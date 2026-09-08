@@ -538,6 +538,45 @@ export const getAllInvoices = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Blueprint edge case: "Cancelled invoice" - the CANCELLED status has
+// existed on the model all along (duplicate-invoice prevention already
+// checks for it) but nothing could ever actually set it. A cancelled
+// invoice keeps its payment history rather than being deleted - the
+// blueprint's fee ledger rule against silently modifying historical
+// transactions applies here too.
+export const cancelInvoice = async (req: AuthRequest, res: Response) => {
+  try {
+    const invoice = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!invoice) return res.status(404).json({ message: "Invoice not found" });
+    if (invoice.status === "CANCELLED") return res.status(400).json({ message: "This invoice is already cancelled" });
+    if ((invoice.paidAmount || 0) > 0) {
+      return res.status(400).json({ message: "This invoice has payments recorded against it. Process a refund instead of cancelling it." });
+    }
+
+    invoice.status = "CANCELLED";
+    await invoice.save();
+
+    if (req.user) {
+      const actingUser = await User.findById(req.user.userId).select("name");
+      await logAudit({
+        schoolId: req.user.schoolId,
+        userId: req.user.userId,
+        userName: actingUser?.name || "Unknown",
+        userRole: req.user.role,
+        action: "Cancelled invoice",
+        recordType: "Invoice",
+        recordId: invoice._id.toString(),
+        oldValue: { status: "PENDING" },
+        newValue: { status: "CANCELLED" },
+      });
+    }
+
+    res.json(invoice);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const payInvoice = async (req: AuthRequest, res: Response) => {
   try {
     const existing = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });

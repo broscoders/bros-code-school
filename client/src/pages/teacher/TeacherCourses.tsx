@@ -13,7 +13,7 @@ export default function TeacherCourses() {
   const [form, setForm] = useState({ title: "", description: "", classId: "", subjectId: "" });
   const [activeCourse, setActiveCourse] = useState<any>(null);
   const [lessons, setLessons] = useState<any[]>([]);
-  const [lessonForm, setLessonForm] = useState({ title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
+  const [lessonForm, setLessonForm] = useState({ moduleName: "", title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
   const [progressSummary, setProgressSummary] = useState<any>(null);
 
   const load = async () => {
@@ -62,7 +62,7 @@ export default function TeacherCourses() {
     e.preventDefault();
     if (!activeCourse) return;
     await api.post("/lms/lessons", { ...lessonForm, courseId: activeCourse._id });
-    setLessonForm({ title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
+    setLessonForm({ moduleName: "", title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
     openCourse(activeCourse);
   };
 
@@ -97,6 +97,7 @@ export default function TeacherCourses() {
 
         <form onSubmit={addLesson} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 space-y-2">
           <p className="text-sm font-medium text-ink">Add Lesson</p>
+          <input placeholder="Module name (optional, e.g. Module 1: Basics)" value={lessonForm.moduleName} onChange={(e) => setLessonForm({ ...lessonForm, moduleName: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
           <input placeholder="Lesson Title" value={lessonForm.title} onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
           <select value={lessonForm.contentType} onChange={(e) => setLessonForm({ ...lessonForm, contentType: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm">
             <option value="TEXT">Text</option>
@@ -118,7 +119,10 @@ export default function TeacherCourses() {
           {lessons.length === 0 && <p className="text-muted text-sm">No lessons yet.</p>}
           {lessons.map((l, i) => (
             <div key={l._id} className="bg-surface rounded-xl border border-border shadow-sm p-3 flex justify-between items-center">
-              <span className="text-sm">{i + 1}. {l.title} <span className="text-muted text-xs">({l.contentType})</span></span>
+              <span className="text-sm">
+                {l.moduleName && <span className="text-[10px] uppercase tracking-wide text-accent font-semibold mr-2">{l.moduleName}</span>}
+                {i + 1}. {l.title} <span className="text-muted text-xs">({l.contentType})</span>
+              </span>
               <button onClick={() => removeLesson(l._id)} className="text-danger text-xs underline">Remove</button>
             </div>
           ))}

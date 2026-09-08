@@ -39,6 +39,17 @@ export default function Fees() {
     if (form.studentId === studentId) loadInvoices();
   };
 
+  const cancelInvoice = async (invoiceId: string) => {
+    if (!window.confirm("Cancel this invoice? This cannot be undone.")) return;
+    try {
+      await api.put(`/ops/invoices/${invoiceId}/cancel`, {});
+      loadInvoices();
+    } catch (err: any) {
+      setMsg(err.response?.data?.message || "Failed to cancel invoice");
+      setTimeout(() => setMsg(""), 2500);
+    }
+  };
+
   const recordPayment = async (invoiceId: string) => {
     if (payingId === invoiceId) return; // already in flight - ignore a double-click/duplicate submit
     const amount = Number(payAmounts[invoiceId]);
@@ -145,7 +156,7 @@ export default function Fees() {
                     </td>
                     <td className="p-2">
                       {!isSettled && (
-                        <div className="flex gap-1.5">
+                        <div className="flex gap-1.5 items-center">
                           <input
                             type="number"
                             placeholder="Amount"
@@ -160,6 +171,14 @@ export default function Fees() {
                           >
                             {payingId === inv._id ? "Saving..." : "Pay"}
                           </button>
+                          {(inv.paidAmount || 0) === 0 && (
+                            <button
+                              onClick={() => cancelInvoice(inv._id)}
+                              className="text-danger text-xs underline"
+                            >
+                              Cancel
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>

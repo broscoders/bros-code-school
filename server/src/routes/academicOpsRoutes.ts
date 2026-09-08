@@ -5,7 +5,7 @@ import {
   createAssignment, getAssignments, submitAssignment,
   createExam, getExams,
   enterResult, getResults, getResultsByExam, publishResults,
-  createFeeStructure, createInvoice, bulkCreateInvoices, getInvoices, getAllInvoices, payInvoice,
+  createFeeStructure, createInvoice, bulkCreateInvoices, getInvoices, getAllInvoices, payInvoice, cancelInvoice,
 } from "../controllers/academicOpsController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { checkPermission } from "../middleware/checkPermission";
@@ -39,6 +39,7 @@ router.post("/invoices/bulk", protect, requireRole(...FINANCE_STAFF), bulkCreate
 router.get("/invoices", protect, requireRole(...EVERYONE), getInvoices);
 router.get("/invoices/all", protect, requireRole(...FINANCE_STAFF), getAllInvoices);
 router.put("/invoices/:id/pay", protect, requireRole(ROLES.PARENT, ...FINANCE_STAFF), checkPermission("Fees", "edit"), payInvoice);
+router.put("/invoices/:id/cancel", protect, requireRole(...FINANCE_STAFF), cancelInvoice);
 
 export default router;
 
