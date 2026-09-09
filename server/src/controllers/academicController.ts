@@ -33,6 +33,85 @@ export const getSessions = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Closing a session doesn't delete or hide anything - attendance, fees,
+// exams and results all keep pointing at their original session/class
+// records forever (blueprint 19: "must not erase previous attendance,
+// fees, exams or results"). It only stops it being the default for new
+// records like admissions and new class assignments.
+export const setSessionStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.body;
+    if (!["ACTIVE", "CLOSED", "ARCHIVED"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const session = await AcademicSession.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    if (status === "ACTIVE") {
+      // Only one session is "the current one" at a time - activating this
+      // one demotes any other active session rather than leaving two
+      // sessions both marked active.
+      await AcademicSession.updateMany({ schoolId: req.user!.schoolId, _id: { $ne: session._id } }, { isActive: false, status: "CLOSED" });
+      session.isActive = true;
+    } else {
+      session.isActive = false;
+    }
+    session.status = status;
+    await session.save();
+
+    res.json(session);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Blueprint 19: "Copy selected configuration from previous session" - sets
+// up a new session's Classes/Sections/Subjects from an existing session's
+// structure instead of the admin re-entering everything by hand. This
+// creates brand new records for the new session; it never touches or
+// re-parents the old session's data.
+export const copySessionConfig = async (req: AuthRequest, res: Response) => {
+  try {
+    const { fromSessionId, toSessionId } = req.body;
+    const schoolId = req.user!.schoolId;
+
+    const toSession = await AcademicSession.findOne({ _id: toSessionId, schoolId });
+    if (!toSession) return res.status(404).json({ message: "Target session not found" });
+
+    const oldClasses = await ClassModel.find({ schoolId, sessionId: fromSessionId });
+    let classesCreated = 0, sectionsCreated = 0, subjectsCreated = 0;
+
+    for (const oldClass of oldClasses) {
+      const existing = await ClassModel.findOne({ schoolId, sessionId: toSessionId, name: oldClass.name });
+      const newClass = existing || (await ClassModel.create({ schoolId, sessionId: toSessionId, name: oldClass.name }));
+      if (!existing) classesCreated++;
+
+      const oldSections = await Section.find({ schoolId, classId: oldClass._id });
+      for (const oldSection of oldSections) {
+        const existingSection = await Section.findOne({ schoolId, classId: newClass._id, name: oldSection.name });
+        if (!existingSection) {
+          await Section.create({ schoolId, classId: newClass._id, name: oldSection.name, capacity: oldSection.capacity });
+          sectionsCreated++;
+        }
+      }
+
+      const oldSubjects = await Subject.find({ schoolId, classId: oldClass._id });
+      for (const oldSubject of oldSubjects) {
+        const existingSubject = await Subject.findOne({ schoolId, classId: newClass._id, name: oldSubject.name });
+        if (!existingSubject) {
+          await Subject.create({ schoolId, classId: newClass._id, name: oldSubject.name, code: oldSubject.code });
+          subjectsCreated++;
+        }
+      }
+    }
+
+    res.json({ classesCreated, sectionsCreated, subjectsCreated });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 // Class
 export const createClass = async (req: AuthRequest, res: Response) => {
   try {

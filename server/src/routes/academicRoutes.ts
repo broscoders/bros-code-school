@@ -2,6 +2,8 @@ import { Router } from "express";
 import {
   createSession,
   getSessions,
+  setSessionStatus,
+  copySessionConfig,
   createClass,
   getClasses,
   createSection,
@@ -18,6 +20,8 @@ const router = Router();
 
 router.post("/sessions", protect, requireRole(...ACADEMIC_STAFF), createSession);
 router.get("/sessions", protect, requireRole(...EVERYONE), getSessions);
+router.put("/sessions/:id/status", protect, requireRole(...ACADEMIC_STAFF), setSessionStatus);
+router.post("/sessions/copy-config", protect, requireRole(...ACADEMIC_STAFF), copySessionConfig);
 
 router.post("/classes", protect, requireRole(...ACADEMIC_STAFF), createClass);
 router.get("/classes", protect, requireRole(...EVERYONE), getClasses);

@@ -48,6 +48,20 @@ export default function Academics() {
     }
   };
 
+  const setSessionStatus = async (sessionId: string, status: string) => {
+    await api.put(`/academics/sessions/${sessionId}/status`, { status });
+    load();
+  };
+
+  const [copyForm, setCopyForm] = useState({ fromSessionId: "", toSessionId: "" });
+  const [copyMsg, setCopyMsg] = useState("");
+  const copyConfig = async () => {
+    if (!copyForm.fromSessionId || !copyForm.toSessionId) return;
+    const res = await api.post("/academics/sessions/copy-config", copyForm);
+    setCopyMsg(`Copied: ${res.data.classesCreated} classes, ${res.data.sectionsCreated} sections, ${res.data.subjectsCreated} subjects.`);
+    load();
+  };
+
   const addClass = async (e: React.FormEvent) => {
     e.preventDefault();
     await api.post("/academics/classes", { ...classForm, schoolId });
@@ -90,11 +104,40 @@ export default function Academics() {
           <ul className="text-sm divide-y divide-black/5">
             {sessions.length === 0 && <li className="py-2 text-muted">No sessions yet.</li>}
             {sessions.map((s) => (
-              <li key={s._id} className="flex justify-between py-2">
+              <li key={s._id} className="flex justify-between items-center py-2 gap-2">
                 <span>{s.name}</span>
+                <select
+                  value={s.status || (s.isActive ? "ACTIVE" : "CLOSED")}
+                  onChange={(e) => setSessionStatus(s._id, e.target.value)}
+                  className="text-xs border border-border rounded-md px-2 py-1"
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="CLOSED">Closed</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
               </li>
             ))}
           </ul>
+
+          {sessions.length > 1 && (
+            <div className="mt-4 pt-3 border-t border-border">
+              <p className="text-xs font-medium text-muted mb-2">Copy classes/sections/subjects to a new session</p>
+              <div className="flex flex-col gap-1.5">
+                <select value={copyForm.fromSessionId} onChange={(e) => setCopyForm({ ...copyForm, fromSessionId: e.target.value })} className="text-xs border border-border rounded-md px-2 py-1.5">
+                  <option value="">From session...</option>
+                  {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+                </select>
+                <select value={copyForm.toSessionId} onChange={(e) => setCopyForm({ ...copyForm, toSessionId: e.target.value })} className="text-xs border border-border rounded-md px-2 py-1.5">
+                  <option value="">To session...</option>
+                  {sessions.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+                </select>
+                <button onClick={copyConfig} className="bg-white/5 border border-border text-ink text-xs px-3 py-1.5 rounded-md font-medium hover:bg-canvas">
+                  Copy Configuration
+                </button>
+                {copyMsg && <p className="text-xs text-success">{copyMsg}</p>}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
