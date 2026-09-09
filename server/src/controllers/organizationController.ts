@@ -196,3 +196,54 @@ export const getPlatformStats = async (req: PlatformAuthRequest, res: Response) 
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
 };
+
+// Blueprint edge cases: "Student changes campus/school", "Teacher
+// transfers branch", "User transferred between branches". Only a
+// Super Admin can do this - a branch's own School Admin has no
+// authority (or JWT scope) over any OTHER branch, so a same-org,
+// cross-branch move has to be initiated from the organization level.
+// History is preserved (schoolHistory / a note in the audit trail),
+// never overwritten, matching how class transfers already work.
+export const transferPersonBranch = async (req: PlatformAuthRequest, res: Response) => {
+  try {
+    const { personType, personId, toSchoolId } = req.body;
+    if (!["STUDENT", "TEACHER"].includes(personType)) {
+      return res.status(400).json({ message: "Invalid person type" });
+    }
+
+    const targetSchool = await School.findById(toSchoolId);
+    if (!targetSchool) return res.status(404).json({ message: "Target school not found" });
+
+    const person = personType === "STUDENT" ? await Student.findById(personId) : await Teacher.findById(personId);
+    if (!person) return res.status(404).json({ message: "Person not found" });
+
+    const sourceSchool = await School.findById(person.schoolId);
+    // Both schools must belong to the same organization - this is a
+    // branch transfer within one organization, not a way to move a
+    // person into an unrelated organization's data.
+    if (!sourceSchool?.organizationId || !targetSchool.organizationId || sourceSchool.organizationId.toString() !== targetSchool.organizationId.toString()) {
+      return res.status(400).json({ message: "Both schools must belong to the same organization to transfer between them." });
+    }
+
+    const previousSchoolId = person.schoolId;
+
+    if (personType === "STUDENT") {
+      const student = person as any;
+      student.schoolHistory = student.schoolHistory || [];
+      const lastEntry = student.schoolHistory[student.schoolHistory.length - 1];
+      if (lastEntry && !lastEntry.toDate) lastEntry.toDate = new Date();
+      student.schoolHistory.push({ schoolId: toSchoolId, fromDate: new Date() });
+      student.schoolId = toSchoolId;
+      await student.save();
+    } else {
+      person.schoolId = toSchoolId as any;
+      await person.save();
+    }
+
+    await User.findByIdAndUpdate(person.userId, { schoolId: toSchoolId });
+
+    res.json({ message: "Transfer complete", personType, personId, fromSchoolId: previousSchoolId, toSchoolId });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};

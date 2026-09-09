@@ -10,6 +10,12 @@ export interface IClassTransferRecord {
   toDate?: Date;
 }
 
+export interface ISchoolTransferRecord {
+  schoolId: mongoose.Types.ObjectId;
+  fromDate: Date;
+  toDate?: Date;
+}
+
 export interface IStudent extends Document {
   schoolId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -25,6 +31,10 @@ export interface IStudent extends Document {
   statusReason?: string;
   statusChangedAt?: Date;
   classHistory: IClassTransferRecord[];
+  // Preserves which branch/school a student was previously enrolled at,
+  // the same way classHistory preserves past class/section - blueprint
+  // edge case "Student changes campus/school" must never overwrite this.
+  schoolHistory: ISchoolTransferRecord[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,6 +43,15 @@ const classTransferRecordSchema = new Schema<IClassTransferRecord>(
   {
     classId: { type: Schema.Types.ObjectId, ref: "ClassModel", required: true },
     sectionId: { type: Schema.Types.ObjectId, ref: "Section", required: true },
+    fromDate: { type: Date, required: true },
+    toDate: { type: Date },
+  },
+  { _id: false }
+);
+
+const schoolTransferRecordSchema = new Schema<ISchoolTransferRecord>(
+  {
+    schoolId: { type: Schema.Types.ObjectId, ref: "School", required: true },
     fromDate: { type: Date, required: true },
     toDate: { type: Date },
   },
@@ -59,6 +78,7 @@ const studentSchema = new Schema<IStudent>(
     statusReason: { type: String },
     statusChangedAt: { type: Date },
     classHistory: { type: [classTransferRecordSchema], default: [] },
+    schoolHistory: { type: [schoolTransferRecordSchema], default: [] },
   },
   { timestamps: true }
 );

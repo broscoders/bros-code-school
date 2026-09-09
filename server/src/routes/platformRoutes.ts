@@ -9,6 +9,7 @@ import {
   setOrganizationPlan,
   getOrganizationUsage,
   addBranch,
+  transferPersonBranch,
   getPlatformStats,
 } from "../controllers/organizationController";
 import { protectPlatform, requirePlatformRole } from "../middleware/platformAuthMiddleware";
@@ -27,5 +28,6 @@ router.put("/organizations/:id/status", protectPlatform, requirePlatformRole("SU
 router.put("/organizations/:id/plan", protectPlatform, requirePlatformRole("SUPER_ADMIN"), setOrganizationPlan);
 router.get("/organizations/:id/usage", protectPlatform, requirePlatformRole("SUPER_ADMIN", "SUPPORT_STAFF", "ACCOUNT_MANAGER"), getOrganizationUsage);
 router.post("/organizations/:id/branches", protectPlatform, requirePlatformRole("SUPER_ADMIN"), addBranch);
+router.post("/transfer-branch", protectPlatform, requirePlatformRole("SUPER_ADMIN"), transferPersonBranch);
 
 export default router;

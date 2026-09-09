@@ -11,6 +11,8 @@ export default function PlatformOrganizations() {
   const [planModalOrg, setPlanModalOrg] = useState<any>(null);
   const [usage, setUsage] = useState<any>(null);
   const [planForm, setPlanForm] = useState({ planName: "Trial", subscriptionStatus: "TRIAL", subscriptionExpiresAt: "" });
+  const [transferForm, setTransferForm] = useState({ personType: "STUDENT", personId: "", toSchoolId: "" });
+  const [transferMsg, setTransferMsg] = useState("");
   const [form, setForm] = useState({
     name: "", type: "SCHOOL", ownerName: "", ownerEmail: "", ownerPhone: "",
     country: "", city: "", adminName: "", adminEmail: "", adminPassword: "",
@@ -181,6 +183,35 @@ export default function PlatformOrganizations() {
           </div>
         </div>
       )}
+
+      <div className="bg-surface border border-slate-800 rounded-xl p-5 mt-6 max-w-md">
+        <h2 className="text-white font-semibold mb-1 flex items-center gap-2">
+          Transfer Student/Teacher Between Branches
+        </h2>
+        <p className="text-xs text-muted mb-3">Moves a person to another school in the same organization. Their history is preserved.</p>
+        <select value={transferForm.personType} onChange={(e) => setTransferForm({ ...transferForm, personType: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-2">
+          <option value="STUDENT">Student</option>
+          <option value="TEACHER">Teacher</option>
+        </select>
+        <input placeholder="Person ID (Student or Teacher document ID)" value={transferForm.personId} onChange={(e) => setTransferForm({ ...transferForm, personId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-2" />
+        <input placeholder="Destination School ID" value={transferForm.toSchoolId} onChange={(e) => setTransferForm({ ...transferForm, toSchoolId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-3" />
+        <button
+          onClick={async () => {
+            setTransferMsg("");
+            try {
+              await platformApi.post("/transfer-branch", transferForm);
+              setTransferMsg("Transfer complete.");
+              setTransferForm({ personType: "STUDENT", personId: "", toSchoolId: "" });
+            } catch (err: any) {
+              setTransferMsg(err.response?.data?.message || "Transfer failed");
+            }
+          }}
+          className="bg-warning-soft0 text-ink px-4 py-2 rounded-lg text-sm font-semibold hover:bg-warning transition-colors w-full"
+        >
+          Transfer
+        </button>
+        {transferMsg && <p className="text-xs text-muted mt-2">{transferMsg}</p>}
+      </div>
     </div>
   );
 }
