@@ -17,6 +17,30 @@ export const createCourse = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// School-wide oversight for admins/principals - the existing endpoints
+// only return "my courses" (teacher) or "this class's courses" (student),
+// neither of which lets an admin see LMS activity across the school.
+export const getAllCoursesForSchool = async (req: AuthRequest, res: Response) => {
+  try {
+    const courses = await Course.find({ schoolId: req.user!.schoolId })
+      .populate({ path: "createdBy", select: "userId", populate: { path: "userId", select: "name" } })
+      .populate("classId", "name")
+      .populate("subjectId", "name")
+      .sort({ createdAt: -1 });
+
+    const withCounts = await Promise.all(
+      courses.map(async (c) => {
+        const lessonCount = await Lesson.countDocuments({ courseId: c._id });
+        return { ...c.toObject(), lessonCount };
+      })
+    );
+
+    res.json(withCounts);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const getCoursesForTeacher = async (req: AuthRequest, res: Response) => {
   try {
     const teacherId = req.query.teacherId as string;

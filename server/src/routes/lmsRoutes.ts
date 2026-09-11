@@ -3,6 +3,7 @@ import {
   createCourse,
   getCoursesForTeacher,
   getCoursesForClass,
+  getAllCoursesForSchool,
   togglePublishCourse,
   addLesson,
   getLessons,
@@ -11,13 +12,14 @@ import {
   getCourseProgressSummary,
 } from "../controllers/lmsController";
 import { protect, requireRole } from "../middleware/authMiddleware";
-import { TEACHING_STAFF, ROLES } from "../middleware/permissions";
+import { TEACHING_STAFF, ANY_ADMIN_STAFF, ROLES } from "../middleware/permissions";
 
 const router = Router();
 
 router.post("/courses", protect, requireRole(...TEACHING_STAFF), createCourse);
 router.get("/courses/teacher", protect, requireRole(...TEACHING_STAFF), getCoursesForTeacher);
 router.get("/courses/class", protect, requireRole(...TEACHING_STAFF, ROLES.STUDENT), getCoursesForClass);
+router.get("/courses/school", protect, requireRole(...ANY_ADMIN_STAFF), getAllCoursesForSchool);
 router.put("/courses/:id/publish", protect, requireRole(...TEACHING_STAFF), togglePublishCourse);
 router.get("/courses/:id/progress-summary", protect, requireRole(...TEACHING_STAFF), getCourseProgressSummary);
 

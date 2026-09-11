@@ -15,6 +15,38 @@ export const createQuiz = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// School-wide oversight for admins/principals, mirroring getAllCoursesForSchool.
+export const getAllQuizzesForSchool = async (req: AuthRequest, res: Response) => {
+  try {
+    const quizzes = await Quiz.find({ schoolId: req.user!.schoolId })
+      .select("-questions.correctOptionIndex -questions.correctAnswerText")
+      .populate({ path: "createdBy", select: "userId", populate: { path: "userId", select: "name" } })
+      .populate("classId", "name")
+      .populate("subjectId", "name")
+      .sort({ createdAt: -1 });
+
+    const withCounts = await Promise.all(
+      quizzes.map(async (q) => {
+        const attemptCount = await QuizAttempt.countDocuments({ quizId: q._id });
+        const avgAgg = await QuizAttempt.aggregate([
+          { $match: { quizId: q._id, score: { $ne: null } } },
+          { $group: { _id: null, avg: { $avg: "$score" } } },
+        ]);
+        return {
+          ...q.toObject(),
+          questionCount: q.questions?.length || 0,
+          attemptCount,
+          averageScore: avgAgg[0]?.avg ?? null,
+        };
+      })
+    );
+
+    res.json(withCounts);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const getQuizzesForTeacher = async (req: AuthRequest, res: Response) => {
   try {
     const teacherId = req.query.teacherId as string;

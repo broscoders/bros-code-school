@@ -7,7 +7,7 @@ import {
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
-  Library as LibraryIcon, Bus, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
+  Library as LibraryIcon, Bus, MonitorCheck, Globe, Plug, Smartphone,
   Menu, X, Search, ChevronDown,
 } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
@@ -47,6 +47,8 @@ const navGroups: NavGroup[] = [
       { to: "/assignments", label: "Assignments", icon: FileText },
       { to: "/exams", label: "Exams & Results", icon: Award },
       { to: "/report-cards", label: "Report Cards", icon: FileBarChart },
+      { to: "/lms-overview", label: "LMS Overview", icon: GraduationCap },
+      { to: "/online-exams", label: "Online Exams", icon: MonitorCheck },
     ],
   },
   {
@@ -101,8 +103,6 @@ const navGroups: NavGroup[] = [
 ];
 
 const comingSoonItems = [
-  { label: "LMS", icon: LMSIcon },
-  { label: "Online Exams", icon: MonitorCheck },
   { label: "Integrations", icon: Plug },
   { label: "Mobile Apps", icon: Smartphone },
 ];
