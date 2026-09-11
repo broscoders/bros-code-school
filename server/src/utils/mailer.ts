@@ -52,6 +52,20 @@ export function verificationEmailHtml(name: string, code: string) {
   `;
 }
 
+export function invitationEmailHtml(name: string, inviteUrl: string, roleLabel: string, schoolName: string) {
+  return `
+    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+      <h2 style="color:#1e293b;">You've been invited to ${schoolName}</h2>
+      <p>Hi ${name},</p>
+      <p>You've been invited to join ${schoolName} as a <strong>${roleLabel}</strong>.</p>
+      <p style="margin: 24px 0;">
+        <a href="${inviteUrl}" style="background:#1d3557; color:#fff; padding:12px 20px; border-radius:6px; text-decoration:none; font-weight:bold;">Accept invitation</a>
+      </p>
+      <p style="color:#64748b; font-size: 13px;">This invitation expires in 7 days. If you weren't expecting this, you can ignore this email.</p>
+    </div>
+  `;
+}
+
 export function loginAlertEmailHtml(name: string, code: string) {
   return `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">

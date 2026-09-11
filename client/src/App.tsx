@@ -4,6 +4,7 @@ import VerifyEmail from "./pages/auth/VerifyEmail";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePasswordRequired from "./pages/auth/ChangePasswordRequired";
 import ResetPassword from "./pages/auth/ResetPassword";
+import AcceptInvite from "./pages/auth/AcceptInvite";
 import Dashboard from "./pages/school/Dashboard";
 import Students from "./pages/school/Students";
 import Teachers from "./pages/school/Teachers";
@@ -45,6 +46,7 @@ import Maintenance from "./pages/school/Maintenance";
 import Visitors from "./pages/school/Visitors";
 import Health from "./pages/school/Health";
 import RolesPermissions from "./pages/school/RolesPermissions";
+import Invitations from "./pages/school/Invitations";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -123,6 +125,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/change-password-required" element={<ChangePasswordRequired />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/accept-invite/:token" element={<AcceptInvite />} />
 
         <Route element={<RoleProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardLayout /></RoleProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -161,6 +164,7 @@ function App() {
           <Route path="/health" element={<Health />} />
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
+          <Route path="/invitations" element={<Invitations />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/leave-requests" element={<LeaveRequests />} />
           <Route path="/surveys" element={<Surveys />} />

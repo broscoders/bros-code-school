@@ -40,6 +40,7 @@ import websiteRoutes, { publicWebsiteRouter } from "./routes/websiteRoutes";
 import idCardRoutes from "./routes/idCardRoutes";
 import curriculumRoutes from "./routes/curriculumRoutes";
 import canteenRoutes from "./routes/canteenRoutes";
+import invitationRoutes from "./routes/invitationRoutes";
 
 const app = express();
 
@@ -95,5 +96,6 @@ app.use("/api/public/site", publicWebsiteRouter);
 app.use("/api/id-cards", idCardRoutes);
 app.use("/api/curriculum", curriculumRoutes);
 app.use("/api/canteen", canteenRoutes);
+app.use("/api/invitations", invitationRoutes);
 
 export default app;

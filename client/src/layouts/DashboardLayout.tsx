@@ -91,6 +91,7 @@ const navGroups: NavGroup[] = [
     label: "Administration",
     items: [
       { to: "/reports", label: "Reports & Analytics", icon: FileBarChart },
+      { to: "/invitations", label: "Invitations", icon: BadgeCheck },
       { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },
       { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
       { to: "/settings", label: "Settings", icon: SettingsIcon },

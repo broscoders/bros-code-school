@@ -4,7 +4,7 @@ import Permission from "../models/Permission";
 import User from "../models/User";
 import { logAudit } from "../utils/auditLogger";
 
-const MODULES = ["Students", "Teachers", "Attendance", "Homework", "Exams", "Fees", "Admissions", "Academy", "Announcements", "Reports", "Discipline"];
+const MODULES = ["Students", "Teachers", "Attendance", "Homework", "Exams", "Fees", "Admissions", "Academy", "Announcements", "Reports", "Discipline", "Invitations"];
 
 const DEFAULT_ROLES: Record<string, Record<string, boolean>> = {
   SCHOOL_ADMIN: { view: true, create: true, edit: true, delete: true },
