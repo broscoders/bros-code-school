@@ -5,6 +5,7 @@ import StaffProfile from "../models/StaffProfile";
 import PayrollRecord from "../models/PayrollRecord";
 import StaffLoan from "../models/StaffLoan";
 import { logAudit } from "../utils/auditLogger";
+import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../utils/accountSync";
 
 export const createDepartment = async (req: AuthRequest, res: Response) => {
   try {
@@ -59,6 +60,11 @@ export const updateStaffStatus = async (req: AuthRequest, res: Response) => {
     const oldStatus = staff.employmentStatus;
     staff.employmentStatus = employmentStatus;
     await staff.save();
+
+    const impliedAccountStatus = accountStatusForLifecycleStatus(employmentStatus);
+    if (impliedAccountStatus) {
+      await syncLinkedAccountStatus(staff.userId, impliedAccountStatus, `Employment status: ${employmentStatus}`);
+    }
 
     if (req.user) {
       await logAudit({

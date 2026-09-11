@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import User from "../models/User";
+import Session from "../models/Session";
 import { generateToken } from "../utils/generateToken";
 import { isNonEmptyString } from "../utils/validateStrings";
 import { checkOrgLimit } from "../utils/orgLimits";
@@ -18,6 +19,20 @@ const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 const CODE_EXPIRY_MS = 15 * 60 * 1000;
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Shared by every place that hands someone a fresh token (register-verify,
+// password login, Google login): signs the JWT and records the matching
+// Session row in one place so the two can never drift out of sync.
+async function issueSessionToken(req: Request, userId: string, role: string, schoolId: string): Promise<string> {
+  const { token, jti } = generateToken(userId, role, schoolId);
+  await Session.create({
+    userId,
+    jti,
+    userAgent: req.headers["user-agent"],
+    ip: req.ip,
+  });
+  return token;
+}
 
 export const registerUser = async (req: AuthRequest, res: Response) => {
   try {
@@ -98,7 +113,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
     user.verificationCodeExpires = undefined;
     await user.save();
 
-    const token = generateToken(user.id.toString(), user.role, user.schoolId.toString());
+    const token = await issueSessionToken(req, user.id.toString(), user.role, user.schoolId.toString());
 
     res.json({
       message: "Email verified",
@@ -197,6 +212,13 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    if (user.accountStatus === "SUSPENDED") {
+      return res.status(403).json({ message: "This account has been suspended. Please contact your school administrator." });
+    }
+    if (user.accountStatus === "ARCHIVED") {
+      return res.status(403).json({ message: "This account is no longer active. Please contact your school administrator." });
+    }
+
     if (!user.isEmailVerified) {
       return res.status(403).json({
         message: "Please verify your email before logging in.",
@@ -209,7 +231,7 @@ export const loginUser = async (req: Request, res: Response) => {
     user.lockUntil = undefined;
     await user.save();
 
-    const token = generateToken(user.id.toString(), user.role, user.schoolId.toString());
+    const token = await issueSessionToken(req, user.id.toString(), user.role, user.schoolId.toString());
 
     res.json({
       user: {
@@ -258,6 +280,13 @@ export const googleLogin = async (req: Request, res: Response) => {
       return res.status(403).json({ message: "Your Google email is not verified" });
     }
 
+    if (user.accountStatus === "SUSPENDED") {
+      return res.status(403).json({ message: "This account has been suspended. Please contact your school administrator." });
+    }
+    if (user.accountStatus === "ARCHIVED") {
+      return res.status(403).json({ message: "This account is no longer active. Please contact your school administrator." });
+    }
+
     if (!user.isEmailVerified) {
       user.isEmailVerified = true;
     }
@@ -265,7 +294,7 @@ export const googleLogin = async (req: Request, res: Response) => {
     user.lockUntil = undefined;
     await user.save();
 
-    const token = generateToken(user.id.toString(), user.role, user.schoolId.toString());
+    const token = await issueSessionToken(req, user.id.toString(), user.role, user.schoolId.toString());
 
     res.json({
       user: {
@@ -370,6 +399,69 @@ export const resetPassword = async (req: Request, res: Response) => {
     await user.save();
 
     res.json({ message: "Password reset. You can now log in." });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Blueprint 10 (Session Management): "Users should be able to see their
+// active sessions where appropriate" + "Logout from other sessions".
+export const getMySessions = async (req: AuthRequest, res: Response) => {
+  try {
+    const sessions = await Session.find({ userId: req.user!.userId, revoked: false }).sort({ lastSeenAt: -1 });
+    res.json(
+      sessions.map((s) => ({
+        id: s._id,
+        userAgent: s.userAgent,
+        ip: s.ip,
+        createdAt: s.createdAt,
+        lastSeenAt: s.lastSeenAt,
+        isCurrent: s.jti === req.user!.jti,
+      }))
+    );
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const revokeSession = async (req: AuthRequest, res: Response) => {
+  try {
+    const session = await Session.findOne({ _id: req.params.id, userId: req.user!.userId });
+    if (!session) return res.status(404).json({ message: "Session not found" });
+    session.revoked = true;
+    session.revokedAt = new Date();
+    await session.save();
+    res.json({ message: "Session revoked" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// "Logout from other sessions" - keeps the device the person is using
+// right now logged in, kills every other one (lost phone, shared/public
+// computer they forgot to log out of, etc.).
+export const logoutOtherSessions = async (req: AuthRequest, res: Response) => {
+  try {
+    await Session.updateMany(
+      { userId: req.user!.userId, jti: { $ne: req.user!.jti }, revoked: false },
+      { revoked: true, revokedAt: new Date() }
+    );
+    res.json({ message: "Logged out of all other sessions" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Revokes the session tied to the token making this request, so "log out"
+// actually invalidates the token server-side instead of just deleting it
+// client-side (which left it usable by anyone who'd copied it until it
+// expired on its own after 7 days).
+export const logout = async (req: AuthRequest, res: Response) => {
+  try {
+    if (req.user?.jti) {
+      await Session.updateOne({ jti: req.user.jti }, { revoked: true, revokedAt: new Date() });
+    }
+    res.json({ message: "Logged out" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

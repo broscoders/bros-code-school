@@ -14,6 +14,7 @@ import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
 import ThemeToggle from "../components/ThemeToggle";
+import ActiveSessionsButton from "../components/ActiveSessionsButton";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 type NavGroup = { label: string; items: NavItem[] };
@@ -271,7 +272,8 @@ export default function DashboardLayout() {
             </div>
           )}
         </nav>
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-1">
+          <ActiveSessionsButton />
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ink-soft hover:bg-white/5 hover:text-ink w-full"
