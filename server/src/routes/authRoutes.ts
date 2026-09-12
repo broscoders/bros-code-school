@@ -12,6 +12,10 @@ import {
   revokeSession,
   logoutOtherSessions,
   logout,
+  setupTwoFactor,
+  verifyTwoFactorSetup,
+  disableTwoFactor,
+  verifyTwoFactorLogin,
 } from "../controllers/authController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { loginLimiter, emailActionLimiter } from "../middleware/rateLimiters";
@@ -29,6 +33,11 @@ router.post("/logout", protect, logout);
 router.get("/sessions", protect, getMySessions);
 router.post("/sessions/:id/revoke", protect, revokeSession);
 router.post("/sessions/logout-others", protect, logoutOtherSessions);
+
+router.post("/2fa/setup", protect, setupTwoFactor);
+router.post("/2fa/verify-setup", protect, verifyTwoFactorSetup);
+router.post("/2fa/disable", protect, disableTwoFactor);
+router.post("/2fa/verify-login", loginLimiter, verifyTwoFactorLogin);
 
 router.post(
   "/register",

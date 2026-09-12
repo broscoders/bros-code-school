@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, KeyRound } from "lucide-react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import AuthBackdrop from "../../components/AuthBackdrop";
@@ -13,6 +13,11 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [brandLogo, setBrandLogo] = useState<string | null>(null);
+  // Blueprint 73: when the account has 2FA enabled, /auth/login returns a
+  // pendingToken instead of a real session - this second step exchanges a
+  // TOTP/backup code for the actual token.
+  const [pendingToken, setPendingToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
   const navigate = useNavigate();
   const login = useAuthStore((s) => s.login);
 
@@ -40,6 +45,10 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await api.post("/auth/login", { email, password });
+      if (res.data.requiresTwoFactor) {
+        setPendingToken(res.data.pendingToken);
+        return;
+      }
       login(res.data.user, res.data.token);
       redirectByRole(res.data.user.role, res.data.user.mustChangePassword);
     } catch (err: any) {
@@ -48,6 +57,21 @@ export default function Login() {
         return;
       }
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTwoFactorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await api.post("/auth/2fa/verify-login", { pendingToken, code: twoFactorCode });
+      login(res.data.user, res.data.token);
+      redirectByRole(res.data.user.role, res.data.user.mustChangePassword);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Invalid code");
     } finally {
       setLoading(false);
     }
@@ -83,6 +107,53 @@ export default function Login() {
       </div>
 
       <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
+        {pendingToken ? (
+          <>
+            <h2 className="font-display text-2xl font-bold text-white mb-1">Two-factor code</h2>
+            <p className="text-white/50 text-xs mb-6">Enter the 6-digit code from your authenticator app, or a backup code.</p>
+
+            <form onSubmit={handleTwoFactorSubmit}>
+              {error && (
+                <div className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2">
+                  <p className="text-danger text-xs font-medium">{error}</p>
+                </div>
+              )}
+
+              <div className="mb-6">
+                <label className="block text-xs font-medium text-white/60 mb-1.5">Verification code</label>
+                <div className="relative">
+                  <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/35" />
+                  <input
+                    type="text"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value)}
+                    placeholder="123456"
+                    autoFocus
+                    className="w-full bg-white/5 border border-white/15 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-white placeholder-white/25 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-colors tracking-widest"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-primary to-primary-dark text-white py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity flex items-center justify-center gap-2"
+              >
+                {loading ? <span className="w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : "Verify"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setPendingToken(""); setTwoFactorCode(""); setError(""); }}
+                className="w-full text-white/40 hover:text-white/70 text-xs mt-4"
+              >
+                Back to login
+              </button>
+            </form>
+          </>
+        ) : (
+        <>
         <h2 className="font-display text-2xl font-bold text-white mb-1">Welcome back</h2>
         <p className="text-white/50 text-xs mb-6">Sign in to access your dashboard</p>
 
@@ -173,6 +244,8 @@ export default function Login() {
             Your data is safe and secure with us
           </p>
         </form>
+        </>
+        )}
       </div>
     </div>
   );
