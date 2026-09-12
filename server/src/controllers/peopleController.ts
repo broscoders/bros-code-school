@@ -6,7 +6,9 @@ import Parent from "../models/Parent";
 import Teacher from "../models/Teacher";
 import Section from "../models/Section";
 import User from "../models/User";
+import Session from "../models/Session";
 import { logAudit } from "../utils/auditLogger";
+import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../utils/accountSync";
 
 export const createStudent = async (req: AuthRequest, res: Response) => {
   try {
@@ -89,6 +91,11 @@ export const updateStudentStatus = async (req: AuthRequest, res: Response) => {
     student.statusChangedAt = new Date();
     await student.save();
 
+    const impliedAccountStatus = accountStatusForLifecycleStatus(status);
+    if (impliedAccountStatus) {
+      await syncLinkedAccountStatus(student.userId, impliedAccountStatus, `Student status: ${status}`);
+    }
+
     if (req.user) {
       await logAudit({
         schoolId: req.user.schoolId,
@@ -150,6 +157,68 @@ export const transferStudent = async (req: AuthRequest, res: Response) => {
     }
 
     res.json(student);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Blueprint 11 (Account States): direct control for cases the lifecycle
+// syncs above don't cover - e.g. suspending a SCHOOL_ADMIN, ACCOUNTANT or
+// RECEPTIONIST account, none of which have a Teacher/Student/StaffProfile
+// employment-status field to derive this from.
+export const updateUserAccountStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status, reason } = req.body;
+    const validStatuses = ["ACTIVE", "SUSPENDED", "ARCHIVED"];
+    if (!validStatuses.includes(status)) return res.status(400).json({ message: "Invalid status" });
+
+    const target = await User.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!target) return res.status(404).json({ message: "User not found" });
+
+    if (target._id.toString() === req.user!.userId) {
+      return res.status(400).json({ message: "You cannot change your own account status" });
+    }
+
+    // Don't let a school end up with zero people who can log in and
+    // manage it - the "returns after being empty" recovery path for that
+    // would require a support ticket instead of just picking a different
+    // admin to suspend first.
+    if (target.role === "SCHOOL_ADMIN" && status !== "ACTIVE") {
+      const otherActiveAdmins = await User.countDocuments({
+        schoolId: req.user!.schoolId,
+        role: "SCHOOL_ADMIN",
+        accountStatus: "ACTIVE",
+        _id: { $ne: target._id },
+      });
+      if (otherActiveAdmins === 0) {
+        return res.status(400).json({ message: "Cannot deactivate the only remaining School Admin account" });
+      }
+    }
+
+    const oldStatus = target.accountStatus;
+    target.accountStatus = status;
+    target.accountStatusReason = reason;
+    await target.save();
+
+    // A suspension/archive should end any sessions already open on other
+    // devices right away, not just block future logins.
+    if (status !== "ACTIVE") {
+      await Session.updateMany({ userId: target._id, revoked: false }, { revoked: true, revokedAt: new Date() });
+    }
+
+    await logAudit({
+      schoolId: req.user!.schoolId,
+      userId: req.user!.userId,
+      userName: (req.body.changedByName as string) || "Unknown",
+      userRole: req.user!.role,
+      action: `Changed account status for ${target.email}: ${oldStatus} -> ${status}`,
+      recordType: "User",
+      recordId: target._id.toString(),
+      oldValue: { accountStatus: oldStatus },
+      newValue: { accountStatus: status, reason },
+    });
+
+    res.json({ id: target._id, email: target.email, accountStatus: target.accountStatus });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -246,6 +315,11 @@ export const updateTeacherStatus = async (req: AuthRequest, res: Response) => {
     if (["RESIGNED", "TERMINATED"].includes(employmentStatus)) teacher.leavingDate = new Date();
     else teacher.leavingDate = undefined;
     await teacher.save();
+
+    const impliedAccountStatus = accountStatusForLifecycleStatus(employmentStatus);
+    if (impliedAccountStatus) {
+      await syncLinkedAccountStatus(teacher.userId, impliedAccountStatus, `Employment status: ${employmentStatus}`);
+    }
 
     if (req.user) {
       await logAudit({

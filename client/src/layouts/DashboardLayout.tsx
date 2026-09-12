@@ -7,13 +7,14 @@ import {
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
-  Library as LibraryIcon, Bus, GraduationCap as LMSIcon, MonitorCheck, Globe, Plug, Smartphone,
+  Library as LibraryIcon, Bus, MonitorCheck, Globe, Plug, Smartphone,
   Menu, X, Search, ChevronDown,
 } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
 import ThemeToggle from "../components/ThemeToggle";
+import ActiveSessionsButton from "../components/ActiveSessionsButton";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
 type NavGroup = { label: string; items: NavItem[] };
@@ -46,6 +47,8 @@ const navGroups: NavGroup[] = [
       { to: "/assignments", label: "Assignments", icon: FileText },
       { to: "/exams", label: "Exams & Results", icon: Award },
       { to: "/report-cards", label: "Report Cards", icon: FileBarChart },
+      { to: "/lms-overview", label: "LMS Overview", icon: GraduationCap },
+      { to: "/online-exams", label: "Online Exams", icon: MonitorCheck },
     ],
   },
   {
@@ -100,8 +103,6 @@ const navGroups: NavGroup[] = [
 ];
 
 const comingSoonItems = [
-  { label: "LMS", icon: LMSIcon },
-  { label: "Online Exams", icon: MonitorCheck },
   { label: "Integrations", icon: Plug },
   { label: "Mobile Apps", icon: Smartphone },
 ];
@@ -271,7 +272,8 @@ export default function DashboardLayout() {
             </div>
           )}
         </nav>
-        <div className="p-3 border-t border-border">
+        <div className="p-3 border-t border-border space-y-1">
+          <ActiveSessionsButton />
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ink-soft hover:bg-white/5 hover:text-ink w-full"

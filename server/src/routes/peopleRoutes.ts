@@ -3,6 +3,7 @@ import {
   createStudent, getStudents, getStudentById, updateStudentStatus, transferStudent,
   createParent, getParents, findParentByEmail,
   createTeacher, getTeachers, updateTeacherStatus,
+  updateUserAccountStatus,
 } from "../controllers/peopleController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { ADMISSIONS_STAFF, EVERYONE, TOP_ADMIN, ROLES, ACADEMIC_STAFF, ANY_ADMIN_STAFF } from "../middleware/permissions";
@@ -25,5 +26,11 @@ router.get("/parents/by-email", protect, requireRole(...ADMISSIONS_STAFF), findP
 router.post("/teachers", protect, requireRole(...TOP_ADMIN, ROLES.HEAD), createTeacher);
 router.get("/teachers", protect, requireRole(...EVERYONE), getTeachers);
 router.put("/teachers/:id/status", protect, requireRole(...TOP_ADMIN, ROLES.HEAD), updateTeacherStatus);
+
+// Blueprint 11: only the top of the org chart can suspend/archive a login
+// account directly - HR/HEAD can change employment status (which syncs
+// automatically, see accountSync.ts) but shouldn't unilaterally cut off
+// someone's account access outside that lifecycle.
+router.put("/users/:id/account-status", protect, requireRole(...TOP_ADMIN), updateUserAccountStatus);
 
 export default router;

@@ -47,6 +47,8 @@ import Visitors from "./pages/school/Visitors";
 import Health from "./pages/school/Health";
 import RolesPermissions from "./pages/school/RolesPermissions";
 import Invitations from "./pages/school/Invitations";
+import LMSOverview from "./pages/school/LMSOverview";
+import OnlineExamsOverview from "./pages/school/OnlineExamsOverview";
 import DashboardLayout from "./layouts/DashboardLayout";
 import ParentLayout from "./layouts/ParentLayout";
 import ParentDashboard from "./pages/parent/ParentDashboard";
@@ -165,6 +167,8 @@ function App() {
           <Route path="/operations" element={<Operations />} />
           <Route path="/roles-permissions" element={<RolesPermissions />} />
           <Route path="/invitations" element={<Invitations />} />
+          <Route path="/lms-overview" element={<LMSOverview />} />
+          <Route path="/online-exams" element={<OnlineExamsOverview />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
           <Route path="/leave-requests" element={<LeaveRequests />} />
           <Route path="/surveys" element={<Surveys />} />

@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen, ListChecks, BookOpen, BookMarked, GraduationCap, Menu, X } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
+import ActiveSessionsButton from "../components/ActiveSessionsButton";
 
 const navItems = [
   { to: "/teacher/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -65,6 +66,7 @@ export default function TeacherLayout() {
         </nav>
         <div className="p-3 border-t border-border">
           <p className="px-3 text-xs text-muted mb-2">{user?.name}</p>
+          <ActiveSessionsButton />
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:bg-white/5 hover:text-ink w-full">
             <LogOut size={17} />
             Logout

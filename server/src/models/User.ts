@@ -25,6 +25,8 @@ export interface IUser extends Document {
   role: UserRole;
   schoolId: mongoose.Types.ObjectId;
   isActive: boolean;
+  accountStatus: "ACTIVE" | "SUSPENDED" | "ARCHIVED";
+  accountStatusReason?: string;
   isEmailVerified: boolean;
   mustChangePassword: boolean;
   verificationCode?: string;
@@ -65,6 +67,14 @@ const userSchema = new Schema<IUser>(
     },
     schoolId: { type: Schema.Types.ObjectId, ref: "School", required: true },
     isActive: { type: Boolean, default: true },
+    // Blueprint 11 (Account States): the login-gating status for this
+    // account, independent of any business-lifecycle status (e.g. a
+    // Teacher's employmentStatus or a Student's status field). Those
+    // lifecycle updates sync into this field (see utils/accountSync.ts)
+    // so leaving staff/students can no longer log in, without deleting
+    // any of their history.
+    accountStatus: { type: String, enum: ["ACTIVE", "SUSPENDED", "ARCHIVED"], default: "ACTIVE" },
+    accountStatusReason: { type: String },
     isEmailVerified: { type: Boolean, default: false },
     mustChangePassword: { type: Boolean, default: false },
     verificationCode: { type: String, select: false },
