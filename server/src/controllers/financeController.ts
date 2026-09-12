@@ -71,8 +71,8 @@ export const createRefund = async (req: AuthRequest, res: Response) => {
     // - if a caller could set status: "APPROVED" here at creation time, the
     // refund would be recorded as approved while the invoice was never
     // actually adjusted, silently desyncing the fee ledger from its status.
-    const { status, approvedBy, ...safeBody } = req.body;
-    const refund = await Refund.create({ ...safeBody, schoolId: req.user!.schoolId });
+    const { status, approvedBy, requestedByUserId, ...safeBody } = req.body;
+    const refund = await Refund.create({ ...safeBody, schoolId: req.user!.schoolId, requestedByUserId: req.user!.userId });
     res.status(201).json(refund);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -97,6 +97,12 @@ export const updateRefundStatus = async (req: AuthRequest, res: Response) => {
 
     const existing = await Refund.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!existing) return res.status(404).json({ message: "Refund not found" });
+
+    // Blueprint 98: separation of duties - whoever requested this refund
+    // shouldn't be the one deciding whether it gets paid out.
+    if (existing.requestedByUserId && existing.requestedByUserId.toString() === req.user!.userId) {
+      return res.status(403).json({ message: "You cannot approve a refund you requested yourself. Ask another admin to review it." });
+    }
 
     // A refund's financial effect (reducing the invoice's paid amount) must
     // only ever be applied once. Without this guard, an accountant

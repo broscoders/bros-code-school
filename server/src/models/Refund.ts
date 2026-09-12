@@ -8,6 +8,7 @@ export interface IRefund extends Document {
   amount: number;
   reason: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
+  requestedByUserId?: mongoose.Types.ObjectId;
 }
 
 const refundSchema = new Schema<IRefund>(
@@ -18,6 +19,10 @@ const refundSchema = new Schema<IRefund>(
     amount: { type: Number, required: true },
     reason: { type: String, required: true },
     status: { type: String, enum: ["PENDING", "APPROVED", "REJECTED"], default: "PENDING" },
+    // Blueprint 98 (Approval Workflows): whoever requested the refund
+    // shouldn't also be the one approving it - see the self-approval
+    // guard in updateRefundStatus.
+    requestedByUserId: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
