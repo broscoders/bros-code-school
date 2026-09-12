@@ -35,6 +35,9 @@ export interface IUser extends Document {
   lockUntil?: Date;
   passwordResetCode?: string;
   passwordResetExpires?: Date;
+  twoFactorEnabled: boolean;
+  twoFactorSecret?: string;
+  twoFactorBackupCodes?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -83,6 +86,13 @@ const userSchema = new Schema<IUser>(
     lockUntil: { type: Date, select: false },
     passwordResetCode: { type: String, select: false },
     passwordResetExpires: { type: Date, select: false },
+    // Blueprint 73 (Security): TOTP-based two-factor auth. Secret and
+    // backup codes are select:false so a normal User.find() never
+    // accidentally leaks them - they're only pulled in explicitly by the
+    // 2FA controller functions that need them.
+    twoFactorEnabled: { type: Boolean, default: false },
+    twoFactorSecret: { type: String, select: false },
+    twoFactorBackupCodes: { type: [String], select: false },
   },
   { timestamps: true }
 );

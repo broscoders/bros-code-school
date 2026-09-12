@@ -6,6 +6,7 @@ import { LayoutDashboard, CalendarCheck, ClipboardCheck, Award, Wallet, Megaphon
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
+import TwoFactorButton from "../components/TwoFactorButton";
 
 const navItems = [
   { to: "/parent/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -63,6 +64,7 @@ export default function ParentLayout() {
         <div className="p-3 border-t border-border">
           <p className="px-3 text-xs text-muted mb-2">{user?.name}</p>
           <ActiveSessionsButton />
+          <TwoFactorButton />
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:bg-white/5 hover:text-ink w-full">
             <LogOut size={17} />
             Logout
