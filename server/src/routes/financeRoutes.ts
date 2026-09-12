@@ -15,7 +15,7 @@ router.put("/discounts/:id/status", protect, requireRole(...TOP_ADMIN), updateDi
 
 router.post("/refunds", protect, requireRole(...FINANCE_STAFF), createRefund);
 router.get("/refunds", protect, requireRole(...FINANCE_STAFF), getRefunds);
-router.put("/refunds/:id/status", protect, requireRole(...FINANCE_STAFF), updateRefundStatus);
+router.put("/refunds/:id/status", protect, requireRole(...TOP_ADMIN), updateRefundStatus);
 
 router.post("/expenses", protect, requireRole(...FINANCE_STAFF), createExpense);
 router.get("/expenses", protect, requireRole(...FINANCE_STAFF), getExpenses);

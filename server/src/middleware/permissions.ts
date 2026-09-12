@@ -48,6 +48,16 @@ export const ACADEMIC_STAFF = [
   ROLES.ACADEMIC_COORDINATOR,
 ];
 
+// Blueprint 61 (Discipline): "sensitive discipline records should have
+// restricted access" - deliberately narrower than ANY_ADMIN_STAFF, which
+// also includes front-desk/library/transport/accounts/medical staff who
+// have no business reading a student's behavioral record.
+export const DISCIPLINE_STAFF = [
+  ...TOP_ADMIN,
+  ROLES.HEAD,
+  ROLES.ACADEMIC_COORDINATOR,
+];
+
 // Teaching staff.
 export const TEACHING_STAFF = [
   ...TOP_ADMIN,
