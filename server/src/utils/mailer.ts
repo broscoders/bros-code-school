@@ -90,3 +90,18 @@ export function passwordResetEmailHtml(name: string, code: string) {
     </div>
   `;
 }
+
+export function bulkAccountCreatedEmailHtml(name: string, email: string, tempPassword: string, schoolName: string, loginUrl: string) {
+  return `
+    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+      <h2 style="color:#1e293b;">Your ${schoolName} account is ready</h2>
+      <p>Hi ${name},</p>
+      <p>An account has been created for you. Please log in and change your password right away.</p>
+      <p><strong>Email:</strong> ${email}<br/><strong>Temporary password:</strong> <span style="font-family: monospace; font-size: 16px;">${tempPassword}</span></p>
+      <p style="margin: 24px 0;">
+        <a href="${loginUrl}" style="background:#1d3557; color:#fff; padding:12px 20px; border-radius:6px; text-decoration:none; font-weight:bold;">Log in</a>
+      </p>
+      <p style="color:#64748b; font-size: 13px;">You'll be asked to set a new password the first time you log in.</p>
+    </div>
+  `;
+}
