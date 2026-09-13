@@ -9,7 +9,7 @@ export default function Transport() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
-  const [vehicleForm, setVehicleForm] = useState({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "" });
+  const [vehicleForm, setVehicleForm] = useState({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "", capacity: "40" });
   const [assignForm, setAssignForm] = useState({ studentId: "", vehicleId: "", monthlyFee: "" });
   const [msg, setMsg] = useState("");
 
@@ -31,8 +31,13 @@ export default function Transport() {
   const addVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     const stopsArr = vehicleForm.stops.split(",").map((s) => s.trim()).filter(Boolean);
-    await api.post("/transport/vehicles", { ...vehicleForm, stops: stopsArr, schoolId });
-    setVehicleForm({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "" });
+    await api.post("/transport/vehicles", { ...vehicleForm, capacity: Number(vehicleForm.capacity) || 40, stops: stopsArr, schoolId });
+    setVehicleForm({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "", capacity: "40" });
+    loadVehicles();
+  };
+
+  const setVehicleStatus = async (id: string, status: string) => {
+    await api.put(`/transport/vehicles/${id}/status`, { status });
     loadVehicles();
   };
 
@@ -78,6 +83,7 @@ export default function Transport() {
             <input placeholder="Driver Contact" value={vehicleForm.driverContact} onChange={(e) => setVehicleForm({ ...vehicleForm, driverContact: e.target.value })} className="w-full" required />
             <input placeholder="Route Name (e.g. Route A - Gulberg)" value={vehicleForm.routeName} onChange={(e) => setVehicleForm({ ...vehicleForm, routeName: e.target.value })} className="w-full" required />
             <input placeholder="Stops, comma separated" value={vehicleForm.stops} onChange={(e) => setVehicleForm({ ...vehicleForm, stops: e.target.value })} className="w-full" />
+            <input type="number" min="1" placeholder="Seating Capacity" value={vehicleForm.capacity} onChange={(e) => setVehicleForm({ ...vehicleForm, capacity: e.target.value })} className="w-full" required />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">
               + Add Vehicle
             </button>
@@ -110,7 +116,21 @@ export default function Transport() {
           {vehicles.length === 0 && <li className="py-2 text-muted">No vehicles added yet.</li>}
           {vehicles.map((v) => (
             <li key={v._id} className="py-2">
-              <p className="text-ink font-medium">{v.routeName} <span className="text-muted font-normal">({v.vehicleNumber})</span></p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-ink font-medium">{v.routeName} <span className="text-muted font-normal">({v.vehicleNumber})</span></p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs text-muted">{v.occupied ?? 0}/{v.capacity ?? "-"} seats</span>
+                  <select
+                    value={v.status || "ACTIVE"}
+                    onChange={(e) => setVehicleStatus(v._id, e.target.value)}
+                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border-0 ${v.status === "MAINTENANCE" ? "bg-warning/10 text-warning" : v.status === "INACTIVE" ? "bg-canvas text-muted" : "bg-success/10 text-success"}`}
+                  >
+                    <option value="ACTIVE">Active</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                </div>
+              </div>
               <p className="text-muted text-xs mt-0.5">Driver: {v.driverName} &middot; {v.driverContact}</p>
               {v.stops?.length > 0 && <p className="text-muted text-xs mt-0.5">Stops: {v.stops.join(", ")}</p>}
             </li>
