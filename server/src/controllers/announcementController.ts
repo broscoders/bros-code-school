@@ -16,7 +16,14 @@ export const createAnnouncement = async (req: AuthRequest, res: Response) => {
 export const getAnnouncements = async (req: AuthRequest, res: Response) => {
   try {
     const role = req.user!.role;
-    const filter: Record<string, any> = { schoolId: req.user!.schoolId };
+    const now = new Date();
+    const filter: Record<string, any> = {
+      schoolId: req.user!.schoolId,
+      // Blueprint 56: respect the publish/expiry window instead of showing
+      // everything ever created regardless of scheduling.
+      publishAt: { $lte: now },
+      $and: [{ $or: [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gte: now } }] }],
+    };
 
     // The model has a targetAudience field (ALL/PARENTS/STUDENTS/TEACHERS/CLASS)
     // specifically so a TEACHERS-only notice or a single class's notice isn't
