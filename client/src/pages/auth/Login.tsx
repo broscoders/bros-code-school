@@ -81,6 +81,10 @@ export default function Login() {
     setError("");
     try {
       const res = await api.post("/auth/google", { credential: credentialResponse.credential });
+      if (res.data.requiresTwoFactor) {
+        setPendingToken(res.data.pendingToken);
+        return;
+      }
       login(res.data.user, res.data.token);
       redirectByRole(res.data.user.role, res.data.user.mustChangePassword);
     } catch (err: any) {

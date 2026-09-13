@@ -311,6 +311,17 @@ export const googleLogin = async (req: Request, res: Response) => {
     user.lockUntil = undefined;
     await user.save();
 
+    // Fixed: this used to skip straight to issuing a session token, which
+    // meant enabling 2FA didn't actually protect an account that also had
+    // Google sign-in - anyone with the Google account could bypass the
+    // code entirely. Same pending-token handoff as the password login path.
+    if (user.twoFactorEnabled) {
+      const pendingToken = jwt.sign({ userId: user.id.toString(), purpose: "2fa-pending" }, getJwtSecret(), {
+        expiresIn: TWO_FACTOR_PENDING_EXPIRY,
+      });
+      return res.json({ requiresTwoFactor: true, pendingToken });
+    }
+
     const token = await issueSessionToken(req, user.id.toString(), user.role, user.schoolId.toString());
 
     res.json({
