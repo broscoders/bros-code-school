@@ -136,7 +136,7 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
 
         results.created++;
         results.accounts.push({ email, tempPassword });
-        sendMail(email, `Your ${school?.name || "school"} account is ready`, bulkAccountCreatedEmailHtml(row.name, email, tempPassword, school?.name || "your school", loginUrl)).catch(() => {});
+        sendMail(email, `Your ${school?.name || "school"} account is ready`, bulkAccountCreatedEmailHtml(row.name, email, tempPassword, school?.name || "your school", loginUrl), schoolId).catch(() => {});
       } catch (err) {
         results.skipped++;
         results.errors.push(`Error on ${row.email}: ${(err as Error).message}`);
@@ -242,7 +242,7 @@ export const bulkImportTeachers = async (req: AuthRequest, res: Response) => {
 
         results.created++;
         results.accounts.push({ email, tempPassword });
-        sendMail(email, `Your ${school?.name || "school"} account is ready`, bulkAccountCreatedEmailHtml(row.name, email, tempPassword, school?.name || "your school", loginUrl)).catch(() => {});
+        sendMail(email, `Your ${school?.name || "school"} account is ready`, bulkAccountCreatedEmailHtml(row.name, email, tempPassword, school?.name || "your school", loginUrl), schoolId).catch(() => {});
       } catch (err) {
         results.skipped++;
         results.errors.push(`Error on ${row.email}: ${(err as Error).message}`);

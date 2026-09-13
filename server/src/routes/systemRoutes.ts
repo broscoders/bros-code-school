@@ -2,10 +2,11 @@ import { Router } from "express";
 import {
   getMyNotifications, markNotificationRead, markAllRead,
   createIncident, getIncidents, updateIncidentStatus,
+  getCommunicationLog,
 } from "../controllers/systemController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { checkPermission } from "../middleware/checkPermission";
-import { EVERYONE, ANY_ADMIN_STAFF, TEACHING_STAFF, DISCIPLINE_STAFF } from "../middleware/permissions";
+import { EVERYONE, ANY_ADMIN_STAFF, TEACHING_STAFF, DISCIPLINE_STAFF, TOP_ADMIN } from "../middleware/permissions";
 
 const router = Router();
 
@@ -19,5 +20,7 @@ router.put("/notifications/read-all", protect, requireRole(...EVERYONE), markAll
 router.post("/discipline", protect, requireRole(...TEACHING_STAFF), createIncident);
 router.get("/discipline", protect, requireRole(...DISCIPLINE_STAFF), getIncidents);
 router.put("/discipline/:id", protect, requireRole(...DISCIPLINE_STAFF), checkPermission("Discipline", "edit"), updateIncidentStatus);
+
+router.get("/communication-log", protect, requireRole(...TOP_ADMIN), getCommunicationLog);
 
 export default router;

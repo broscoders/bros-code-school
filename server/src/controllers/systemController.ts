@@ -2,6 +2,7 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Notification from "../models/Notification";
 import DisciplineIncident from "../models/DisciplineIncident";
+import CommunicationLog from "../models/CommunicationLog";
 import { notify } from "../utils/notifier";
 import Parent from "../models/Parent";
 import Student from "../models/Student";
@@ -81,6 +82,22 @@ export const updateIncidentStatus = async (req: AuthRequest, res: Response) => {
     );
     if (!incident) return res.status(404).json({ message: "Incident not found" });
     res.json(incident);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Blueprint 71 (Delivery Status): lets an admin actually answer "did this
+// email go out?" instead of that information only existing (or not) in
+// server logs. Scoped loosely on purpose - logs created before schoolId
+// was threaded through every sendMail() call site won't have one, so this
+// also returns those rather than hiding them.
+export const getCommunicationLog = async (req: AuthRequest, res: Response) => {
+  try {
+    const logs = await CommunicationLog.find({ schoolId: req.user!.schoolId })
+      .sort({ createdAt: -1 })
+      .limit(200);
+    res.json(logs);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

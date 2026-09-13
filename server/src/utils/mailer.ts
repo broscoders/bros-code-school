@@ -1,4 +1,5 @@
 ﻿import nodemailer from "nodemailer";
+import CommunicationLog from "../models/CommunicationLog";
 
 // SMTP configuration comes from environment variables — see .env.
 // SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, EMAIL_FROM
@@ -19,21 +20,43 @@ function getTransporter() {
   return transporter;
 }
 
-export async function sendMail(to: string, subject: string, html: string) {
+// Best-effort, deliberately isolated in its own try/catch: a logging
+// failure (e.g. a DB hiccup) must never be the reason a password-reset
+// email doesn't go out, so this never throws into the caller.
+async function logCommunication(to: string, subject: string, status: "SENT" | "FAILED", error?: string, schoolId?: string) {
+  try {
+    await CommunicationLog.create({ to, subject, status, error, schoolId, channel: "EMAIL" });
+  } catch {
+    // Swallowed intentionally - see comment above.
+  }
+}
+
+export async function sendMail(to: string, subject: string, html: string, schoolId?: string) {
   // If SMTP isn't configured yet (e.g. local dev without credentials), don't crash
   // the request — just log so the flow can still be tested end-to-end.
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn(`[mailer] SMTP not configured — would have sent "${subject}" to ${to}`);
     console.warn(html);
+    await logCommunication(to, subject, "FAILED", "SMTP not configured", schoolId);
     return;
   }
 
-  await getTransporter().sendMail({
-    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-    to,
-    subject,
-    html,
-  });
+  try {
+    await getTransporter().sendMail({
+      from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      html,
+    });
+    await logCommunication(to, subject, "SENT", undefined, schoolId);
+  } catch (err) {
+    await logCommunication(to, subject, "FAILED", (err as Error).message, schoolId);
+    // Re-thrown so callers that genuinely need the send to succeed (e.g.
+    // the initial verification email during signup) still see the
+    // failure - callers that only want best-effort delivery already wrap
+    // their own call in .catch(() => {}).
+    throw err;
+  }
 }
 
 export function generateSixDigitCode(): string {

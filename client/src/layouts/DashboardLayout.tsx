@@ -4,7 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import api from "../services/api";
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
-  LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck,
+  LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, Mail,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
   Library as LibraryIcon, Bus, MonitorCheck, Globe, Plug, Smartphone,
@@ -98,6 +98,7 @@ const navGroups: NavGroup[] = [
       { to: "/invitations", label: "Invitations", icon: BadgeCheck },
       { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },
       { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
+      { to: "/communication-log", label: "Communication Log", icon: Mail },
       { to: "/settings", label: "Settings", icon: SettingsIcon },
     ],
   },
