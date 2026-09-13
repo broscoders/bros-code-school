@@ -120,20 +120,63 @@ export default function Students() {
     }
   };
 
+  const [csvRows, setCsvRows] = useState<any[] | null>(null);
+  const [csvPreview, setCsvPreview] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
+  const [csvAccounts, setCsvAccounts] = useState<{ email: string; tempPassword: string }[] | null>(null);
+  const [importing, setImporting] = useState(false);
+
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = ""; // allow re-selecting the same file later
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
         const rows = results.data as any[];
-        setImportMsg("Importing...");
-        const res = await api.post("/bulk/students", { rows, schoolId });
-        setImportMsg(`Imported: ${res.data.created}, Skipped: ${res.data.skipped}`);
-        loadStudents();
+        setImportMsg("Validating...");
+        setCsvAccounts(null);
+        try {
+          // Blueprint 101: validate + show a preview before writing anything,
+          // rather than importing straight off the file picker.
+          const res = await api.post("/bulk/students", { rows, schoolId, dryRun: true });
+          setCsvRows(rows);
+          setCsvPreview(res.data);
+          setImportMsg("");
+        } catch (err: any) {
+          setImportMsg(err.response?.data?.message || "Could not validate file");
+        }
       },
     });
+  };
+
+  const confirmImport = async () => {
+    if (!csvRows) return;
+    setImporting(true);
+    try {
+      const res = await api.post("/bulk/students", { rows: csvRows, schoolId });
+      setImportMsg(`Imported: ${res.data.created}, Skipped: ${res.data.skipped}`);
+      setCsvAccounts(res.data.accounts || []);
+      setCsvRows(null);
+      setCsvPreview(null);
+      loadStudents();
+    } catch (err: any) {
+      setImportMsg(err.response?.data?.message || "Import failed");
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const downloadCredentials = () => {
+    if (!csvAccounts?.length) return;
+    const csv = "email,tempPassword\n" + csvAccounts.map((a) => `${a.email},${a.tempPassword}`).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "student-credentials.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const openManage = (student: any) => {
@@ -184,7 +227,37 @@ export default function Students() {
       </button>
 
       {importMsg && <p className="text-success text-sm mt-3">{importMsg}</p>}
-      <p className="text-xs text-muted mt-2">CSV columns required: name, email, admissionNumber, classId, sectionId. Default password will be "changeme123".</p>
+      <p className="text-xs text-muted mt-2">CSV columns required: name, email, admissionNumber, classId, sectionId. Each student gets a unique temporary password, emailed to them (and shown to you after import).</p>
+
+      {csvPreview && (
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-4 mt-4">
+          <h3 className="font-semibold text-ink text-sm mb-2">Import preview</h3>
+          <p className="text-sm text-muted mb-2">
+            <span className="text-success font-medium">{csvPreview.created} will be created</span>
+            {csvPreview.skipped > 0 && <span className="text-danger font-medium"> · {csvPreview.skipped} will be skipped</span>}
+          </p>
+          {csvPreview.errors.length > 0 && (
+            <ul className="text-xs text-danger list-disc pl-4 max-h-32 overflow-y-auto mb-3">
+              {csvPreview.errors.map((e, i) => <li key={i}>{e}</li>)}
+            </ul>
+          )}
+          <div className="flex gap-2">
+            <button onClick={confirmImport} disabled={importing || csvPreview.created === 0} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark disabled:opacity-50">
+              {importing ? "Importing..." : `Confirm Import (${csvPreview.created})`}
+            </button>
+            <button onClick={() => { setCsvRows(null); setCsvPreview(null); }} className="border border-border px-4 py-2 rounded-lg text-sm font-medium hover:bg-canvas">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {csvAccounts && csvAccounts.length > 0 && (
+        <div className="bg-success/10 border border-success/30 rounded-xl p-4 mt-4">
+          <p className="text-sm text-ink mb-2">{csvAccounts.length} accounts created. Temporary passwords were emailed to each student and can also be downloaded here in case email isn't set up yet.</p>
+          <button onClick={downloadCredentials} className="text-sm font-medium text-primary hover:text-primary-dark">Download credentials CSV</button>
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-4">
