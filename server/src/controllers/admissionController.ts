@@ -1,5 +1,6 @@
 import type { Response } from "express";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Admission from "../models/Admission";
 import User from "../models/User";
@@ -9,6 +10,14 @@ import { sendMail, generateSixDigitCode, verificationEmailHtml } from "../utils/
 import { checkOrgLimit } from "../utils/orgLimits";
 
 const CODE_EXPIRY_MS = 15 * 60 * 1000;
+
+// Matches bulkController's generator - Math.random().toString(36) isn't
+// cryptographically secure and its skewed character distribution makes
+// weaker passwords than they look, which matters for accounts an admin is
+// choosing on someone else's behalf.
+function generateTempPassword(): string {
+  return crypto.randomBytes(6).toString("base64").replace(/[+/=]/g, "").slice(0, 8) + "!1";
+}
 
 export const createAdmission = async (req: AuthRequest, res: Response) => {
   try {
@@ -77,7 +86,7 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
     }
 
     // 1. Student user account
-    const tempPassword = Math.random().toString(36).slice(-8);
+    const tempPassword = generateTempPassword();
     const studentHashed = await bcrypt.hash(tempPassword, 10);
     const studentCode = generateSixDigitCode();
     const studentUser = await User.create({
@@ -109,6 +118,7 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
     let parentUser = await User.findOne({ email: parentEmail });
     let parentDoc;
     let parentTempPassword: string | null = null;
+    let parentCode: string | null = null;
 
     if (parentUser) {
       parentDoc = await Parent.findOne({ userId: parentUser._id, schoolId });
@@ -119,9 +129,9 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
         parentDoc = await Parent.create({ schoolId, userId: parentUser._id, children: [student._id], relationship: "Guardian" });
       }
     } else {
-      parentTempPassword = Math.random().toString(36).slice(-8);
+      parentTempPassword = generateTempPassword();
       const parentHashed = await bcrypt.hash(parentTempPassword, 10);
-      const parentCode = generateSixDigitCode();
+      parentCode = generateSixDigitCode();
       parentUser = await User.create({
         name: admission.parentName,
         email: parentEmail,
@@ -147,15 +157,22 @@ export const convertAdmissionToStudent = async (req: AuthRequest, res: Response)
       email,
       "Welcome! Your student account is ready",
       verificationEmailHtml(admission.applicantName, studentCode) +
-        `<p>Your temporary password is: <strong>${tempPassword}</strong>. Please change it after logging in.</p>`
+        `<p>Your temporary password is: <strong>${tempPassword}</strong>. Please change it after logging in.</p>`,
+      schoolId
     );
 
     if (parentTempPassword) {
+      // Bug fix: this used to call generateSixDigitCode() again here,
+      // which meant the code shown in the parent's welcome email could
+      // never match parentCode (the one actually saved on their User
+      // record above) - the parent had no way to verify their email with
+      // the code they were sent.
       await sendMail(
         parentEmail,
         "Welcome! Your parent account is ready",
-        verificationEmailHtml(admission.parentName, generateSixDigitCode()) +
-          `<p>Your temporary password is: <strong>${parentTempPassword}</strong>. Please change it after logging in.</p>`
+        verificationEmailHtml(admission.parentName, parentCode!) +
+          `<p>Your temporary password is: <strong>${parentTempPassword}</strong>. Please change it after logging in.</p>`,
+        schoolId
       );
     }
 

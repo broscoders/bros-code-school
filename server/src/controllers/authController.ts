@@ -79,7 +79,7 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
       verificationCodeExpires: new Date(Date.now() + CODE_EXPIRY_MS),
     });
 
-    await sendMail(email, "Verify your email", verificationEmailHtml(name, code));
+    await sendMail(email, "Verify your email", verificationEmailHtml(name, code), schoolId);
 
     res.status(201).json({
       message: "Account created. Check your email for a verification code.",
@@ -161,7 +161,7 @@ export const resendVerificationCode = async (req: Request, res: Response) => {
     user.verificationCodeExpires = new Date(Date.now() + CODE_EXPIRY_MS);
     await user.save();
 
-    await sendMail(email, "Verify your email", verificationEmailHtml(user.name, code));
+    await sendMail(email, "Verify your email", verificationEmailHtml(user.name, code), user.schoolId.toString());
 
     res.json({ message: "Verification code resent" });
   } catch (err) {
@@ -207,7 +207,7 @@ export const loginUser = async (req: Request, res: Response) => {
         user.failedLoginAttempts = 0;
         await user.save();
 
-        await sendMail(user.email, "Multiple failed login attempts", loginAlertEmailHtml(user.name, code));
+        await sendMail(user.email, "Multiple failed login attempts", loginAlertEmailHtml(user.name, code), user.schoolId.toString());
 
         return res.status(423).json({
           message: "Too many failed attempts. Your account has been locked for 15 minutes and a security code was emailed to you.",
@@ -374,7 +374,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       user.passwordResetCode = code;
       user.passwordResetExpires = new Date(Date.now() + CODE_EXPIRY_MS);
       await user.save();
-      await sendMail(email, "Reset your password", passwordResetEmailHtml(user.name, code));
+      await sendMail(email, "Reset your password", passwordResetEmailHtml(user.name, code), user.schoolId.toString());
     }
 
     res.json({ message: "If that email is registered, a reset code has been sent." });

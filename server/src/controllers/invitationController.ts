@@ -103,7 +103,8 @@ export const createInvitation = async (req: AuthRequest, res: Response) => {
     await sendMail(
       normalizedEmail,
       `Invitation to join ${school?.name || "your school"}`,
-      invitationEmailHtml(name, inviteUrl, validRole, school?.name || "your school")
+      invitationEmailHtml(name, inviteUrl, validRole, school?.name || "your school"),
+      req.user!.schoolId
     );
 
     await logAudit({
@@ -156,7 +157,8 @@ export const resendInvitation = async (req: AuthRequest, res: Response) => {
     await sendMail(
       invitation.email,
       `Invitation to join ${school?.name || "your school"}`,
-      invitationEmailHtml(invitation.name, inviteUrl, invitation.role, school?.name || "your school")
+      invitationEmailHtml(invitation.name, inviteUrl, invitation.role, school?.name || "your school"),
+      req.user!.schoolId
     );
 
     res.json(invitation);
