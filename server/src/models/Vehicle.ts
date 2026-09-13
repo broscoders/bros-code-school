@@ -8,6 +8,12 @@ export interface IVehicle extends Document {
   driverContact: string;
   routeName: string;
   stops: string[];
+  // Blueprint 49 (Transport): capacity/occupied mirror the same
+  // atomic-reservation pattern as HostelRoom, so two simultaneous
+  // assignments can't over-fill a vehicle past its physical seating.
+  capacity: number;
+  occupied: number;
+  status: "ACTIVE" | "MAINTENANCE" | "INACTIVE";
 }
 
 const vehicleSchema = new Schema<IVehicle>(
@@ -18,6 +24,9 @@ const vehicleSchema = new Schema<IVehicle>(
     driverContact: { type: String, required: true },
     routeName: { type: String, required: true },
     stops: [{ type: String }],
+    capacity: { type: Number, required: true, default: 40 },
+    occupied: { type: Number, default: 0 },
+    status: { type: String, enum: ["ACTIVE", "MAINTENANCE", "INACTIVE"], default: "ACTIVE" },
   },
   { timestamps: true }
 );
