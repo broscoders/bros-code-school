@@ -23,7 +23,10 @@ export default function TeacherQuizzes() {
   useEffect(() => {
     if (teacher?._id) {
       load();
-      api.get(`/academics/classes?schoolId=${teacher.schoolId}`).then((res) => setClasses(res.data));
+      api.get(`/academics/classes?schoolId=${teacher.schoolId}`).then((res) => {
+        const assignedIds = new Set((teacher.assignedClasses || []).map((c: any) => c._id || c));
+        setClasses(res.data.filter((c: any) => assignedIds.has(c._id)));
+      });
     }
   }, [teacher]);
 

@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
-import { canAccessStudent } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass } from "../utils/accessControl";
 import Quiz from "../models/Quiz";
 import QuizAttempt from "../models/QuizAttempt";
 import Student from "../models/Student";
@@ -8,6 +8,9 @@ import Teacher from "../models/Teacher";
 
 export const createQuiz = async (req: AuthRequest, res: Response) => {
   try {
+    if (req.body.classId && !(await isAssignedToClass(req, req.body.classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const quiz = await Quiz.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(quiz);
   } catch (err) {
