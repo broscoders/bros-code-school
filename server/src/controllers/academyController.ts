@@ -29,7 +29,20 @@ export const createAcademyBatch = async (req: AuthRequest, res: Response) => {
   try {
     const program = await AcademyProgram.findOne({ _id: req.body.programId, schoolId: req.user!.schoolId });
     if (!program) return res.status(404).json({ message: "Program not found" });
-    const item = await AcademyBatch.create({ ...req.body, schoolId: req.user!.schoolId });
+
+    let teacherId = req.body.teacherId;
+    // An ACADEMY_TEACHER is in ACADEMY_STAFF (route-level) so they can
+    // create their own batches, but nothing stopped them from assigning
+    // a *different* teacher as instructor, or spinning up batches under
+    // any program in the school. Force it to their own record instead of
+    // trusting whatever teacherId the request happened to send.
+    if (req.user!.role === "ACADEMY_TEACHER") {
+      const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!myTeacher) return res.status(403).json({ message: "No teacher record found for your account" });
+      teacherId = myTeacher._id;
+    }
+
+    const item = await AcademyBatch.create({ ...req.body, teacherId, schoolId: req.user!.schoolId });
     res.status(201).json(item);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -54,6 +67,19 @@ export const setAcademyBatchStatus = async (req: AuthRequest, res: Response) => 
     const { status } = req.body;
     if (!["UPCOMING", "ACTIVE", "COMPLETED", "CANCELLED"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const existingBatch = await AcademyBatch.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existingBatch) return res.status(404).json({ message: "Batch not found" });
+
+    // An ACADEMY_TEACHER should only be able to close out (and trigger
+    // certificate issuance for) their own batch, not any batch in the
+    // school - same reasoning as createAcademyBatch above.
+    if (req.user!.role === "ACADEMY_TEACHER") {
+      const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!myTeacher || myTeacher._id.toString() !== existingBatch.teacherId?.toString()) {
+        return res.status(403).json({ message: "You can only update the status of your own batches" });
+      }
     }
 
     const batch = await AcademyBatch.findOneAndUpdate(
