@@ -25,7 +25,13 @@ export default function TeacherCourses() {
   useEffect(() => {
     if (teacher?._id) {
       load();
-      api.get(`/academics/classes?schoolId=${teacher.schoolId}`).then((res) => setClasses(res.data));
+      api.get(`/academics/classes?schoolId=${teacher.schoolId}`).then((res) => {
+        // Match the backend's isAssignedToClass check - only offer classes
+        // this teacher is actually assigned to, so the dropdown can't lead
+        // to a 403 the person has no way to explain to themselves.
+        const assignedIds = new Set((teacher.assignedClasses || []).map((c: any) => c._id || c));
+        setClasses(res.data.filter((c: any) => assignedIds.has(c._id)));
+      });
     }
   }, [teacher]);
 

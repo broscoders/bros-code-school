@@ -1,6 +1,7 @@
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
 import Parent from "../models/Parent";
+import Teacher from "../models/Teacher";
 
 const STAFF_ROLES_WITH_SCHOOL_ACCESS = new Set([
   "SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR",
@@ -32,6 +33,23 @@ export async function canAccessStudent(req: AuthRequest, studentId: string): Pro
   }
 
   return false;
+}
+
+// Blueprint 26/27 (Teacher Management/Workload): a Teacher account is
+// only trusted for classes they're actually assigned to - unlike the
+// broader STAFF_ROLES_WITH_SCHOOL_ACCESS check above, this exists
+// specifically to stop one teacher from entering marks or attendance for
+// a class they don't teach. Leadership roles (Top Admin/Head/Academic
+// Coordinator) that also carry TEACHING_STAFF permissions are exempt -
+// they're expected to have school-wide oversight, only a plain TEACHER
+// or ACADEMY_TEACHER is scoped down.
+export async function isAssignedToClass(req: AuthRequest, classId: string): Promise<boolean> {
+  const role = req.user!.role;
+  if (role !== "TEACHER" && role !== "ACADEMY_TEACHER") return true;
+
+  const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+  if (!teacher) return false;
+  return teacher.assignedClasses.some((c) => c.toString() === classId);
 }
 
 // Checks that a STUDENT or PARENT caller actually has a child in the given

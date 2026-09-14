@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
-import { canAccessStudent } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass } from "../utils/accessControl";
 import Course from "../models/Course";
 import Lesson from "../models/Lesson";
 import LessonProgress from "../models/LessonProgress";
@@ -10,6 +10,12 @@ import Certificate from "../models/Certificate";
 
 export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
+    // classId is optional here (a course can target "any class"), but if
+    // one is given, a plain TEACHER must actually be assigned to it -
+    // same reasoning as the homework/assignment/exam checks.
+    if (req.body.classId && !(await isAssignedToClass(req, req.body.classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const course = await Course.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(course);
   } catch (err) {

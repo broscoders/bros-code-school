@@ -13,7 +13,7 @@ import Section from "../models/Section";
 import Parent from "../models/Parent";
 import Discount from "../models/Discount";
 import User from "../models/User";
-import { canAccessStudent, isOwnClass } from "../utils/accessControl";
+import { canAccessStudent, isOwnClass, isAssignedToClass } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
 import { notify } from "../utils/notifier";
 import type { AuthRequest } from "../middleware/authMiddleware";
@@ -22,6 +22,13 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
   try {
     const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
     if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
+
+    // Blueprint 27 (Teacher Workload): a plain TEACHER account could
+    // otherwise mark attendance for any student in the school, not just
+    // the classes they're actually assigned to teach.
+    if (belongsToSchool.classId && !(await isAssignedToClass(req, belongsToSchool.classId.toString()))) {
+      return res.status(403).json({ message: "You are not assigned to this student's class" });
+    }
 
     // Upsert on (studentId, date) rather than always creating a new row -
     // without this, a teacher re-submitting the same day's attendance (e.g.
@@ -77,6 +84,10 @@ export const bulkMarkAttendance = async (req: AuthRequest, res: Response) => {
 
     const section = await Section.findOne({ _id: sectionId, schoolId });
     if (!section) return res.status(404).json({ message: "Section not found in your school" });
+
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
 
     const studentIds = (records || []).map((r: any) => r.studentId);
     const validStudents = await Student.find({ _id: { $in: studentIds }, schoolId }).select("_id");
@@ -139,6 +150,9 @@ export const getAttendance = async (req: AuthRequest, res: Response) => {
 
 export const createHomework = async (req: AuthRequest, res: Response) => {
   try {
+    if (!(await isAssignedToClass(req, req.body.classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const hw = await Homework.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(hw);
   } catch (err) {
@@ -191,6 +205,9 @@ export const submitHomework = async (req: AuthRequest, res: Response) => {
 
 export const createAssignment = async (req: AuthRequest, res: Response) => {
   try {
+    if (!(await isAssignedToClass(req, req.body.classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const assignment = await Assignment.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(assignment);
   } catch (err) {
@@ -265,6 +282,13 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
   try {
     const exam = await Exam.findOne({ _id: req.body.examId, schoolId: req.user!.schoolId });
     if (!exam) return res.status(404).json({ message: "Exam not found" });
+
+    // Blueprint 27/41 (Teacher Workload / Marks Entry): a plain TEACHER
+    // could otherwise enter (or overwrite) marks for any exam in the
+    // school, including classes they don't teach.
+    if (!(await isAssignedToClass(req, exam.classId.toString()))) {
+      return res.status(403).json({ message: "You are not assigned to this exam's class" });
+    }
 
     const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
     if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
