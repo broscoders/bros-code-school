@@ -5,11 +5,14 @@ import {
   enrollInAcademy, getAcademyEnrollments,
 } from "../controllers/academyController";
 import { protect, requireRole } from "../middleware/authMiddleware";
-import { ACADEMY_STAFF, EVERYONE, ROLES } from "../middleware/permissions";
+import { ACADEMY_STAFF, TOP_ADMIN, EVERYONE, ROLES } from "../middleware/permissions";
 
 const router = Router();
 
-router.post("/programs", protect, requireRole(...ACADEMY_STAFF), createAcademyProgram);
+// Program setup (the course catalog itself) is an admin decision per
+// Blueprint 79/84 - an ACADEMY_TEACHER manages their own batches, not
+// what programs the academy offers.
+router.post("/programs", protect, requireRole(...TOP_ADMIN), createAcademyProgram);
 router.get("/programs", protect, requireRole(...EVERYONE), getAcademyPrograms);
 
 router.post("/batches", protect, requireRole(...ACADEMY_STAFF), createAcademyBatch);
