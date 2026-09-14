@@ -363,6 +363,14 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     user.mustChangePassword = false;
     await user.save();
 
+    // Same reasoning as resetPassword, but this path is authenticated -
+    // keep the device making this request logged in (they just proved
+    // they know both the old and new password) and only kick out others.
+    await Session.updateMany(
+      { userId: user._id, jti: { $ne: req.user!.jti }, revoked: false },
+      { revoked: true, revokedAt: new Date() }
+    );
+
     res.json({ message: "Password changed successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -425,6 +433,12 @@ export const resetPassword = async (req: Request, res: Response) => {
     user.lockUntil = undefined;
     user.mustChangePassword = false;
     await user.save();
+
+    // A password reset means "I think someone else might have access" -
+    // kill every existing session so a token an attacker was already
+    // holding stops working immediately, rather than staying valid for
+    // up to 7 more days after the legitimate owner reset the password.
+    await Session.updateMany({ userId: user._id, revoked: false }, { revoked: true, revokedAt: new Date() });
 
     res.json({ message: "Password reset. You can now log in." });
   } catch (err) {
