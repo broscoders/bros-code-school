@@ -10,6 +10,8 @@ export default function Academy() {
   const [batches, setBatches] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [grantSelections, setGrantSelections] = useState<Record<string, string>>({});
   const [programForm, setProgramForm] = useState({ name: "", description: "" });
   const [batchForm, setBatchForm] = useState({ programId: "", name: "", days: "", startTime: "", endTime: "", teacherId: "", startDate: "", endDate: "", capacity: "", room: "" });
   const [productForm, setProductForm] = useState({ title: "", description: "", subjectName: "", className: "", price: "0", isFree: false, fileUrl: "" });
@@ -29,6 +31,7 @@ export default function Academy() {
       loadPrograms();
       loadProducts();
       api.get(`/people/teachers?schoolId=${schoolId}`).then((res) => setTeachers(res.data));
+      api.get(`/people/students?schoolId=${schoolId}`).then((res) => setStudents(res.data));
     }
   }, [schoolId]);
 
@@ -74,6 +77,18 @@ export default function Academy() {
     await api.post("/store/store/products", { ...productForm, schoolId, price: Number(productForm.price) });
     setProductForm({ title: "", description: "", subjectName: "", className: "", price: "0", isFree: false, fileUrl: "" });
     loadProducts();
+  };
+
+  // Paid items can no longer be self-checked-out by students (see backend
+  // fix) - staff grants access here once payment has actually been
+  // collected through whatever channel the school uses (cash, bank, fee
+  // ledger note, etc).
+  const grantAccess = async (productId: string) => {
+    const studentId = grantSelections[productId];
+    if (!studentId) return;
+    await api.post("/store/store/purchase", { productId, studentId, schoolId });
+    setGrantSelections({ ...grantSelections, [productId]: "" });
+    alert("Access granted.");
   };
 
   return (
@@ -166,9 +181,26 @@ export default function Academy() {
         <ul className="text-sm divide-y divide-black/5">
           {products.length === 0 && <li className="py-2 text-muted">No items in store yet.</li>}
           {products.map((p) => (
-            <li key={p._id} className="py-2 flex justify-between">
+            <li key={p._id} className="py-2 flex items-center justify-between gap-3">
               <span>{p.title}</span>
-              <span className="text-muted text-xs">{p.isFree ? "Free" : `Rs. ${p.price}`}</span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-muted text-xs">{p.isFree ? "Free" : `Rs. ${p.price}`}</span>
+                {!p.isFree && (
+                  <>
+                    <select
+                      value={grantSelections[p._id] || ""}
+                      onChange={(e) => setGrantSelections({ ...grantSelections, [p._id]: e.target.value })}
+                      className="border border-border rounded-md px-2 py-1 text-xs"
+                    >
+                      <option value="">Grant to...</option>
+                      {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
+                    </select>
+                    <button onClick={() => grantAccess(p._id)} disabled={!grantSelections[p._id]} className="text-primary text-xs underline disabled:opacity-40">
+                      Grant
+                    </button>
+                  </>
+                )}
+              </div>
             </li>
           ))}
         </ul>
