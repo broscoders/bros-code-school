@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck, Calendar, ListChecks, BookOpen, GraduationCap, Utensils, Menu, X, Trophy, CalendarDays } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, ShoppingBag, BadgeCheck, Calendar, ListChecks, BookOpen, GraduationCap, Utensils, Menu, X, Trophy, CalendarDays, MessageSquareWarning } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
@@ -23,6 +23,7 @@ const navItems = [
   { to: "/student/achievements", label: "Achievements", icon: Trophy },
   { to: "/student/announcements", label: "Announcements", icon: Megaphone },
   { to: "/student/events", label: "Calendar & Events", icon: CalendarDays },
+  { to: "/student/complaints", label: "Report an Issue", icon: MessageSquareWarning },
 ];
 
 export default function StudentLayout() {

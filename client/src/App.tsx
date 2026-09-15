@@ -63,6 +63,7 @@ import ParentHealth from "./pages/parent/ParentHealth";
 import ParentDiscipline from "./pages/parent/ParentDiscipline";
 import ParentAchievements from "./pages/parent/ParentAchievements";
 import ParentEvents from "./pages/parent/ParentEvents";
+import ParentComplaints from "./pages/parent/ParentComplaints";
 import ParentMessages from "./pages/parent/ParentMessages";
 import ParentPTM from "./pages/parent/ParentPTM";
 import ParentLeave from "./pages/parent/ParentLeave";
@@ -78,6 +79,7 @@ import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentResults from "./pages/student/StudentResults";
 import StudentAnnouncements from "./pages/student/StudentAnnouncements";
 import StudentEvents from "./pages/student/StudentEvents";
+import StudentComplaints from "./pages/student/StudentComplaints";
 import StudentStore from "./pages/student/StudentStore";
 import StudentCertificates from "./pages/student/StudentCertificates";
 import StudentAchievements from "./pages/student/StudentAchievements";
@@ -97,6 +99,7 @@ import TeacherAssignments from "./pages/teacher/TeacherAssignments";
 import TeacherMarks from "./pages/teacher/TeacherMarks";
 import TeacherAnnouncements from "./pages/teacher/TeacherAnnouncements";
 import TeacherEvents from "./pages/teacher/TeacherEvents";
+import TeacherComplaints from "./pages/teacher/TeacherComplaints";
 import TeacherMessages from "./pages/teacher/TeacherMessages";
 import TeacherPTM from "./pages/teacher/TeacherPTM";
 import TeacherStudyMaterial from "./pages/teacher/TeacherStudyMaterial";
@@ -200,6 +203,7 @@ function App() {
           <Route path="/parent/discipline" element={<ParentDiscipline />} />
           <Route path="/parent/achievements" element={<ParentAchievements />} />
           <Route path="/parent/events" element={<ParentEvents />} />
+          <Route path="/parent/complaints" element={<ParentComplaints />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["STUDENT"]}><StudentLayout /></RoleProtectedRoute>}>
@@ -218,6 +222,7 @@ function App() {
           <Route path="/student/achievements" element={<StudentAchievements />} />
           <Route path="/student/announcements" element={<StudentAnnouncements />} />
           <Route path="/student/events" element={<StudentEvents />} />
+          <Route path="/student/complaints" element={<StudentComplaints />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={TEACHER_ROLES}><TeacherLayout /></RoleProtectedRoute>}>
@@ -238,6 +243,7 @@ function App() {
           <Route path="/teacher/ptm" element={<TeacherPTM />} />
           <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
           <Route path="/teacher/events" element={<TeacherEvents />} />
+          <Route path="/teacher/complaints" element={<TeacherComplaints />} />
         </Route>
 
         <Route path="/" element={<HomeRedirect />} />

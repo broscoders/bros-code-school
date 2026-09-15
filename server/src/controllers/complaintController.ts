@@ -31,6 +31,18 @@ export const getComplaints = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// "My Tickets" - anyone can file a complaint (createComplaint is open to
+// EVERYONE) but until now there was no way for them to see it again
+// afterwards; only front-desk staff could list complaints at all.
+export const getMyComplaints = async (req: AuthRequest, res: Response) => {
+  try {
+    const complaints = await Complaint.find({ schoolId: req.user!.schoolId, raisedBy: req.user!.userId }).sort({ createdAt: -1 });
+    res.json(complaints);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const updateComplaintStatus = async (req: AuthRequest, res: Response) => {
   try {
     const complaint = await Complaint.findOneAndUpdate(
