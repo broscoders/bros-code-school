@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import { useChildStore } from "../store/childStore";
-import { LayoutDashboard, CalendarCheck, ClipboardCheck, Award, Wallet, Megaphone, LogOut, MessageSquare, Users, FileWarning, Menu, X, HeartPulse, AlertTriangle, Trophy } from "lucide-react";
+import { LayoutDashboard, CalendarCheck, ClipboardCheck, Award, Wallet, Megaphone, LogOut, MessageSquare, Users, FileWarning, Menu, X, HeartPulse, AlertTriangle, Trophy, CalendarDays } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
@@ -18,6 +18,7 @@ const navItems = [
   { to: "/parent/ptm", label: "PTM", icon: Users },
   { to: "/parent/leave", label: "Leave Request", icon: FileWarning },
   { to: "/parent/announcements", label: "Announcements", icon: Megaphone },
+  { to: "/parent/events", label: "Calendar & Events", icon: CalendarDays },
   { to: "/parent/health", label: "Health Profile", icon: HeartPulse },
   { to: "/parent/discipline", label: "Discipline", icon: AlertTriangle },
   { to: "/parent/achievements", label: "Achievements", icon: Trophy },

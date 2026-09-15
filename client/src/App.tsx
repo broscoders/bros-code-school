@@ -62,6 +62,7 @@ import ParentAnnouncements from "./pages/parent/ParentAnnouncements";
 import ParentHealth from "./pages/parent/ParentHealth";
 import ParentDiscipline from "./pages/parent/ParentDiscipline";
 import ParentAchievements from "./pages/parent/ParentAchievements";
+import ParentEvents from "./pages/parent/ParentEvents";
 import ParentMessages from "./pages/parent/ParentMessages";
 import ParentPTM from "./pages/parent/ParentPTM";
 import ParentLeave from "./pages/parent/ParentLeave";
@@ -76,6 +77,7 @@ import StudentHomework from "./pages/student/StudentHomework";
 import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentResults from "./pages/student/StudentResults";
 import StudentAnnouncements from "./pages/student/StudentAnnouncements";
+import StudentEvents from "./pages/student/StudentEvents";
 import StudentStore from "./pages/student/StudentStore";
 import StudentCertificates from "./pages/student/StudentCertificates";
 import StudentAchievements from "./pages/student/StudentAchievements";
@@ -94,6 +96,7 @@ import TeacherHomework from "./pages/teacher/TeacherHomework";
 import TeacherAssignments from "./pages/teacher/TeacherAssignments";
 import TeacherMarks from "./pages/teacher/TeacherMarks";
 import TeacherAnnouncements from "./pages/teacher/TeacherAnnouncements";
+import TeacherEvents from "./pages/teacher/TeacherEvents";
 import TeacherMessages from "./pages/teacher/TeacherMessages";
 import TeacherPTM from "./pages/teacher/TeacherPTM";
 import TeacherStudyMaterial from "./pages/teacher/TeacherStudyMaterial";
@@ -196,6 +199,7 @@ function App() {
           <Route path="/parent/health" element={<ParentHealth />} />
           <Route path="/parent/discipline" element={<ParentDiscipline />} />
           <Route path="/parent/achievements" element={<ParentAchievements />} />
+          <Route path="/parent/events" element={<ParentEvents />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["STUDENT"]}><StudentLayout /></RoleProtectedRoute>}>
@@ -213,6 +217,7 @@ function App() {
           <Route path="/student/certificates" element={<StudentCertificates />} />
           <Route path="/student/achievements" element={<StudentAchievements />} />
           <Route path="/student/announcements" element={<StudentAnnouncements />} />
+          <Route path="/student/events" element={<StudentEvents />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={TEACHER_ROLES}><TeacherLayout /></RoleProtectedRoute>}>
@@ -232,6 +237,7 @@ function App() {
           <Route path="/teacher/messages" element={<TeacherMessages />} />
           <Route path="/teacher/ptm" element={<TeacherPTM />} />
           <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
+          <Route path="/teacher/events" element={<TeacherEvents />} />
         </Route>
 
         <Route path="/" element={<HomeRedirect />} />
