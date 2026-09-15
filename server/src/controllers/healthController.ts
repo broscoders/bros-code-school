@@ -5,6 +5,7 @@ import HealthProfile from "../models/HealthProfile";
 import MedicalIncident from "../models/MedicalIncident";
 import Parent from "../models/Parent";
 import { notify } from "../utils/notifier";
+import { canAccessStudent } from "../utils/accessControl";
 
 // Visitors
 export const checkInVisitor = async (req: AuthRequest, res: Response) => {
@@ -55,7 +56,14 @@ export const upsertHealthProfile = async (req: AuthRequest, res: Response) => {
 
 export const getHealthProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const profile = await HealthProfile.findOne({ studentId: req.query.studentId as string, schoolId: req.user!.schoolId });
+    const studentId = req.query.studentId as string;
+    // Blueprint 24/51: a parent should be able to see their own child's
+    // allergy/health info even though editing it stays medical-staff-only
+    // (route-level MEDICAL_STAFF gate already covers the write side).
+    if (!(await canAccessStudent(req, studentId))) {
+      return res.status(403).json({ message: "Not authorized to view this student's health profile" });
+    }
+    const profile = await HealthProfile.findOne({ studentId, schoolId: req.user!.schoolId });
     res.json(profile || null);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
