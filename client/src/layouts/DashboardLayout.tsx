@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, Mail,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
-  AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart,
+  AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart, Trophy,
   Library as LibraryIcon, Bus, MonitorCheck, Globe, Plug, Smartphone,
   Menu, X, Search, ChevronDown,
 } from "lucide-react";
@@ -67,6 +67,7 @@ const navGroups: NavGroup[] = [
       { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes },
       { to: "/maintenance", label: "Maintenance", icon: AlertTriangle },
       { to: "/discipline", label: "Discipline", icon: AlertTriangle },
+      { to: "/achievements", label: "Achievements", icon: Trophy },
       { to: "/visitors", label: "Visitors", icon: Users },
       { to: "/health", label: "Health & Medical", icon: AlertTriangle },
       { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
