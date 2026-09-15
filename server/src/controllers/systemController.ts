@@ -3,6 +3,7 @@ import type { AuthRequest } from "../middleware/authMiddleware";
 import Notification from "../models/Notification";
 import DisciplineIncident from "../models/DisciplineIncident";
 import CommunicationLog from "../models/CommunicationLog";
+import { canAccessStudent } from "../utils/accessControl";
 import { notify } from "../utils/notifier";
 import Parent from "../models/Parent";
 import Student from "../models/Student";
@@ -82,6 +83,25 @@ export const updateIncidentStatus = async (req: AuthRequest, res: Response) => {
     );
     if (!incident) return res.status(404).json({ message: "Incident not found" });
     res.json(incident);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Blueprint 61: createIncident already tells a notified parent to "check
+// the portal for details" - but until now there was no page in the
+// portal that would show them anything. canAccessStudent keeps this to
+// the parent's own child (or the student themselves) only.
+export const getMyChildDiscipline = async (req: AuthRequest, res: Response) => {
+  try {
+    const studentId = req.query.studentId as string;
+    if (!(await canAccessStudent(req, studentId))) {
+      return res.status(403).json({ message: "Not authorized to view this student's records" });
+    }
+    const incidents = await DisciplineIncident.find({ studentId, schoolId: req.user!.schoolId })
+      .select("-reportedBy")
+      .sort({ createdAt: -1 });
+    res.json(incidents);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
