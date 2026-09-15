@@ -33,6 +33,7 @@ import Settings from "./pages/school/Settings";
 import CRM from "./pages/school/CRM";
 import Certificates from "./pages/school/Certificates";
 import Discipline from "./pages/school/Discipline";
+import Achievements from "./pages/school/Achievements";
 import IDCards from "./pages/school/IDCards";
 import CalendarPage from "./pages/school/CalendarPage";
 import ReportCards from "./pages/school/ReportCards";
@@ -60,6 +61,7 @@ import ParentFees from "./pages/parent/ParentFees";
 import ParentAnnouncements from "./pages/parent/ParentAnnouncements";
 import ParentHealth from "./pages/parent/ParentHealth";
 import ParentDiscipline from "./pages/parent/ParentDiscipline";
+import ParentAchievements from "./pages/parent/ParentAchievements";
 import ParentMessages from "./pages/parent/ParentMessages";
 import ParentPTM from "./pages/parent/ParentPTM";
 import ParentLeave from "./pages/parent/ParentLeave";
@@ -76,6 +78,7 @@ import StudentResults from "./pages/student/StudentResults";
 import StudentAnnouncements from "./pages/student/StudentAnnouncements";
 import StudentStore from "./pages/student/StudentStore";
 import StudentCertificates from "./pages/student/StudentCertificates";
+import StudentAchievements from "./pages/student/StudentAchievements";
 import TeacherLayout from "./layouts/TeacherLayout";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import TeacherClasses from "./pages/teacher/TeacherClasses";
@@ -156,6 +159,7 @@ function App() {
           <Route path="/certificates" element={<Certificates />} />
           <Route path="/id-cards" element={<IDCards />} />
           <Route path="/discipline" element={<Discipline />} />
+          <Route path="/achievements" element={<Achievements />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/report-cards" element={<ReportCards />} />
           <Route path="/reports" element={<Reports />} />
@@ -191,6 +195,7 @@ function App() {
           <Route path="/parent/announcements" element={<ParentAnnouncements />} />
           <Route path="/parent/health" element={<ParentHealth />} />
           <Route path="/parent/discipline" element={<ParentDiscipline />} />
+          <Route path="/parent/achievements" element={<ParentAchievements />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["STUDENT"]}><StudentLayout /></RoleProtectedRoute>}>
@@ -206,6 +211,7 @@ function App() {
           <Route path="/student/results" element={<StudentResults />} />
           <Route path="/student/store" element={<StudentStore />} />
           <Route path="/student/certificates" element={<StudentCertificates />} />
+          <Route path="/student/achievements" element={<StudentAchievements />} />
           <Route path="/student/announcements" element={<StudentAnnouncements />} />
         </Route>
 
