@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   getMyNotifications, markNotificationRead, markAllRead,
-  createIncident, getIncidents, updateIncidentStatus,
+  createIncident, getIncidents, updateIncidentStatus, getMyChildDiscipline,
   getCommunicationLog,
 } from "../controllers/systemController";
 import { protect, requireRole } from "../middleware/authMiddleware";
@@ -20,6 +20,9 @@ router.put("/notifications/read-all", protect, requireRole(...EVERYONE), markAll
 router.post("/discipline", protect, requireRole(...TEACHING_STAFF), createIncident);
 router.get("/discipline", protect, requireRole(...DISCIPLINE_STAFF), getIncidents);
 router.put("/discipline/:id", protect, requireRole(...DISCIPLINE_STAFF), checkPermission("Discipline", "edit"), updateIncidentStatus);
+// A parent/student viewing their own child's/own record - scoped inside
+// the controller via canAccessStudent, distinct from the staff-wide list above.
+router.get("/discipline/mine", protect, requireRole(...EVERYONE), getMyChildDiscipline);
 
 router.get("/communication-log", protect, requireRole(...TOP_ADMIN), getCommunicationLog);
 

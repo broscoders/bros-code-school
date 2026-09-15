@@ -59,6 +59,7 @@ import ParentResults from "./pages/parent/ParentResults";
 import ParentFees from "./pages/parent/ParentFees";
 import ParentAnnouncements from "./pages/parent/ParentAnnouncements";
 import ParentHealth from "./pages/parent/ParentHealth";
+import ParentDiscipline from "./pages/parent/ParentDiscipline";
 import ParentMessages from "./pages/parent/ParentMessages";
 import ParentPTM from "./pages/parent/ParentPTM";
 import ParentLeave from "./pages/parent/ParentLeave";
@@ -189,6 +190,7 @@ function App() {
           <Route path="/parent/leave" element={<ParentLeave />} />
           <Route path="/parent/announcements" element={<ParentAnnouncements />} />
           <Route path="/parent/health" element={<ParentHealth />} />
+          <Route path="/parent/discipline" element={<ParentDiscipline />} />
         </Route>
 
         <Route element={<RoleProtectedRoute allowedRoles={["STUDENT"]}><StudentLayout /></RoleProtectedRoute>}>
