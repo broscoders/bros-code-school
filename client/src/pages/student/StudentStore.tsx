@@ -26,8 +26,12 @@ export default function StudentStore() {
   const isPurchased = (productId: string) => purchases.some((p) => p.productId?._id === productId);
 
   const buy = async (productId: string) => {
-    await api.post("/store/store/purchase", { schoolId, productId, studentId: student._id });
-    load();
+    try {
+      await api.post("/store/store/purchase", { schoolId, productId, studentId: student._id });
+      load();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Could not get access to this item");
+    }
   };
 
   return (
@@ -52,7 +56,9 @@ export default function StudentStore() {
               {owned ? (
                 <a href={p.fileUrl} target="_blank" rel="noreferrer" className="text-primary text-xs underline mt-3 inline-block">Open Material</a>
               ) : (
-                <button onClick={() => buy(p._id)} className="bg-primary text-white text-xs px-3 py-1.5 rounded-md mt-3 hover:bg-primary-light transition-colors">Get Access</button>
+                <button onClick={() => buy(p._id)} className="bg-primary text-white text-xs px-3 py-1.5 rounded-md mt-3 hover:bg-primary-light transition-colors">
+                  {p.isFree ? "Get Access" : "Request Access"}
+                </button>
               )}
             </div>
           );
