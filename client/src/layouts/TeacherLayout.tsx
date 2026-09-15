@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen, ListChecks, BookOpen, BookMarked, GraduationCap, Menu, X, CalendarDays } from "lucide-react";
+import { LayoutDashboard, Users, CalendarCheck, ClipboardCheck, FileText, Award, Megaphone, LogOut, MessageSquare, Calendar, FolderOpen, ListChecks, BookOpen, BookMarked, GraduationCap, Menu, X, CalendarDays, MessageSquareWarning } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
@@ -24,6 +24,7 @@ const navItems = [
   { to: "/teacher/ptm", label: "PTM & Hours", icon: Calendar },
   { to: "/teacher/announcements", label: "Announcements", icon: Megaphone },
   { to: "/teacher/events", label: "Calendar & Events", icon: CalendarDays },
+  { to: "/teacher/complaints", label: "Report an Issue", icon: MessageSquareWarning },
 ];
 
 export default function TeacherLayout() {
