@@ -24,3 +24,17 @@ export const emailActionLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many requests. Please wait a few minutes before trying again." },
 });
+
+// Looser than emailActionLimiter - that one guards a single person's own
+// auth actions (their own password reset, their own invite acceptance),
+// where 5 tries in 15 minutes is already generous. This one guards an
+// *admin* bulk-inviting staff, which legitimately means dozens of emails
+// in one sitting (onboarding a whole term's new teachers) - the limit
+// here is about stopping runaway spam, not normal admin usage.
+export const bulkEmailActionLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Too many invitations sent. Please wait a few minutes before sending more." },
+});
