@@ -72,18 +72,25 @@ database, so real click-through testing is essential before this goes live.
   - Same applies to Academy Teachers and their batches (a batch's
     `teacherId` must match the logged-in instructor).
 
+### 6. Leave requests can't be self-approved
+- **What changed:** A Head or Academic Coordinator could previously file
+  their own leave request and approve it themselves.
+- **Test:** As a Head/Academic Coordinator, file a leave request for
+  yourself, then try to approve it from the Leave Requests screen —
+  confirm this is blocked and a different admin has to approve it.
+
 ---
 
 ## 🟡 New features to test end-to-end
 
-### 6. Invitations (replaces/adds to direct account creation)
+### 7. Invitations (replaces/adds to direct account creation)
 - Admin → Invitations → send an invite to a test email → check the email
   arrives → open the link → set a password → log in with it.
 - Test resend and revoke buttons.
 - Confirm an expired (7+ day old, or manually expired) invitation shows
   the right error when opened.
 
-### 7. Active Sessions & Logout
+### 8. Active Sessions & Logout
 - Log into the same account from two different browsers/devices.
 - Open "Active Sessions" (available in every role's sidebar/profile
   menu) — confirm both sessions show up.
@@ -94,7 +101,7 @@ database, so real click-through testing is essential before this goes live.
 - Use "Forgot Password" to reset — confirm this logs out **all**
   sessions, including the current one.
 
-### 8. Bulk Import (Students/Teachers)
+### 9. Bulk Import (Students/Teachers)
 - Upload a CSV — confirm you now see a **preview** (created/skipped
   counts + error list) before anything is actually imported.
 - Confirm each imported account gets a **different** random password
@@ -103,7 +110,7 @@ database, so real click-through testing is essential before this goes live.
 - Try uploading a file with a duplicate email already in the system —
   confirm it's correctly skipped with a clear reason.
 
-### 9. New pages that previously didn't exist
+### 10. New pages that previously didn't exist
 These modules had working backends but no UI before — please test the
 full flow, not just that the page loads:
 - **Achievements** (Admin/Teacher record one → Student & Parent see it)
@@ -122,13 +129,13 @@ full flow, not just that the page loads:
 - **LMS Overview / Online Exams** (Admin can now see all courses/quizzes
   across the school, not just per-teacher)
 
-### 10. Admission → auto-created parent account
+### 11. Admission → auto-created parent account
 - Run through Admissions → approve an admission that creates a new
   parent account → check the parent's welcome email → confirm the
   verification code in the email **actually works** (this was broken
   before — the emailed code didn't match the stored one).
 
-### 11. Academy program/batch permissions
+### 12. Academy program/batch permissions
 - As an Academy Teacher, confirm you can only create/manage batches
   under your own name — creating a program (the course catalog) should
   now be Admin-only.
