@@ -194,6 +194,16 @@ export const getLeaveRequests = async (req: AuthRequest, res: Response) => {
 
 export const updateLeaveStatus = async (req: AuthRequest, res: Response) => {
   try {
+    const existing = await LeaveRequest.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existing) return res.status(404).json({ message: "Leave request not found" });
+
+    // ACADEMIC_STAFF (who can approve) overlaps with TEACHING_STAFF (who
+    // can request) for Head/Academic Coordinator/Top Admin - without this,
+    // one of them could approve their own leave request.
+    if (existing.requestedBy.toString() === req.user!.userId) {
+      return res.status(403).json({ message: "You cannot approve your own leave request. Ask another admin to review it." });
+    }
+
     const leave = await LeaveRequest.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
       { status: req.body.status },
