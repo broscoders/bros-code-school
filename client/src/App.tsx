@@ -111,7 +111,7 @@ import PlatformDashboard from "./pages/platform/PlatformDashboard";
 import PlatformOrganizations from "./pages/platform/PlatformOrganizations";
 import { useAuthStore } from "./store/authStore";
 
-const ADMIN_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST", "LIBRARIAN", "TRANSPORT_MANAGER"];
+const ADMIN_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST", "LIBRARIAN", "TRANSPORT_MANAGER", "HOSTEL_WARDEN", "NURSE"];
 const TEACHER_ROLES = ["TEACHER", "ACADEMY_TEACHER"];
 
 function HomeRedirect() {

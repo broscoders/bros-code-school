@@ -17,12 +17,19 @@ import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
 import TwoFactorButton from "../components/TwoFactorButton";
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard };
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; roles?: string[] };
 type NavGroup = { label: string; items: NavItem[] };
 
-// Grouped by the actual rhythm of a school office day, not alphabetically -
-// front-desk & admissions first, then the academic spine, then money,
-// then day-to-day operations, then outward-facing/growth, then admin controls.
+// Every admin-type role (School Admin, Principal, Head, Admission Staff,
+// Academic Coordinator, Accountant, Receptionist, Librarian, Transport
+// Manager, Hostel Warden, Nurse) used to see this exact same ~50-item
+// sidebar regardless of what they could actually do - the backend already
+// scoped their real permissions correctly, but the nav didn't reflect it,
+// so a librarian saw a Payroll link that would just 403 if clicked. An
+// item with no `roles` is visible to everyone in this layout; an item
+// with `roles` is narrowed to just those (School Admin/Principal always
+// see everything, handled in isVisibleForRole below, regardless of what
+// a specific item lists).
 const navGroups: NavGroup[] = [
   {
     label: "Overview",
@@ -31,76 +38,76 @@ const navGroups: NavGroup[] = [
   {
     label: "People & Admissions",
     items: [
-      { to: "/admissions", label: "Admissions", icon: ClipboardList },
-      { to: "/students", label: "Students", icon: Users },
-      { to: "/parents", label: "Parents", icon: Users },
-      { to: "/teachers", label: "Teachers", icon: GraduationCap },
-      { to: "/hr", label: "HR / Staff", icon: Users },
+      { to: "/admissions", label: "Admissions", icon: ClipboardList, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR"] },
+      { to: "/students", label: "Students", icon: Users, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST"] },
+      { to: "/parents", label: "Parents", icon: Users, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST"] },
+      { to: "/teachers", label: "Teachers", icon: GraduationCap, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/hr", label: "HR / Staff", icon: Users, roles: ["HEAD"] },
     ],
   },
   {
     label: "Academics",
     items: [
-      { to: "/academics", label: "Academics", icon: BookOpen },
-      { to: "/timetable", label: "Timetable", icon: Calendar },
-      { to: "/attendance", label: "Attendance", icon: CalendarCheck },
-      { to: "/homework", label: "Homework", icon: ClipboardCheck },
-      { to: "/assignments", label: "Assignments", icon: FileText },
-      { to: "/exams", label: "Exams & Results", icon: Award },
-      { to: "/report-cards", label: "Report Cards", icon: FileBarChart },
-      { to: "/lms-overview", label: "LMS Overview", icon: GraduationCap },
-      { to: "/online-exams", label: "Online Exams", icon: MonitorCheck },
+      { to: "/academics", label: "Academics", icon: BookOpen, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/timetable", label: "Timetable", icon: Calendar, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/attendance", label: "Attendance", icon: CalendarCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/homework", label: "Homework", icon: ClipboardCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/assignments", label: "Assignments", icon: FileText, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/exams", label: "Exams & Results", icon: Award, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/report-cards", label: "Report Cards", icon: FileBarChart, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/lms-overview", label: "LMS Overview", icon: GraduationCap, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/online-exams", label: "Online Exams", icon: MonitorCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
     ],
   },
   {
     label: "Finance",
     items: [
-      { to: "/fees", label: "Fees", icon: Wallet },
-      { to: "/accounting", label: "Accounting", icon: Wallet },
-      { to: "/payroll", label: "Payroll", icon: Wallet },
+      { to: "/fees", label: "Fees", icon: Wallet, roles: ["ACCOUNTANT"] },
+      { to: "/accounting", label: "Accounting", icon: Wallet, roles: ["ACCOUNTANT"] },
+      { to: "/payroll", label: "Payroll", icon: Wallet, roles: ["ACCOUNTANT"] },
     ],
   },
   {
     label: "Campus Operations",
     items: [
-      { to: "/hostel", label: "Hostel", icon: Boxes },
-      { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes },
-      { to: "/maintenance", label: "Maintenance", icon: AlertTriangle },
-      { to: "/discipline", label: "Discipline", icon: AlertTriangle },
-      { to: "/achievements", label: "Achievements", icon: Trophy },
-      { to: "/visitors", label: "Visitors", icon: Users },
-      { to: "/health", label: "Health & Medical", icon: AlertTriangle },
-      { to: "/leave-requests", label: "Leave Requests", icon: FileWarning },
-      { to: "/library", label: "Library", icon: LibraryIcon },
-      { to: "/transport", label: "Transport", icon: Bus },
-      { to: "/operations", label: "Operations", icon: Boxes },
-      { to: "/canteen", label: "Canteen", icon: Boxes },
+      { to: "/hostel", label: "Hostel", icon: Boxes, roles: ["HOSTEL_WARDEN"] },
+      { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes, roles: ["HEAD"] },
+      { to: "/maintenance", label: "Maintenance", icon: AlertTriangle, roles: ["HEAD", "RECEPTIONIST"] },
+      { to: "/discipline", label: "Discipline", icon: AlertTriangle, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/achievements", label: "Achievements", icon: Trophy, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/visitors", label: "Visitors", icon: Users, roles: ["RECEPTIONIST", "HOSTEL_WARDEN"] },
+      { to: "/health", label: "Health & Medical", icon: AlertTriangle, roles: ["NURSE"] },
+      { to: "/leave-requests", label: "Leave Requests", icon: FileWarning, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/library", label: "Library", icon: LibraryIcon, roles: ["LIBRARIAN"] },
+      { to: "/transport", label: "Transport", icon: Bus, roles: ["TRANSPORT_MANAGER"] },
+      { to: "/operations", label: "Operations", icon: Boxes, roles: ["HEAD", "RECEPTIONIST"] },
+      { to: "/canteen", label: "Canteen", icon: Boxes, roles: ["RECEPTIONIST"] },
     ],
   },
   {
     label: "Growth & Communication",
     items: [
-      { to: "/crm", label: "Leads / CRM", icon: Phone },
-      { to: "/academy", label: "Academy", icon: Boxes },
-      { to: "/certificates", label: "Certificates", icon: BadgeCheck },
-      { to: "/id-cards", label: "ID Cards", icon: IdCard },
-      { to: "/documents", label: "Documents", icon: FolderOpen },
-      { to: "/automation", label: "Automation", icon: Zap },
-      { to: "/website-cms", label: "Website / CMS", icon: Globe },
-      { to: "/announcements", label: "Announcements", icon: Megaphone },
-      { to: "/surveys", label: "Surveys", icon: MessageSquareText },
+      { to: "/crm", label: "Leads / CRM", icon: Phone, roles: ["ADMISSION_STAFF"] },
+      { to: "/academy", label: "Academy", icon: Boxes, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/certificates", label: "Certificates", icon: BadgeCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR", "ADMISSION_STAFF"] },
+      { to: "/id-cards", label: "ID Cards", icon: IdCard, roles: ["HEAD", "RECEPTIONIST"] },
+      { to: "/documents", label: "Documents", icon: FolderOpen, roles: ["HEAD", "RECEPTIONIST"] },
+      { to: "/automation", label: "Automation", icon: Zap, roles: ["HEAD"] },
+      { to: "/website-cms", label: "Website / CMS", icon: Globe, roles: ["HEAD"] },
+      { to: "/announcements", label: "Announcements", icon: Megaphone, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/surveys", label: "Surveys", icon: MessageSquareText, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/calendar", label: "Calendar", icon: Calendar },
     ],
   },
   {
     label: "Administration",
     items: [
-      { to: "/reports", label: "Reports & Analytics", icon: FileBarChart },
-      { to: "/invitations", label: "Invitations", icon: BadgeCheck },
-      { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock },
-      { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck },
-      { to: "/communication-log", label: "Communication Log", icon: Mail },
-      { to: "/settings", label: "Settings", icon: SettingsIcon },
+      { to: "/reports", label: "Reports & Analytics", icon: FileBarChart, roles: ["HEAD"] },
+      { to: "/invitations", label: "Invitations", icon: BadgeCheck, roles: ["HEAD"] },
+      { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock, roles: [] },
+      { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck, roles: [] },
+      { to: "/communication-log", label: "Communication Log", icon: Mail, roles: [] },
+      { to: "/settings", label: "Settings", icon: SettingsIcon, roles: [] },
     ],
   },
 ];
@@ -154,10 +161,20 @@ export default function DashboardLayout() {
   const query = sidebarSearch.trim().toLowerCase();
   const isSearching = query.length > 0;
 
+  // School Admin/Principal are the two "top admin" roles per the backend's
+  // own TOP_ADMIN group - they keep seeing everything regardless of what
+  // an individual item's `roles` list says. Everyone else only sees an
+  // item if it has no roles restriction, or their role is explicitly listed.
+  const isVisibleForRole = (item: NavItem) => {
+    if (user?.role === "SCHOOL_ADMIN" || user?.role === "PRINCIPAL") return true;
+    if (!item.roles) return true;
+    return item.roles.includes(user?.role || "");
+  };
+
   const filteredGroups = navGroups
     .map((group) => ({
       ...group,
-      items: group.items.filter((item) => item.label.toLowerCase().includes(query)),
+      items: group.items.filter((item) => isVisibleForRole(item) && item.label.toLowerCase().includes(query)),
     }))
     .filter((group) => group.items.length > 0);
 
