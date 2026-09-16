@@ -79,18 +79,43 @@ database, so real click-through testing is essential before this goes live.
   yourself, then try to approve it from the Leave Requests screen —
   confirm this is blocked and a different admin has to approve it.
 
+### 7. Hostel Warden and Nurse accounts could not log in at all
+- **What changed:** These two roles were missing from the frontend's list
+  of roles allowed into the admin dashboard, causing an infinite redirect
+  loop on login. The backend always supported them correctly — this was
+  purely a frontend routing bug.
+- **Test:** Log in as a Hostel Warden — confirm you land on a working
+  dashboard with Hostel (and Visitors) in the sidebar, not stuck on a
+  blank/looping page. Same for a Nurse account (should see Health &
+  Medical).
+
+### 8. Sidebar now shows only what each role can actually do
+- **What changed:** Every admin-type role used to see the exact same
+  full sidebar (~50 items). Now each role sees a relevant subset —
+  e.g. a Librarian sees mostly just Library, an Accountant sees Fees/
+  Accounting/Payroll, a Receptionist sees Visitors/Maintenance/Documents.
+  School Admin and Principal still see everything.
+- **Test:** Log in as each non-top-admin role (Accountant, Receptionist,
+  Librarian, Transport Manager, Admission Staff, Head, Academic
+  Coordinator) and confirm the sidebar looks sensible for that job and
+  nothing they click 403s. This is nav visibility only — nothing about
+  what each role is *allowed* to do on the backend changed, so if
+  something is missing from a role's sidebar that they actually need,
+  let us know and we'll adjust the visibility list (not a permissions
+  change, just which links show).
+
 ---
 
 ## 🟡 New features to test end-to-end
 
-### 7. Invitations (replaces/adds to direct account creation)
+### 9. Invitations (replaces/adds to direct account creation)
 - Admin → Invitations → send an invite to a test email → check the email
   arrives → open the link → set a password → log in with it.
 - Test resend and revoke buttons.
 - Confirm an expired (7+ day old, or manually expired) invitation shows
   the right error when opened.
 
-### 8. Active Sessions & Logout
+### 10. Active Sessions & Logout
 - Log into the same account from two different browsers/devices.
 - Open "Active Sessions" (available in every role's sidebar/profile
   menu) — confirm both sessions show up.
@@ -101,7 +126,7 @@ database, so real click-through testing is essential before this goes live.
 - Use "Forgot Password" to reset — confirm this logs out **all**
   sessions, including the current one.
 
-### 9. Bulk Import (Students/Teachers)
+### 11. Bulk Import (Students/Teachers)
 - Upload a CSV — confirm you now see a **preview** (created/skipped
   counts + error list) before anything is actually imported.
 - Confirm each imported account gets a **different** random password
@@ -110,7 +135,7 @@ database, so real click-through testing is essential before this goes live.
 - Try uploading a file with a duplicate email already in the system —
   confirm it's correctly skipped with a clear reason.
 
-### 10. New pages that previously didn't exist
+### 12. New pages that previously didn't exist
 These modules had working backends but no UI before — please test the
 full flow, not just that the page loads:
 - **Achievements** (Admin/Teacher record one → Student & Parent see it)
@@ -129,13 +154,13 @@ full flow, not just that the page loads:
 - **LMS Overview / Online Exams** (Admin can now see all courses/quizzes
   across the school, not just per-teacher)
 
-### 11. Admission → auto-created parent account
+### 13. Admission → auto-created parent account
 - Run through Admissions → approve an admission that creates a new
   parent account → check the parent's welcome email → confirm the
   verification code in the email **actually works** (this was broken
   before — the emailed code didn't match the stored one).
 
-### 12. Academy program/batch permissions
+### 14. Academy program/batch permissions
 - As an Academy Teacher, confirm you can only create/manage batches
   under your own name — creating a program (the course catalog) should
   now be Admin-only.
