@@ -38,7 +38,14 @@ router.post("/invoices", protect, requireRole(...FINANCE_STAFF), createInvoice);
 router.post("/invoices/bulk", protect, requireRole(...FINANCE_STAFF), bulkCreateInvoices);
 router.get("/invoices", protect, requireRole(...EVERYONE), getInvoices);
 router.get("/invoices/all", protect, requireRole(...FINANCE_STAFF), getAllInvoices);
-router.put("/invoices/:id/pay", protect, requireRole(ROLES.PARENT, ...FINANCE_STAFF), checkPermission("Fees", "edit"), payInvoice);
+// payInvoice is FINANCE_STAFF-only: there's no payment gateway wired in
+// here (payment amount comes straight from the request body and is
+// trusted), so a PARENT being allowed to call this directly would let
+// them self-report their own fees as paid with no actual payment ever
+// happening - same class of bug fixed in the Store module this session.
+// Staff record the payment after collecting it (cash/bank/online),
+// exactly like every other payment in this app.
+router.put("/invoices/:id/pay", protect, requireRole(...FINANCE_STAFF), checkPermission("Fees", "edit"), payInvoice);
 router.put("/invoices/:id/cancel", protect, requireRole(...FINANCE_STAFF), cancelInvoice);
 
 export default router;

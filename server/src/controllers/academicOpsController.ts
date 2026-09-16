@@ -606,10 +606,10 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
     const existing = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!existing) return res.status(404).json({ message: "Invoice not found" });
 
-    // This route is reachable directly by PARENT - without checking the
-    // invoice's own student against the caller, a parent could record a
-    // payment against (and flip the status of) ANY student's invoice, not
-    // just their own child's.
+    // canAccessStudent still applies even though this is staff-only now -
+    // a FINANCE_STAFF member should only be recording payments for
+    // students in their own school (already enforced by the schoolId
+    // filter above), kept here as defense in depth.
     const allowed = await canAccessStudent(req, existing.studentId.toString());
     if (!allowed) return res.status(403).json({ message: "You do not have access to this student's invoice" });
 
