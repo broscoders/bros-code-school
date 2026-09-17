@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
+import RegisterOrganization from "./pages/auth/RegisterOrganization";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePasswordRequired from "./pages/auth/ChangePasswordRequired";
 import ResetPassword from "./pages/auth/ResetPassword";
 import AcceptInvite from "./pages/auth/AcceptInvite";
+import Onboarding from "./pages/onboarding/Onboarding";
 import Dashboard from "./pages/school/Dashboard";
 import Students from "./pages/school/Students";
 import Teachers from "./pages/school/Teachers";
@@ -128,6 +130,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterOrganization />} />
         <Route path="/site/:slug" element={<PublicSite />} />
         <Route path="/platform/login" element={<PlatformLogin />} />
 
@@ -140,6 +143,7 @@ function App() {
         <Route path="/change-password-required" element={<ChangePasswordRequired />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/accept-invite/:token" element={<AcceptInvite />} />
+        <Route path="/onboarding" element={<RoleProtectedRoute allowedRoles={["SCHOOL_ADMIN"]}><Onboarding /></RoleProtectedRoute>} />
 
         <Route element={<RoleProtectedRoute allowedRoles={ADMIN_ROLES}><DashboardLayout /></RoleProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />

@@ -41,6 +41,7 @@ import idCardRoutes from "./routes/idCardRoutes";
 import curriculumRoutes from "./routes/curriculumRoutes";
 import canteenRoutes from "./routes/canteenRoutes";
 import invitationRoutes from "./routes/invitationRoutes";
+import onboardingRoutes from "./routes/onboardingRoutes";
 
 const app = express();
 
@@ -97,5 +98,6 @@ app.use("/api/id-cards", idCardRoutes);
 app.use("/api/curriculum", curriculumRoutes);
 app.use("/api/canteen", canteenRoutes);
 app.use("/api/invitations", invitationRoutes);
+app.use("/api/onboarding", onboardingRoutes);
 
 export default app;

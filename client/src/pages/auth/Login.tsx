@@ -36,6 +36,11 @@ export default function Login() {
     if (role === "PARENT") navigate("/parent/dashboard");
     else if (role === "STUDENT") navigate("/student/dashboard");
     else if (role === "TEACHER" || role === "ACADEMY_TEACHER") navigate("/teacher/dashboard");
+    // The Onboarding page itself checks /onboarding/status on mount and
+    // immediately forwards to /dashboard if this org already finished
+    // setup - so it's safe to always send a School Admin through here
+    // rather than needing an extra API call in this synchronous handler.
+    else if (role === "SCHOOL_ADMIN") navigate("/onboarding");
     else navigate("/dashboard");
   };
 
@@ -246,6 +251,12 @@ export default function Login() {
           <p className="flex items-center justify-center gap-1.5 text-white/35 text-[11px] mt-6">
             <ShieldCheck size={13} />
             Your data is safe and secure with us
+          </p>
+          <p className="text-center text-white/40 text-xs mt-4">
+            New organization?{" "}
+            <Link to="/register" className="text-[#4db8f0] hover:text-[#7ccbf5]">
+              Register here
+            </Link>
           </p>
         </form>
         </>
