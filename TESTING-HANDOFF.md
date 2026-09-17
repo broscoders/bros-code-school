@@ -166,6 +166,22 @@ full flow, not just that the page loads:
   now be Admin-only.
 - Confirm you can't mark a batch you don't own as Completed/Cancelled.
 
+### 15. Onboarding Wizard (new organizations only, no public signup)
+- As Platform Admin, create a new Organization from Platform →
+  Organizations (unchanged flow) with an admin email/password.
+- Log in as that new School Admin — confirm you land on the **Onboarding
+  Wizard**, not the normal dashboard.
+- Walk through all 5 steps (Organization, Academic Setup, Invite Your
+  Team, Import Data, Review & Activate) — confirm "Skip for now" works on
+  each, and that the academic session/class/invites you do fill in
+  actually show up afterward in Academics/Invitations.
+- Click "Activate" — confirm you land on the normal dashboard, and that
+  logging out and back in goes straight to the dashboard (not the wizard
+  again).
+- Confirm there is **no** public registration page anywhere — `/register`
+  should not exist, and there's no signup link on the Login page. New
+  organizations can only be created by a Platform Admin.
+
 ---
 
 ## Notes for the dev/ops team
