@@ -36,6 +36,11 @@ export default function Login() {
     if (role === "PARENT") navigate("/parent/dashboard");
     else if (role === "STUDENT") navigate("/student/dashboard");
     else if (role === "TEACHER" || role === "ACADEMY_TEACHER") navigate("/teacher/dashboard");
+    // The Onboarding page itself checks /onboarding/status on mount and
+    // immediately forwards to /dashboard if this org already finished
+    // setup - so it's safe to always send a School Admin through here
+    // rather than needing an extra API call in this synchronous handler.
+    else if (role === "SCHOOL_ADMIN") navigate("/onboarding");
     else navigate("/dashboard");
   };
 

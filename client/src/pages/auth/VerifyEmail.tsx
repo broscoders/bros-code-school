@@ -27,7 +27,16 @@ export default function VerifyEmail() {
       if (role === "PARENT") navigate("/parent/dashboard");
       else if (role === "STUDENT") navigate("/student/dashboard");
       else if (role === "TEACHER" || role === "ACADEMY_TEACHER") navigate("/teacher/dashboard");
-      else navigate("/dashboard");
+      else if (role === "SCHOOL_ADMIN") {
+        // A School Admin verifying for the first time is very likely
+        // fresh out of the self-registration flow (RegisterOrganization)
+        // with a brand new, unconfigured organization - send them into
+        // the setup wizard instead of an empty dashboard. An admin
+        // created some other way (invited into an already-set-up school)
+        // just gets bounced straight back to /dashboard by the wizard
+        // itself once it sees onboardingCompleted is already true.
+        navigate("/onboarding");
+      } else navigate("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.message || "Incorrect code, try again");
     } finally {
