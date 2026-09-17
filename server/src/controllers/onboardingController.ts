@@ -1,96 +1,19 @@
-import type { Request, Response } from "express";
-import bcrypt from "bcryptjs";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Organization from "../models/Organization";
 import School from "../models/School";
-import User from "../models/User";
-import { isNonEmptyString } from "../utils/validateStrings";
-import { sendMail, generateSixDigitCode, verificationEmailHtml } from "../utils/mailer";
 
-const CODE_EXPIRY_MS = 15 * 60 * 1000;
+// Blueprint 3 (Onboarding): the guided setup wizard. New organizations
+// are only ever created by a Platform Admin (organizationController.
+// createOrganization) - there is no public self-registration, same as an
+// institution handing out an email/password rather than letting anyone
+// sign up. What follows is what that newly-created SCHOOL_ADMIN sees on
+// their first login.
 
-// Blueprint 3 (Onboarding): Registration -> Verification -> Organization
-// creation -> Main administrator creation, all as one step from the
-// registering person's point of view. Everything after this (branch
-// setup, academic setup, user setup, import, final review) happens
-// inside the app once they've verified their email and logged in - see
-// getOnboardingStatus/completeOnboarding below.
-export const registerOrganization = async (req: Request, res: Response) => {
-  try {
-    const { organizationName, organizationType, ownerName, ownerEmail, ownerPhone, country, city, approxStudents, password } = req.body;
-
-    if (!isNonEmptyString(organizationName) || !isNonEmptyString(ownerName) || !isNonEmptyString(ownerEmail) || !isNonEmptyString(password)) {
-      return res.status(400).json({ message: "Organization name, your name, email and password are required" });
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters" });
-    }
-
-    const normalizedEmail = ownerEmail.toLowerCase().trim();
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-      return res.status(400).json({ message: "An account with this email already exists. Try logging in instead." });
-    }
-
-    const validTypes = ["SCHOOL", "ACADEMY", "COLLEGE", "INSTITUTE", "TRAINING_CENTER", "TUITION_CENTER", "EDUCATION_NETWORK", "OTHER"];
-    const type = validTypes.includes(organizationType) ? organizationType : "SCHOOL";
-
-    const organization = await Organization.create({
-      name: organizationName,
-      type,
-      ownerName,
-      ownerEmail: normalizedEmail,
-      ownerPhone,
-      country,
-      city,
-      approxStudents: approxStudents ? Number(approxStudents) : undefined,
-      status: "PENDING",
-      subscriptionStatus: "TRIAL",
-      onboardingCompleted: false,
-    });
-
-    // The main branch - Blueprint 2/16 treats "branch" as just another
-    // School document under the Organization, so registering creates the
-    // organization's first (main) branch immediately rather than leaving
-    // it in a state with no school for the admin to actually belong to.
-    const school = await School.create({
-      organizationId: organization._id,
-      name: organizationName,
-      contactEmail: normalizedEmail,
-      contactPhone: ownerPhone,
-      isActive: false, // flips true in completeOnboarding, once set up
-    });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const code = generateSixDigitCode();
-    const adminUser = await User.create({
-      name: ownerName,
-      email: normalizedEmail,
-      password: hashedPassword,
-      role: "SCHOOL_ADMIN",
-      schoolId: school._id,
-      isEmailVerified: false,
-      mustChangePassword: false,
-      verificationCode: code,
-      verificationCodeExpires: new Date(Date.now() + CODE_EXPIRY_MS),
-    });
-
-    await sendMail(normalizedEmail, "Verify your email", verificationEmailHtml(ownerName, code), school._id.toString());
-
-    res.status(201).json({
-      message: "Organization registered. Check your email for a verification code to activate your admin account.",
-      email: adminUser.email,
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: (err as Error).message });
-  }
-};
-
-// After verifying email and logging in (the existing /auth/verify-email
-// and /auth/login flows both already work unchanged for this account -
-// nothing onboarding-specific needed there), the client calls this to
-// find out whether to show the setup wizard or go straight to the normal
-// dashboard, and to pre-fill the wizard with what's already known.
+// After logging in for the first time (Login.tsx sends every SCHOOL_ADMIN
+// through /onboarding), the client calls this to find out whether to show
+// the setup wizard or go straight to the normal dashboard, and to
+// pre-fill the wizard with what's already known.
 export const getOnboardingStatus = async (req: AuthRequest, res: Response) => {
   try {
     const school = await School.findById(req.user!.schoolId);

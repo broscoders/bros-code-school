@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
-import RegisterOrganization from "./pages/auth/RegisterOrganization";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ChangePasswordRequired from "./pages/auth/ChangePasswordRequired";
@@ -130,7 +129,6 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<RegisterOrganization />} />
         <Route path="/site/:slug" element={<PublicSite />} />
         <Route path="/platform/login" element={<PlatformLogin />} />
 

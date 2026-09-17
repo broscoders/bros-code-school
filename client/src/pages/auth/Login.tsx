@@ -252,12 +252,6 @@ export default function Login() {
             <ShieldCheck size={13} />
             Your data is safe and secure with us
           </p>
-          <p className="text-center text-white/40 text-xs mt-4">
-            New organization?{" "}
-            <Link to="/register" className="text-[#4db8f0] hover:text-[#7ccbf5]">
-              Register here
-            </Link>
-          </p>
         </form>
         </>
         )}
