@@ -7,6 +7,8 @@ import Assignment from "../models/Assignment";
 import Student from "../models/Student";
 import Parent from "../models/Parent";
 import { notify } from "../utils/notifier";
+import { sendSms, getTwilioCredentials } from "../utils/sms";
+import { sendWhatsAppTemplate, getWhatsAppCredentials } from "../utils/whatsapp";
 import School from "../models/School";
 
 type NotifyCategory = "ACADEMIC" | "FINANCE" | "ATTENDANCE" | "ADMISSION" | "SYSTEM" | "COMMUNICATION";
@@ -70,8 +72,23 @@ export const runRemindersForSchool = async (schoolId: any) => {
     const notifyParentOfStudent = async (studentId: any, title: string, message: string, category: NotifyCategory) => {
       const parent = await Parent.findOne({ children: studentId }).populate("userId");
       if (parent && (parent.userId as any)?._id) {
-        await notify({ schoolId, userId: (parent.userId as any)._id.toString(), title, message, category });
+        const parentUser = parent.userId as any;
+        await notify({ schoolId, userId: parentUser._id.toString(), title, message, category });
         sent++;
+
+        // Blueprint 25/70: mirror the in-app notification out to
+        // SMS/WhatsApp when the school has them configured and this
+        // parent has a phone number on file - best-effort, never blocks
+        // or fails the in-app notification above if either channel isn't
+        // set up or the send fails.
+        if (parentUser.phone) {
+          if (getTwilioCredentials()) {
+            sendSms(parentUser.phone, `${title}: ${message}`, schoolId).catch(() => {});
+          }
+          if (getWhatsAppCredentials() && process.env.WHATSAPP_TEMPLATE_NAME) {
+            sendWhatsAppTemplate(parentUser.phone, process.env.WHATSAPP_TEMPLATE_NAME, "en", [title, message], schoolId).catch(() => {});
+          }
+        }
       }
     };
 
