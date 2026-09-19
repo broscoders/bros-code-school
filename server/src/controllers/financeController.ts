@@ -5,7 +5,135 @@ import Refund from "../models/Refund";
 import Invoice from "../models/Invoice";
 import Expense from "../models/Expense";
 import User from "../models/User";
+import JazzCashTransaction from "../models/JazzCashTransaction";
 import { logAudit } from "../utils/auditLogger";
+import { canAccessStudent } from "../utils/accessControl";
+import { callJazzCashMWallet, generateTxnRefNo, getJazzCashCredentials } from "../utils/jazzcash";
+
+// Blueprint 36/85: online fee payment via JazzCash mobile wallet. Unlike
+// the plain payInvoice (staff-recorded, offline payments), this one IS
+// safe for a parent to call directly - the money only actually moves
+// (and only gets applied to the invoice) once JazzCash's own signed
+// response confirms success, not from anything the client claims.
+export const initiateJazzCashPayment = async (req: AuthRequest, res: Response) => {
+  try {
+    if (!getJazzCashCredentials()) {
+      return res.status(503).json({ message: "Online payment is not configured for this school yet. Please pay through the school office." });
+    }
+
+    const invoice = await Invoice.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!invoice) return res.status(404).json({ message: "Invoice not found" });
+
+    const allowed = await canAccessStudent(req, invoice.studentId.toString());
+    if (!allowed) return res.status(403).json({ message: "You do not have access to this student's invoice" });
+
+    const remaining = invoice.amount - (invoice.paidAmount || 0);
+    if (remaining <= 0) return res.status(400).json({ message: "This invoice is already fully paid" });
+
+    const amount = Math.min(Number(req.body.amount) || remaining, remaining);
+    if (amount <= 0) return res.status(400).json({ message: "Payment amount must be greater than zero" });
+
+    const mobileNumber = (req.body.mobileNumber || "").replace(/\D/g, "");
+    if (!/^03\d{9}$/.test(mobileNumber)) {
+      return res.status(400).json({ message: "Enter a valid JazzCash-registered mobile number (e.g. 03xxxxxxxxx)" });
+    }
+
+    const txnRefNo = generateTxnRefNo();
+    const transaction = await JazzCashTransaction.create({
+      schoolId: req.user!.schoolId,
+      invoiceId: invoice._id,
+      studentId: invoice.studentId,
+      initiatedByUserId: req.user!.userId,
+      txnRefNo,
+      amount,
+      mobileNumber,
+      status: "INITIATED",
+    });
+
+    let apiResponse;
+    try {
+      apiResponse = await callJazzCashMWallet({
+        txnRefNo,
+        amountInPaisa: Math.round(amount * 100),
+        mobileNumber,
+        description: `Fee payment - Invoice ${invoice._id.toString().slice(-8)}`,
+      });
+    } catch (apiErr) {
+      transaction.status = "FAILED";
+      transaction.responseMessage = (apiErr as Error).message;
+      await transaction.save();
+      return res.status(502).json({ message: "Could not reach JazzCash. Please try again shortly." });
+    }
+
+    transaction.responseCode = apiResponse.pp_ResponseCode;
+    transaction.responseMessage = apiResponse.pp_ResponseMessage;
+    transaction.jazzcashTxnId = apiResponse.pp_RetreivalReferenceNo as string | undefined;
+    transaction.rawResponse = JSON.stringify(apiResponse);
+
+    // "000" is JazzCash's documented success code. Anything indicating the
+    // customer needs to approve on their phone is left PENDING for a
+    // status-check poll; everything else is treated as failed.
+    if (apiResponse.pp_ResponseCode === "000") {
+      transaction.status = "SUCCESS";
+      await transaction.save();
+
+      // Same atomic $inc pattern as payInvoice - see the comment there for
+      // why this can't be a read-then-write.
+      const updatedInvoice = await Invoice.findOneAndUpdate(
+        { _id: invoice._id, schoolId: req.user!.schoolId },
+        { $inc: { paidAmount: amount }, $set: { paidDate: new Date() } },
+        { new: true }
+      );
+      if (updatedInvoice) {
+        const newStatus = (updatedInvoice.paidAmount || 0) >= updatedInvoice.amount ? "PAID" : "PARTIAL";
+        if (updatedInvoice.status !== newStatus) {
+          updatedInvoice.status = newStatus;
+          await updatedInvoice.save();
+        }
+        await logAudit({
+          schoolId: req.user!.schoolId,
+          userId: req.user!.userId,
+          userName: (req.body.paidByName as string) || "Parent",
+          userRole: req.user!.role,
+          action: "Paid invoice via JazzCash",
+          recordType: "Invoice",
+          recordId: updatedInvoice._id.toString(),
+          newValue: { status: updatedInvoice.status, paidAmount: updatedInvoice.paidAmount, amount, txnRefNo },
+        });
+      }
+
+      return res.json({ status: "SUCCESS", message: "Payment successful", invoice: updatedInvoice, txnRefNo });
+    }
+
+    const pendingCodes = ["124", "125"]; // JazzCash: transaction pending / awaiting customer confirmation
+    transaction.status = pendingCodes.includes(apiResponse.pp_ResponseCode || "") ? "PENDING" : "FAILED";
+    await transaction.save();
+
+    res.json({
+      status: transaction.status,
+      message: apiResponse.pp_ResponseMessage || "Payment could not be completed",
+      txnRefNo,
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Poll this after a PENDING result - e.g. the customer had to approve the
+// charge on their phone and the parent's browser is waiting to hear back.
+export const getJazzCashTransactionStatus = async (req: AuthRequest, res: Response) => {
+  try {
+    const transaction = await JazzCashTransaction.findOne({ txnRefNo: req.params.txnRefNo, schoolId: req.user!.schoolId });
+    if (!transaction) return res.status(404).json({ message: "Transaction not found" });
+
+    const allowed = await canAccessStudent(req, transaction.studentId.toString());
+    if (!allowed) return res.status(403).json({ message: "Not authorized" });
+
+    res.json({ status: transaction.status, amount: transaction.amount, responseMessage: transaction.responseMessage });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
 
 export const createDiscount = async (req: AuthRequest, res: Response) => {
   try {
