@@ -182,6 +182,30 @@ full flow, not just that the page loads:
   should not exist, and there's no signup link on the Login page. New
   organizations can only be created by a Platform Admin.
 
+### 16. Phone numbers + My Profile
+- Create a new Student/Teacher/Parent/Staff account — confirm the form
+  has an optional Phone field and it saves correctly.
+- Log in as any existing account (created before this change, so it has
+  no phone on file) → open "My Profile" from the sidebar → add a phone
+  number → confirm it saves.
+
+### 17. JazzCash payment (needs real sandbox credentials — see JAZZCASH-SETUP.md)
+- Before JazzCash credentials are set: as a Parent, click "Pay via
+  JazzCash" on an unpaid invoice — confirm it shows a clear "not
+  configured yet, pay through the office" message rather than an error
+  page or crash.
+- Once sandbox credentials are set: test a full payment with a JazzCash
+  sandbox test account and confirm the invoice status updates correctly
+  afterward.
+
+### 18. SMS / WhatsApp (needs real credentials — see MESSAGING-SETUP.md)
+- Before credentials are set: trigger the Fee Overdue automation and
+  confirm it doesn't error out — it should just log a "not configured"
+  entry in Communication Log for SMS/WhatsApp while the in-app
+  notification still goes through normally.
+- Once credentials are set and a parent has a phone number on file:
+  trigger the same automation and confirm SMS/WhatsApp actually arrive.
+
 ---
 
 ## Notes for the dev/ops team
