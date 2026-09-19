@@ -5,6 +5,7 @@ import { LayoutDashboard, CalendarCheck, ClipboardCheck, FileText, Award, Megaph
 import AIChatWidget from "../components/AIChatWidget";
 import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
+import MyProfileButton from "../components/MyProfileButton";
 import TwoFactorButton from "../components/TwoFactorButton";
 
 const navItems = [
@@ -68,6 +69,7 @@ export default function StudentLayout() {
         </nav>
         <div className="p-3 border-t border-border">
           <p className="px-3 text-xs text-muted mb-2">{user?.name}</p>
+          <MyProfileButton />
           <ActiveSessionsButton />
           <TwoFactorButton />
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted hover:bg-white/5 hover:text-ink w-full">

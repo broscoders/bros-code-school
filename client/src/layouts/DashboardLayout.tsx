@@ -15,6 +15,7 @@ import NotificationBell from "../components/NotificationBell";
 import GlobalSearch from "../components/GlobalSearch";
 import ThemeToggle from "../components/ThemeToggle";
 import ActiveSessionsButton from "../components/ActiveSessionsButton";
+import MyProfileButton from "../components/MyProfileButton";
 import TwoFactorButton from "../components/TwoFactorButton";
 
 type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; roles?: string[] };
@@ -293,6 +294,7 @@ export default function DashboardLayout() {
           )}
         </nav>
         <div className="p-3 border-t border-border space-y-1">
+          <MyProfileButton />
           <ActiveSessionsButton />
           <TwoFactorButton />
           <button

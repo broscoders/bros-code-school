@@ -42,7 +42,7 @@ async function issueSessionToken(req: Request, userId: string, role: string, sch
 
 export const registerUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
     const schoolId = req.user!.schoolId;
 
     if (!name || !email || !password || !role) {
@@ -70,6 +70,7 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
     const user = await User.create({
       name,
       email,
+      phone,
       password: hashedPassword,
       role,
       schoolId,
@@ -654,6 +655,38 @@ export const verifyTwoFactorLogin = async (req: Request, res: Response) => {
       },
       token,
     });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+// Blueprint 23/70: a phone number is what actually makes SMS/WhatsApp
+// notifications reachable, but nothing in the app ever asked for one -
+// this lets any existing account add or fix their own, not just newly
+// created ones going through registerUser.
+export const getMyProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const user = await User.findById(req.user!.userId).select("name email phone role schoolId twoFactorEnabled");
+    if (!user) return res.status(404).json({ message: "Account not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const updateMyProfile = async (req: AuthRequest, res: Response) => {
+  try {
+    const { phone } = req.body;
+    // Deliberately narrow: name/email/role changes go through an admin
+    // (People screens, Roles & Permissions) with an audit trail, not a
+    // bare self-service PATCH - phone is the one field where letting
+    // someone fix their own contact info directly is clearly safe and
+    // useful.
+    if (phone !== undefined && phone !== null && phone !== "" && !/^\+?[0-9\s-]{7,20}$/.test(phone)) {
+      return res.status(400).json({ message: "Enter a valid phone number" });
+    }
+    const user = await User.findByIdAndUpdate(req.user!.userId, { phone }, { new: true }).select("name email phone role");
+    if (!user) return res.status(404).json({ message: "Account not found" });
+    res.json(user);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

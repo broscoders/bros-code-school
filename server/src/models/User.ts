@@ -21,6 +21,7 @@ export type UserRole =
 export interface IUser extends Document {
   name: string;
   email: string;
+  phone?: string;
   password: string;
   role: UserRole;
   schoolId: mongoose.Types.ObjectId;
@@ -46,6 +47,10 @@ const userSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    // Blueprint 23/70: needed to actually send SMS/WhatsApp notifications
+    // and now collected on the Student/Teacher/Parent/Staff creation
+    // forms, plus self-service editable via My Profile.
+    phone: { type: String },
     password: { type: String, required: true },
     role: {
       type: String,
