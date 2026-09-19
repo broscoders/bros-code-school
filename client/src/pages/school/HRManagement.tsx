@@ -9,7 +9,7 @@ export default function HRManagement() {
   const [departments, setDepartments] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [deptForm, setDeptForm] = useState({ name: "" });
-  const [staffForm, setStaffForm] = useState({ name: "", email: "", password: "", role: "RECEPTIONIST", employeeId: "", departmentId: "", designation: "", basicSalary: "" });
+  const [staffForm, setStaffForm] = useState({ name: "", email: "", phone: "", password: "", role: "RECEPTIONIST", employeeId: "", departmentId: "", designation: "", basicSalary: "" });
   const [error, setError] = useState("");
   const [managingStaff, setManagingStaff] = useState<any>(null);
   const [statusForm, setStatusForm] = useState({ employmentStatus: "ACTIVE", reason: "" });
@@ -53,6 +53,7 @@ export default function HRManagement() {
       const userRes = await api.post("/auth/register", {
         name: staffForm.name,
         email: staffForm.email,
+        phone: staffForm.phone,
         password: staffForm.password,
         role: staffForm.role,
         schoolId,
@@ -65,7 +66,7 @@ export default function HRManagement() {
         designation: staffForm.designation,
         basicSalary: Number(staffForm.basicSalary),
       });
-      setStaffForm({ name: "", email: "", password: "", role: "RECEPTIONIST", employeeId: "", departmentId: "", designation: "", basicSalary: "" });
+      setStaffForm({ name: "", email: "", phone: "", password: "", role: "RECEPTIONIST", employeeId: "", departmentId: "", designation: "", basicSalary: "" });
       load();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add staff");
@@ -99,6 +100,7 @@ export default function HRManagement() {
             {error && <p className="text-danger text-xs">{error}</p>}
             <input placeholder="Full Name" value={staffForm.name} onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <input placeholder="Email" type="email" value={staffForm.email} onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
+            <input placeholder="Phone (optional)" value={staffForm.phone} onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" />
             <input placeholder="Password" type="password" value={staffForm.password} onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required />
             <select value={staffForm.role} onChange={(e) => setStaffForm({ ...staffForm, role: e.target.value })} className="w-full border border-border rounded-lg px-3 py-2 text-sm" required>
               <option value="RECEPTIONIST">Receptionist</option>

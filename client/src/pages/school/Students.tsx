@@ -26,7 +26,7 @@ export default function Students() {
   const [sections, setSections] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showPromoteModal, setShowPromoteModal] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [importMsg, setImportMsg] = useState("");
@@ -86,6 +86,7 @@ export default function Students() {
       const userRes = await api.post("/auth/register", {
         name: form.name,
         email: form.email,
+        phone: form.phone,
         password: form.password,
         role: "STUDENT",
         schoolId,
@@ -111,7 +112,7 @@ export default function Students() {
         return;
       }
       setShowForm(false);
-      setForm({ name: "", email: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
+      setForm({ name: "", email: "", phone: "", password: "", admissionNumber: "", classId: "", sectionId: "" });
       loadStudents();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add student");
@@ -264,6 +265,7 @@ export default function Students() {
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
           <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Phone (optional)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
           <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <input placeholder="Admission Number" value={form.admissionNumber} onChange={(e) => setForm({ ...form, admissionNumber: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: "" })} className="border border-border rounded-lg px-3 py-2 text-sm" required>

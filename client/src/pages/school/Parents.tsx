@@ -9,7 +9,7 @@ export default function Parents() {
   const [parents, setParents] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", email: "", password: "", relationship: "Father", childrenIds: [] as string[] });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", relationship: "Father", childrenIds: [] as string[] });
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -43,6 +43,7 @@ export default function Parents() {
         const userRes = await api.post("/auth/register", {
           name: form.name,
           email: form.email,
+          phone: form.phone,
           password: form.password,
           role: "PARENT",
           schoolId,
@@ -74,7 +75,7 @@ export default function Parents() {
         children: form.childrenIds,
       });
       setShowForm(false);
-      setForm({ name: "", email: "", password: "", relationship: "Father", childrenIds: [] });
+      setForm({ name: "", email: "", phone: "", password: "", relationship: "Father", childrenIds: [] });
       loadParents();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add parent");
@@ -111,6 +112,7 @@ export default function Parents() {
           {error && <p className="text-danger text-sm col-span-2">{error}</p>}
           <input placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <input placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
+          <input placeholder="Phone (for SMS/WhatsApp alerts)" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" />
           <input placeholder="Password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
           <select value={form.relationship} onChange={(e) => setForm({ ...form, relationship: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm">
             <option value="Father">Father</option>

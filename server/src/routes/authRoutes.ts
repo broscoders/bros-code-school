@@ -16,6 +16,8 @@ import {
   verifyTwoFactorSetup,
   disableTwoFactor,
   verifyTwoFactorLogin,
+  getMyProfile,
+  updateMyProfile,
 } from "../controllers/authController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { loginLimiter, emailActionLimiter } from "../middleware/rateLimiters";
@@ -29,6 +31,8 @@ router.post("/resend-verification", emailActionLimiter, resendVerificationCode);
 router.post("/forgot-password", emailActionLimiter, forgotPassword);
 router.post("/reset-password", emailActionLimiter, resetPassword);
 router.put("/change-password", protect, changePassword);
+router.get("/me", protect, getMyProfile);
+router.put("/me", protect, updateMyProfile);
 router.post("/logout", protect, logout);
 router.get("/sessions", protect, getMySessions);
 router.post("/sessions/:id/revoke", protect, revokeSession);
