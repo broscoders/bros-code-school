@@ -75,7 +75,7 @@ export default function Fees() {
   const totalCollected = invoices.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Finance</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -87,7 +87,7 @@ export default function Fees() {
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
         <h2 className="font-display font-semibold text-ink mb-3">Create Invoice</h2>
-        <form onSubmit={addInvoice} className="grid grid-cols-2 gap-3">
+        <form onSubmit={addInvoice} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="col-span-2" required>
             <option value="">Select Student</option>
             {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
@@ -123,7 +123,8 @@ export default function Fees() {
 
         {msg && <p className="text-danger text-sm mb-3">{msg}</p>}
 
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="text-left text-muted border-b border-border">
             <tr>
               <th className="p-2 font-medium">Type</th>
@@ -187,7 +188,8 @@ export default function Fees() {
               })
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

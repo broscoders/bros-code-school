@@ -90,7 +90,7 @@ export default function Timetable() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Academics</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1">Timetable</h1>

@@ -21,7 +21,7 @@ export default function PlatformDashboard() {
     : [];
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <p className="text-xs uppercase tracking-wider text-warning font-semibold">Platform</p>
       <h1 className="text-2xl font-bold text-white mt-1">Overview</h1>
       <p className="text-muted mt-1 text-sm">Cross-organization platform statistics.</p>
@@ -38,7 +38,8 @@ export default function PlatformDashboard() {
       {stats?.recentOrganizations?.length > 0 && (
         <div className="bg-surface border border-slate-800 rounded-xl mt-6 overflow-hidden">
           <p className="text-white text-sm font-semibold p-4 border-b border-slate-800">Recently Registered</p>
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
             <tbody>
               {stats.recentOrganizations.map((org: any) => (
                 <tr key={org._id} className="border-t border-slate-800">
@@ -49,7 +50,8 @@ export default function PlatformDashboard() {
                 </tr>
               ))}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
     </div>

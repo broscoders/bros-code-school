@@ -26,7 +26,7 @@ export default function ParentDashboard() {
   const selectedChild = children.find((c) => c._id === selectedChildId);
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Overview</p>
         <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Good day, {user?.name}</h1>

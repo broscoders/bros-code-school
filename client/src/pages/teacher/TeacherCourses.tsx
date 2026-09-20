@@ -79,7 +79,7 @@ export default function TeacherCourses() {
 
   if (activeCourse) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <button onClick={() => setActiveCourse(null)} className="text-primary text-sm underline mb-4">&larr; Back to Courses</button>
         <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
 
@@ -138,7 +138,7 @@ export default function TeacherCourses() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-center border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">Learning</p>

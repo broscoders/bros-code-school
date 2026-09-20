@@ -87,7 +87,7 @@ export default function StudentCourses() {
     const completedCount = lessons.filter((l: any) => l.myStatus === "COMPLETED").length;
     const pct = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0;
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <button onClick={() => setActiveCourse(null)} className="text-primary text-sm underline mb-4">&larr; Back to Courses</button>
         <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
         {certToast && <p className="text-sm text-success bg-success-soft border border-success/30 rounded-lg px-3 py-2 mt-3">{certToast}</p>}
@@ -119,7 +119,7 @@ export default function StudentCourses() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Learning</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><BookOpen size={22} className="text-primary" />My Courses</h1>

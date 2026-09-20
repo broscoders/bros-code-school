@@ -68,7 +68,7 @@ export default function PlatformOrganizations() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-center">
         <div>
           <p className="text-xs uppercase tracking-wider text-warning font-semibold">Platform</p>
@@ -103,7 +103,8 @@ export default function PlatformOrganizations() {
       )}
 
       <div className="bg-surface border border-slate-800 rounded-xl mt-4 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-muted text-xs">
               <th className="p-3 font-medium">Name</th>
@@ -139,7 +140,8 @@ export default function PlatformOrganizations() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {planModalOrg && (

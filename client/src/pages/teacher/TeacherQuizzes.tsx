@@ -86,7 +86,7 @@ export default function TeacherQuizzes() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-center border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">Assessment</p>
@@ -166,7 +166,8 @@ export default function TeacherQuizzes() {
       )}
 
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
               <th className="p-3 font-medium">Title</th>
@@ -196,7 +197,8 @@ export default function TeacherQuizzes() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {viewingResults && (

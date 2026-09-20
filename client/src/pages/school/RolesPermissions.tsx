@@ -39,7 +39,7 @@ export default function RolesPermissions() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Access Control</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Lock size={22} className="text-primary" />Roles &amp; Permissions</h1>
@@ -58,7 +58,8 @@ export default function RolesPermissions() {
               <h2 className="font-display font-semibold text-ink">{perm.roleName}</h2>
               {perm.isCustom && <span className="text-[10px] uppercase text-accent bg-accent-soft px-2 py-0.5 rounded-full font-semibold">Custom</span>}
             </div>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
               <thead className="bg-canvas text-ink text-left">
                 <tr>
                   <th className="p-2 font-medium">Module</th>
@@ -79,7 +80,8 @@ export default function RolesPermissions() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         ))}
       </div>

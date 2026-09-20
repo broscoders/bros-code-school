@@ -92,14 +92,14 @@ export default function Academy() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Academy</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />Academy Management</h1>
         <p className="text-muted mt-1 text-sm">Configure academy programs, batches and notes store.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-primary-dark mb-3">Academy Programs</h2>
           <form onSubmit={addProgram} className="space-y-2 mb-4">
@@ -166,7 +166,7 @@ export default function Academy() {
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6">
         <h2 className="font-display font-semibold text-primary-dark mb-3">Digital Notes Store</h2>
-        <form onSubmit={addProduct} className="grid grid-cols-2 gap-3 mb-4">
+        <form onSubmit={addProduct} className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           <input placeholder="Title" value={productForm.title} onChange={(e) => setProductForm({ ...productForm, title: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required />
           <input placeholder="Subject" value={productForm.subjectName} onChange={(e) => setProductForm({ ...productForm, subjectName: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
           <input placeholder="Class" value={productForm.className} onChange={(e) => setProductForm({ ...productForm, className: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />

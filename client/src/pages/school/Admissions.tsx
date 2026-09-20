@@ -75,7 +75,7 @@ export default function Admissions() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Enrollment</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -85,7 +85,7 @@ export default function Admissions() {
         <p className="text-muted mt-1 text-sm">Manage the admission pipeline from application to enrollment.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input placeholder="Applicant Name" value={form.applicantName} onChange={(e) => setForm({ ...form, applicantName: e.target.value })} required />
         <input placeholder="Parent Name" value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} required />
         <input placeholder="Parent Contact" value={form.parentContact} onChange={(e) => setForm({ ...form, parentContact: e.target.value })} required />
@@ -100,7 +100,8 @@ export default function Admissions() {
       </form>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-white/5 text-ink-soft text-left">
             <tr>
               <th className="p-3 font-medium">Applicant</th>
@@ -151,7 +152,8 @@ export default function Admissions() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {convertingId && (

@@ -73,7 +73,7 @@ export default function Operations() {
   ] as const;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Operations</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Settings2 size={22} className="text-primary" />School Operations</h1>
@@ -95,7 +95,7 @@ export default function Operations() {
       </div>
 
       {tab === "library" && (
-        <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
           <form onSubmit={addBook} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Add Book</h2>
             <input placeholder="Title" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
@@ -120,7 +120,7 @@ export default function Operations() {
       )}
 
       {tab === "transport" && (
-        <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
           <form onSubmit={addVehicle} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Add Vehicle</h2>
             <input placeholder="Vehicle Number" value={vehicleForm.vehicleNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, vehicleNumber: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
@@ -145,7 +145,7 @@ export default function Operations() {
       )}
 
       {tab === "complaints" && (
-        <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
           <form onSubmit={addComplaint} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Raise Complaint</h2>
             <select value={complaintForm.category} onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm">
@@ -176,7 +176,7 @@ export default function Operations() {
       )}
 
       {tab === "events" && (
-        <div className="grid grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
           <form onSubmit={addEvent} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
             <h2 className="font-display font-semibold text-primary-dark mb-1">Add Event</h2>
             <input placeholder="Title" value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />

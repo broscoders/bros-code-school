@@ -23,13 +23,14 @@ export default function TeacherAcademy() {
 
   if (activeBatch) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <button onClick={() => setActiveBatch(null)} className="text-primary text-sm underline mb-4">- Back to Batches</button>
         <h1 className="font-display text-xl font-bold text-primary-dark">{activeBatch.name}</h1>
         <p className="text-muted text-sm mt-1">{activeBatch.programId?.name} - {activeBatch.days?.join(", ")} - {activeBatch.startTime}-{activeBatch.endTime}</p>
 
         <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
             <thead className="bg-primary/5 text-primary-dark text-left">
               <tr>
                 <th className="p-3 font-medium">Admission #</th>
@@ -50,14 +51,15 @@ export default function TeacherAcademy() {
                 ))
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Academy</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Boxes size={22} className="text-primary" />My Academy Batches</h1>

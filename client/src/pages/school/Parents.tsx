@@ -89,7 +89,7 @@ export default function Parents() {
   const unlinkedCount = totalCount - linkedCount;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-end gap-4 border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">People</p>
@@ -138,7 +138,8 @@ export default function Parents() {
       )}
 
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
               <th className="p-3 font-medium">Name</th>
@@ -161,7 +162,8 @@ export default function Parents() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

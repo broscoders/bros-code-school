@@ -49,7 +49,7 @@ export default function Documents() {
   const isExpired = (date: string) => new Date(date) < new Date();
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-center border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">Records</p>
@@ -73,7 +73,7 @@ export default function Documents() {
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">
+        <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2">
             {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -95,7 +95,8 @@ export default function Documents() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
               <th className="p-3 font-medium">Title</th>
@@ -130,7 +131,8 @@ export default function Documents() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );
