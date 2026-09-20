@@ -27,7 +27,7 @@ export default function PlatformLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-950">
+    <div className="h-screen flex bg-slate-950 overflow-hidden">
       {mobileOpen && <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-60 bg-slate-900 border-r border-slate-800 flex flex-col transform transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
@@ -37,7 +37,7 @@ export default function PlatformLayout() {
           </div>
           <button onClick={() => setMobileOpen(false)} className="lg:hidden text-slate-400 hover:text-white"><X size={20} /></button>
         </div>
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}

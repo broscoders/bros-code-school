@@ -46,7 +46,7 @@ export default function ParentLayout() {
   };
 
   return (
-    <div className="flex min-h-screen bg-canvas">
+    <div className="flex h-screen bg-canvas overflow-hidden">
       {mobileOpen && <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-5 flex items-center justify-between gap-3 border-b border-border">
