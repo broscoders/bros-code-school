@@ -42,7 +42,7 @@ export default function Achievements() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Student Life</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -61,7 +61,7 @@ export default function Achievements() {
 
       {selectedStudent && (
         <>
-          <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mb-6 grid grid-cols-2 gap-3">
+          <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input placeholder="Title (e.g. Science Fair Winner)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required />
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm">
               <option value="ACADEMIC">Academic</option>

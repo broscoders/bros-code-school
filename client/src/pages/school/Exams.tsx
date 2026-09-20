@@ -82,7 +82,7 @@ export default function Exams() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Academics</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -92,7 +92,7 @@ export default function Exams() {
         <p className="text-muted mt-1 text-sm">Schedule exams and record student results.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Schedule Exam</h2>
           <form onSubmit={createExam} className="space-y-2">

@@ -50,14 +50,14 @@ export default function Payroll() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">HR / Finance</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Wallet size={22} className="text-primary" />Payroll</h1>
         <p className="text-muted mt-1 text-sm">Generate and track staff salary payments.</p>
       </div>
 
-      <form onSubmit={generate} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-3 gap-3">
+      <form onSubmit={generate} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="col-span-3">
           <label className="block text-xs text-muted mb-1">Staff Member</label>
           <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="w-full" required>
@@ -90,7 +90,8 @@ export default function Payroll() {
       </form>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
               <th className="p-3 font-medium">Staff</th>
@@ -119,12 +120,13 @@ export default function Payroll() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       <div className="border-t border-border mt-8 pt-6">
         <h2 className="font-display font-semibold text-ink mb-3">Staff Loans / Advances</h2>
-        <form onSubmit={requestLoan} className="bg-surface rounded-xl border border-border shadow-sm p-5 grid grid-cols-4 gap-3">
+        <form onSubmit={requestLoan} className="bg-surface rounded-xl border border-border shadow-sm p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <select value={loanForm.staffId} onChange={(e) => setLoanForm({ ...loanForm, staffId: e.target.value })} className="w-full" required>
             <option value="">Select Staff</option>
             {staff.map((s) => <option key={s._id} value={s._id}>{s.userId?.name}</option>)}
@@ -136,7 +138,8 @@ export default function Payroll() {
         </form>
 
         <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-4">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
             <thead className="bg-canvas text-ink text-left">
               <tr><th className="p-3 font-medium">Staff</th><th className="p-3 font-medium">Amount</th><th className="p-3 font-medium">Remaining</th><th className="p-3 font-medium">Status</th><th className="p-3 font-medium">Action</th></tr>
             </thead>
@@ -164,7 +167,8 @@ export default function Payroll() {
                 ))
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       </div>
     </div>

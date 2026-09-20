@@ -43,7 +43,7 @@ export default function Surveys() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Feedback</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><MessageSquareText size={22} className="text-primary" />Surveys &amp; Feedback</h1>
@@ -64,7 +64,7 @@ export default function Surveys() {
         <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium block hover:bg-primary-light transition-colors">Create Survey</button>
       </form>
 
-      <div className="grid grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-4">
           <h2 className="font-display font-semibold text-primary-dark mb-3 text-sm">Active Surveys</h2>
           <ul className="text-sm divide-y divide-black/5">

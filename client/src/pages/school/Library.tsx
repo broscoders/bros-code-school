@@ -47,7 +47,7 @@ export default function Library() {
   const issuedBooks = totalBooks - availableBooks;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Operations</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -100,7 +100,8 @@ export default function Library() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-white/5 text-ink-soft text-left">
             <tr>
               <th className="p-3 font-medium">Title</th>
@@ -123,7 +124,8 @@ export default function Library() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

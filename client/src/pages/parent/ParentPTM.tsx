@@ -39,7 +39,7 @@ export default function ParentPTM() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Meetings</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -52,7 +52,8 @@ export default function ParentPTM() {
       {msg && <p className="text-danger text-sm mt-3">{msg}</p>}
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-4">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-white/5 text-ink-soft text-left">
             <tr><th className="p-3 font-medium">Teacher</th><th className="p-3 font-medium">Date</th><th className="p-3 font-medium">Time</th><th className="p-3"></th></tr>
           </thead>
@@ -72,7 +73,8 @@ export default function ParentPTM() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

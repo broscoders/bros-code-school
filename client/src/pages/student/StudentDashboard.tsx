@@ -6,7 +6,7 @@ export default function StudentDashboard() {
   const student = useMyStudentRecord();
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Overview</p>
         <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Hey, {user?.name}</h1>

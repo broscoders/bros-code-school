@@ -52,14 +52,14 @@ export default function Visitors() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Front Desk</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><UserCheck size={22} className="text-primary" />Visitor Management</h1>
         <p className="text-muted mt-1 text-sm">Register and track visitors entering the school.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input placeholder="Visitor Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
         <input placeholder="Contact" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
         <input placeholder="Purpose of Visit" value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />
@@ -68,7 +68,8 @@ export default function Visitors() {
       </form>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-canvas text-ink text-left">
             <tr>
               <th className="p-3 font-medium">Name</th>
@@ -102,7 +103,8 @@ export default function Visitors() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

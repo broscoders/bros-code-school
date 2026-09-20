@@ -74,7 +74,7 @@ export default function Accounting() {
   ] as const;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Finance</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1">Accounting</h1>
@@ -90,7 +90,7 @@ export default function Accounting() {
       </div>
 
       {tab === "overview" && summary && (
-        <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
           <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Collected</p>
             <p className="text-xl font-display font-bold text-success mt-1">Rs. {summary.totalCollected}</p>

@@ -67,7 +67,7 @@ export default function Reports() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Insights</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1">Reports & Analytics</h1>
@@ -75,7 +75,7 @@ export default function Reports() {
       </div>
 
       {summary && (
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Total Students</p>
             <p className="text-2xl font-display font-bold text-ink mt-1">{summary.totalStudents}</p>

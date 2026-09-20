@@ -37,14 +37,14 @@ export default function CRM() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Admissions</p>
         <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leads & Inquiries</h1>
         <p className="text-muted mt-1 text-sm">Track inquiries from first contact to admission.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-2 gap-3">
+      <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
         <input placeholder="Contact (phone/email)" value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
         <input placeholder="Source (e.g. Facebook, Walk-in)" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" />
@@ -53,7 +53,8 @@ export default function CRM() {
       </form>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
               <th className="p-3 font-medium">Name</th>
@@ -90,7 +91,8 @@ export default function CRM() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

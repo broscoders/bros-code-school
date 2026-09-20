@@ -22,7 +22,7 @@ export default function LeaveRequests() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Requests</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileWarning size={22} className="text-primary" />Leave Requests</h1>
@@ -30,7 +30,8 @@ export default function LeaveRequests() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr><th className="p-3 font-medium">Type</th><th className="p-3 font-medium">Date</th><th className="p-3 font-medium">Reason</th><th className="p-3 font-medium">Status</th><th className="p-3 font-medium">Action</th></tr>
           </thead>
@@ -60,7 +61,8 @@ export default function LeaveRequests() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

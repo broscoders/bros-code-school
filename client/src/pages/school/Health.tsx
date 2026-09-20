@@ -66,14 +66,14 @@ export default function Health() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Wellbeing</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1">Health & Medical Records</h1>
         <p className="text-muted mt-1 text-sm">Manage student health profiles and incidents. Access is restricted to authorized staff.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
           <h2 className="font-display font-semibold text-ink mb-3">Health Profile</h2>
           {msg && <p className="text-success text-sm mb-2">{msg}</p>}

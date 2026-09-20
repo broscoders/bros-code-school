@@ -58,7 +58,7 @@ export default function Automation() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-center border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">System</p>

@@ -149,7 +149,7 @@ export default function Teachers() {
   const exitedCount = teachers.filter((t: any) => ["RESIGNED", "TERMINATED", "TRANSFERRED"].includes(t.employmentStatus)).length;
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="flex justify-between items-end gap-4 border-b border-border pb-5 mb-6">
         <div>
           <p className="section-label">People</p>
@@ -231,7 +231,8 @@ export default function Teachers() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
           <thead className="bg-primary/5 text-primary-dark text-left">
             <tr>
               <th className="p-3 font-medium">Employee ID</th>
@@ -262,7 +263,8 @@ export default function Teachers() {
               ))
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {managingTeacher && (

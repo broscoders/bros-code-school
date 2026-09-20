@@ -37,7 +37,7 @@ export default function IDCards() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Identification</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><IdCard size={22} className="text-primary" />ID Card Generator</h1>
@@ -48,7 +48,7 @@ export default function IDCards() {
         <button onClick={() => setTab("teachers")} className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px ${tab === "teachers" ? "border-primary text-ink" : "border-transparent text-muted"}`}>Teachers</button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         {tab === "students" && students.map((s) => (
           <div key={s._id}>
             <div id={`card-${s._id}`} className="bg-gradient-to-br from-primary to-primary-dark text-white rounded-xl p-4 w-64 shadow-md">

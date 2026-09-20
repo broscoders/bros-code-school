@@ -47,7 +47,7 @@ export default function Canteen() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
         <p className="section-label">Operations</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2">
@@ -64,7 +64,8 @@ export default function Canteen() {
 
       {tab === "orders" && (
         <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
             <thead className="bg-canvas text-ink text-left">
               <tr><th className="p-3 font-medium">Student</th><th className="p-3 font-medium">Items</th><th className="p-3 font-medium">Total</th><th className="p-3 font-medium">Status</th><th className="p-3 font-medium">Action</th></tr>
             </thead>
@@ -89,7 +90,8 @@ export default function Canteen() {
                 ))
               )}
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
       )}
 
