@@ -185,7 +185,7 @@ export default function DashboardLayout() {
     navGroups.flatMap((g) => g.items).find((item) => location.pathname.startsWith(item.to))?.label ?? "Dashboard";
 
   return (
-    <div className="flex min-h-screen bg-canvas">
+    <div className="flex h-screen bg-canvas overflow-hidden">
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-30 lg:hidden"

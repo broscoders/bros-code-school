@@ -22,36 +22,17 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
   }, []);
 
   return (
-    <div className="min-h-screen relative flex items-center justify-end px-6 lg:px-20 py-10">
+    <div className="min-h-screen relative flex items-center justify-center px-6 py-10">
       <AuthBackdrop />
 
-      {brandLogo && (
-        <img
-          src={brandLogo}
-          alt=""
-          className="pointer-events-none absolute top-0 left-0 w-full sm:w-2/3 lg:w-1/2 opacity-[0.14] mix-blend-screen select-none"
-          style={{
-            maskImage: "linear-gradient(to bottom, black 0%, black 40%, transparent 75%)",
-            WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 40%, transparent 75%)",
-          }}
-        />
-      )}
-
-      <div className="absolute top-8 left-8 flex items-center gap-3 z-10">
+      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_20px_70px_-15px_rgba(30,159,224,0.35)] p-8">
         {brandLogo ? (
-          <img src={brandLogo} alt="" className="w-11 h-11 rounded-xl object-cover shadow-lg" />
+          <img src={brandLogo} alt="" className="w-12 h-12 rounded-xl object-cover shadow-lg mb-5" />
         ) : (
-          <div className="w-11 h-11 tab-corner bg-primary text-white flex items-center justify-center font-display font-bold text-sm shadow-lg">
+          <div className="w-12 h-12 tab-corner bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-display font-bold text-base shadow-lg shadow-primary/30 mb-5">
             BC
           </div>
         )}
-        <div>
-          <p className="font-display font-semibold text-white text-base leading-tight drop-shadow">Bros Code School</p>
-          <p className="text-xs text-white/70 drop-shadow">Smart Education Ecosystem</p>
-        </div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
         {eyebrow && <p className="text-[#4db8f0] text-xs font-semibold tracking-wide mb-1">{eyebrow}</p>}
         <h2 className="font-display text-2xl font-bold text-white mb-1">{title}</h2>
         {subtitle && <p className="text-white/50 text-xs mb-6">{subtitle}</p>}
