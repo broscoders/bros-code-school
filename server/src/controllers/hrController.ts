@@ -4,8 +4,90 @@ import Department from "../models/Department";
 import StaffProfile from "../models/StaffProfile";
 import PayrollRecord from "../models/PayrollRecord";
 import StaffLoan from "../models/StaffLoan";
+import Teacher from "../models/Teacher";
+import StaffAttendance from "../models/StaffAttendance";
 import { logAudit } from "../utils/auditLogger";
 import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../utils/accountSync";
+
+// Blueprint 34 (Attendance): "Teacher/staff: Present, Absent, Late, Early
+// departure, Leave" - this was entirely missing (only student attendance
+// existed). A single combined roster - Teacher accounts and StaffProfile
+// accounts both included - since a school marking morning attendance
+// doesn't think of "teachers" and "other staff" as two separate exercises.
+export const getStaffRoster = async (req: AuthRequest, res: Response) => {
+  try {
+    const [teachers, staff] = await Promise.all([
+      Teacher.find({ schoolId: req.user!.schoolId, employmentStatus: "ACTIVE" }).populate("userId", "name"),
+      StaffProfile.find({ schoolId: req.user!.schoolId, employmentStatus: "ACTIVE" }).populate("userId", "name role"),
+    ]);
+
+    const roster = [
+      ...teachers.map((t) => ({ userId: (t.userId as any)._id, name: (t.userId as any).name, role: "TEACHER", employeeId: t.employeeId })),
+      ...staff.map((s) => ({ userId: (s.userId as any)._id, name: (s.userId as any).name, role: (s.userId as any).role, employeeId: s.employeeId })),
+    ];
+
+    res.json(roster);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const markStaffAttendanceBulk = async (req: AuthRequest, res: Response) => {
+  try {
+    const { date, records } = req.body as { date: string; records: { userId: string; status: string }[] };
+    if (!date || !Array.isArray(records)) {
+      return res.status(400).json({ message: "date and records are required" });
+    }
+
+    let marked = 0;
+    for (const r of records) {
+      await StaffAttendance.findOneAndUpdate(
+        { schoolId: req.user!.schoolId, userId: r.userId, date: new Date(date) },
+        { status: r.status, markedBy: req.user!.userId },
+        { upsert: true, new: true }
+      );
+      marked++;
+    }
+
+    res.json({ marked });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const getStaffAttendanceForDate = async (req: AuthRequest, res: Response) => {
+  try {
+    const { date } = req.query as { date: string };
+    const records = await StaffAttendance.find({ schoolId: req.user!.schoolId, date: new Date(date) });
+    res.json(records);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Same idea as the student attendance register export - a whole month in
+// one call, shaped for a client-side pivot into a register (rows=staff,
+// columns=days), rather than one API call per staff member.
+export const getStaffAttendanceRegister = async (req: AuthRequest, res: Response) => {
+  try {
+    const { month, year } = req.query as { month: string; year: string };
+    if (!month || !year) return res.status(400).json({ message: "month and year are required" });
+
+    const monthNum = Number(month);
+    const yearNum = Number(year);
+    const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+    const endDate = new Date(Date.UTC(yearNum, monthNum, 1));
+
+    const records = await StaffAttendance.find({
+      schoolId: req.user!.schoolId,
+      date: { $gte: startDate, $lt: endDate },
+    });
+
+    res.json({ records: records.map((r) => ({ userId: r.userId, date: r.date, status: r.status })) });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
 
 export const createDepartment = async (req: AuthRequest, res: Response) => {
   try {

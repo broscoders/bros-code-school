@@ -4,6 +4,7 @@ import {
   createStaffProfile, getStaffProfiles, updateStaffStatus,
   generatePayroll, getPayrollRecords, markPayrollPaid,
   requestStaffLoan, updateStaffLoanStatus, getStaffLoans,
+  getStaffRoster, markStaffAttendanceBulk, getStaffAttendanceForDate, getStaffAttendanceRegister,
 } from "../controllers/hrController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { HR_MANAGERS, ANY_ADMIN_STAFF, TOP_ADMIN } from "../middleware/permissions";
@@ -16,6 +17,12 @@ router.get("/departments", protect, requireRole(...ANY_ADMIN_STAFF), getDepartme
 router.post("/staff", protect, requireRole(...HR_MANAGERS), createStaffProfile);
 router.get("/staff", protect, requireRole(...ANY_ADMIN_STAFF), getStaffProfiles);
 router.put("/staff/:id/status", protect, requireRole(...HR_MANAGERS), updateStaffStatus);
+
+// Staff/Teacher attendance (Blueprint 34).
+router.get("/attendance/roster", protect, requireRole(...HR_MANAGERS), getStaffRoster);
+router.post("/attendance", protect, requireRole(...HR_MANAGERS), markStaffAttendanceBulk);
+router.get("/attendance", protect, requireRole(...HR_MANAGERS), getStaffAttendanceForDate);
+router.get("/attendance/register", protect, requireRole(...HR_MANAGERS), getStaffAttendanceRegister);
 
 router.post("/payroll", protect, requireRole(...HR_MANAGERS), generatePayroll);
 router.get("/payroll", protect, requireRole(...HR_MANAGERS), getPayrollRecords);

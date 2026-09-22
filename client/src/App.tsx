@@ -41,6 +41,7 @@ import ReportCards from "./pages/school/ReportCards";
 import Reports from "./pages/school/Reports";
 import Accounting from "./pages/school/Accounting";
 import HRManagement from "./pages/school/HRManagement";
+import StaffAttendance from "./pages/school/StaffAttendance";
 import Payroll from "./pages/school/Payroll";
 import Hostel from "./pages/school/Hostel";
 import InventoryAssets from "./pages/school/InventoryAssets";
@@ -173,6 +174,7 @@ function App() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/accounting" element={<Accounting />} />
           <Route path="/hr" element={<HRManagement />} />
+          <Route path="/staff-attendance" element={<StaffAttendance />} />
           <Route path="/payroll" element={<Payroll />} />
           <Route path="/hostel" element={<Hostel />} />
           <Route path="/inventory-assets" element={<InventoryAssets />} />
