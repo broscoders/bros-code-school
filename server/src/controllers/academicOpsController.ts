@@ -148,6 +148,43 @@ export const getAttendance = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Blueprint 34/70: "an attendance Excel sheet should exist so the whole
+// month's attendance is visible at month-end." Every existing attendance
+// endpoint is scoped to one student - this one instead returns a whole
+// section's attendance for a given month in one call, in a shape the
+// client can pivot straight into a register (rows=students,
+// columns=days) without N+1 API calls per student.
+export const getAttendanceRegister = async (req: AuthRequest, res: Response) => {
+  try {
+    const { sectionId, month, year } = req.query as { sectionId: string; month: string; year: string };
+    if (!sectionId || !month || !year) {
+      return res.status(400).json({ message: "sectionId, month and year are required" });
+    }
+
+    const monthNum = Number(month);
+    const yearNum = Number(year);
+    const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
+    const endDate = new Date(Date.UTC(yearNum, monthNum, 1));
+
+    const students = await Student.find({ schoolId: req.user!.schoolId, sectionId, status: { $ne: "ARCHIVED" } })
+      .populate("userId", "name")
+      .sort({ admissionNumber: 1 });
+
+    const records = await Attendance.find({
+      schoolId: req.user!.schoolId,
+      sectionId,
+      date: { $gte: startDate, $lt: endDate },
+    });
+
+    res.json({
+      students: students.map((s) => ({ id: s._id, admissionNumber: s.admissionNumber, name: (s.userId as any)?.name })),
+      records: records.map((r) => ({ studentId: r.studentId, date: r.date, status: r.status })),
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const createHomework = async (req: AuthRequest, res: Response) => {
   try {
     if (!(await isAssignedToClass(req, req.body.classId))) {

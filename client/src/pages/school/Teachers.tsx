@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { GraduationCap, UserCheck, UserX, Award, Upload } from "lucide-react";
+import { GraduationCap, UserCheck, UserX, Award, Upload, FileSpreadsheet } from "lucide-react";
 import StatCard from "../../components/StatCard";
 import Papa from "papaparse";
+import { exportToExcel } from "../../utils/excelExport";
 
 const STATUS_TABS = ["ACTIVE", "ON_LEAVE", "TRANSFERRED", "RESIGNED", "TERMINATED"];
 const statusColors: Record<string, string> = {
@@ -157,6 +158,32 @@ export default function Teachers() {
           <p className="text-muted mt-1 text-sm">Manage all teachers of your school.</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => {
+              const rows = teachers.map((t) => ({
+                employeeId: t.employeeId,
+                name: t.userId?.name,
+                email: t.userId?.email,
+                qualification: t.qualification || "",
+                classes: (t.assignedClasses || []).map((c: any) => c.name).join(", "),
+                subjects: (t.subjects || []).map((s: any) => s.name).join(", "),
+                status: t.employmentStatus || "ACTIVE",
+              }));
+              exportToExcel("Teachers", "Teachers", [
+                { header: "Employee ID", key: "employeeId", width: 14 },
+                { header: "Name", key: "name", width: 24 },
+                { header: "Email", key: "email", width: 28 },
+                { header: "Qualification", key: "qualification", width: 20 },
+                { header: "Assigned Classes", key: "classes", width: 28 },
+                { header: "Subjects", key: "subjects", width: 24 },
+                { header: "Status", key: "status", width: 14 },
+              ], rows);
+            }}
+            className="flex items-center gap-2 bg-surface border border-border text-ink px-4 py-2 rounded-md text-sm font-medium hover:bg-canvas"
+          >
+            <FileSpreadsheet size={15} />
+            Export to Excel
+          </button>
           <label className="flex items-center gap-2 bg-surface border border-border text-ink px-4 py-2 rounded-md text-sm font-medium cursor-pointer hover:bg-canvas">
             <Upload size={15} />
             Bulk Import CSV

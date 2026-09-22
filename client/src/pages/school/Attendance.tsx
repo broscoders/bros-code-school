@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { CalendarCheck, Check } from "lucide-react";
+import { CalendarCheck, Check, FileSpreadsheet } from "lucide-react";
+import { exportAttendanceRegister } from "../../utils/excelExport";
 
 const STATUS_OPTIONS = ["PRESENT", "ABSENT", "LATE", "LEAVE"];
 const statusColors: Record<string, string> = {
@@ -75,6 +76,44 @@ export default function Attendance() {
   const presentCount = Object.values(statusMap).filter((v) => v === "PRESENT").length;
   const absentCount = Object.values(statusMap).filter((v) => v === "ABSENT").length;
 
+  const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
+  const [exportYear, setExportYear] = useState(new Date().getFullYear());
+  const [exporting, setExporting] = useState(false);
+
+  // Blueprint 34/70: a printable/shareable monthly register - students as
+  // rows, every day of the month as its own column - matching the paper
+  // attendance register format schools already use, so it's usable
+  // as-is at month-end rather than needing to be rebuilt from raw records.
+  const downloadRegister = async () => {
+    if (!sectionId) return;
+    setExporting(true);
+    try {
+      const res = await api.get(`/ops/attendance/register?sectionId=${sectionId}&month=${exportMonth}&year=${exportYear}`);
+      const { students: regStudents, records } = res.data;
+      const daysInMonth = new Date(exportYear, exportMonth, 0).getDate();
+
+      const statusCode: Record<string, string> = { PRESENT: "P", ABSENT: "A", LATE: "L", LEAVE: "LV" };
+      const byStudent: Record<string, string[]> = {};
+      regStudents.forEach((s: any) => { byStudent[s.id] = new Array(daysInMonth).fill(""); });
+      records.forEach((r: any) => {
+        const day = new Date(r.date).getUTCDate();
+        if (byStudent[r.studentId]) byStudent[r.studentId][day - 1] = statusCode[r.status] || "";
+      });
+
+      const className = classes.find((c) => c._id === classId)?.name || "";
+      const sectionName = sections.find((s) => s._id === sectionId)?.name || "";
+      await exportAttendanceRegister(
+        `Attendance-${className}${sectionName}-${exportMonth}-${exportYear}`,
+        `${className} ${sectionName}`,
+        regStudents.map((s: any) => ({ name: s.name, admissionNumber: s.admissionNumber })),
+        daysInMonth,
+        regStudents.map((s: any) => byStudent[s.id])
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
@@ -106,6 +145,29 @@ export default function Attendance() {
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full" />
         </div>
       </div>
+
+      {sectionId && (
+        <div className="bg-canvas rounded-xl border border-border p-4 mt-3 flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-xs font-medium text-muted mb-1">Register month</label>
+            <select value={exportMonth} onChange={(e) => setExportMonth(Number(e.target.value))} className="text-sm">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>{new Date(2000, m - 1).toLocaleString(undefined, { month: "long" })}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted mb-1">Year</label>
+            <select value={exportYear} onChange={(e) => setExportYear(Number(e.target.value))} className="text-sm">
+              {[exportYear - 1, exportYear, exportYear + 1].map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+          </div>
+          <button onClick={downloadRegister} disabled={exporting} className="flex items-center gap-2 bg-surface border border-border text-ink px-4 py-2 rounded-md text-sm font-medium hover:bg-white disabled:opacity-60">
+            <FileSpreadsheet size={15} />
+            {exporting ? "Preparing..." : "Download Monthly Register (Excel)"}
+          </button>
+        </div>
+      )}
 
       {students.length > 0 && (
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">

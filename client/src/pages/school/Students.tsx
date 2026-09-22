@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import Papa from "papaparse";
-import { Upload } from "lucide-react";
+import { Upload, FileSpreadsheet } from "lucide-react";
 import { Users, UserCheck, UserX, GraduationCap } from "lucide-react";
 import StatCard from "../../components/StatCard";
 import PromoteStudentsModal from "../../components/PromoteStudentsModal";
+import { exportToExcel } from "../../utils/excelExport";
 
 const STATUS_TABS = ["ACTIVE", "ON_LEAVE", "SUSPENDED", "TRANSFERRED", "WITHDRAWN", "GRADUATED", "ALUMNI"];
 const statusColors: Record<string, string> = {
@@ -291,6 +292,30 @@ export default function Students() {
           <option value="">All Sections</option>
           {filterSections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
         </select>
+        <button
+          onClick={() => {
+            const rows = filteredStudents.map((s) => ({
+              admissionNumber: s.admissionNumber,
+              name: s.userId?.name,
+              email: s.userId?.email,
+              className: s.classId?.name || "",
+              sectionName: s.sectionId?.name || "",
+              status: s.status || "ACTIVE",
+            }));
+            const scopeLabel = [classes.find((c) => c._id === filterClassId)?.name, filterSections.find((s) => s._id === filterSectionId)?.name].filter(Boolean).join("-") || "All";
+            exportToExcel(`Students-${scopeLabel}`, "Students", [
+              { header: "Admission #", key: "admissionNumber", width: 14 },
+              { header: "Name", key: "name", width: 24 },
+              { header: "Email", key: "email", width: 28 },
+              { header: "Class", key: "className", width: 12 },
+              { header: "Section", key: "sectionName", width: 10 },
+              { header: "Status", key: "status", width: 12 },
+            ], rows);
+          }}
+          className="text-xs px-3 py-1.5 rounded-full font-medium bg-canvas text-muted hover:text-ink flex items-center gap-1.5"
+        >
+          <FileSpreadsheet size={13} />Export to Excel
+        </button>
         <div className="w-px h-6 bg-border mx-1" />
         {STATUS_TABS.map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={`text-xs px-3 py-1.5 rounded-full font-medium ${statusFilter === s ? "bg-primary text-white" : "bg-canvas text-muted"}`}>

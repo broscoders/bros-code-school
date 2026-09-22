@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, BookOpen, Wallet, Megaphone,
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, Mail,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
-  AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart, Trophy,
+  AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart, Trophy, UserCheck,
   Library as LibraryIcon, Bus, MonitorCheck, Globe, Plug, Smartphone,
   Menu, X, Search, ChevronDown,
 } from "lucide-react";
@@ -44,6 +44,7 @@ const navGroups: NavGroup[] = [
       { to: "/parents", label: "Parents", icon: Users, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST"] },
       { to: "/teachers", label: "Teachers", icon: GraduationCap, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/hr", label: "HR / Staff", icon: Users, roles: ["HEAD"] },
+      { to: "/staff-attendance", label: "Staff Attendance", icon: UserCheck, roles: ["HEAD"] },
     ],
   },
   {
