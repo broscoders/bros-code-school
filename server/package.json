@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "seed:demo": "tsx src/scripts/demo/seedDemo.ts",
+    "clean:demo": "tsx src/scripts/demo/cleanDemo.ts",
+    "leak:test": "tsx src/scripts/demo/leakTest.ts"
   },
   "keywords": [],
   "author": "",
