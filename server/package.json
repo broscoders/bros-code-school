@@ -10,7 +10,9 @@
     "clean:demo": "tsx src/scripts/demo/cleanDemo.ts",
     "leak:test": "tsx src/scripts/demo/leakTest.ts",
     "seed:volume": "tsx src/scripts/volumetest/seedVolumeTest.ts",
-    "clean:volume": "tsx src/scripts/volumetest/cleanVolumeTest.ts"
+    "clean:volume": "tsx src/scripts/volumetest/cleanVolumeTest.ts",
+    "seed:full": "tsx src/scripts/realdata/seedRealSchoolData.ts",
+    "clean:full": "tsx src/scripts/realdata/cleanRealSchoolData.ts"
   },
   "keywords": [],
   "author": "",
