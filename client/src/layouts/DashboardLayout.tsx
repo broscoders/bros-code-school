@@ -186,7 +186,7 @@ export default function DashboardLayout() {
     navGroups.flatMap((g) => g.items).find((item) => location.pathname.startsWith(item.to))?.label ?? "Dashboard";
 
   return (
-    <div className="flex h-screen bg-canvas overflow-hidden">
+    <div className="flex h-screen app-glow overflow-hidden">
       {mobileOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-30 lg:hidden"
@@ -254,10 +254,10 @@ export default function DashboardLayout() {
                         key={item.to}
                         to={item.to}
                         className={({ isActive }) =>
-                          `relative flex items-center gap-3 pl-4 pr-3 py-2 text-sm transition-colors border-l-2 ${
+                          `relative flex items-center gap-3 px-3 py-2 mx-1 text-sm rounded-xl transition-all ${
                             isActive
-                              ? "border-l-primary text-primary font-medium bg-primary/[0.07]"
-                              : "border-l-transparent text-ink-soft hover:bg-white/5 hover:text-ink hover:border-l-border"
+                              ? "text-white font-semibold bg-gradient-to-r from-primary to-violet shadow-lg shadow-primary/25"
+                              : "text-ink-soft hover:bg-white/5 hover:text-ink hover:translate-x-0.5"
                           }`
                         }
                       >
