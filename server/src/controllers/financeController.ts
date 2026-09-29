@@ -3,6 +3,7 @@ import type { AuthRequest } from "../middleware/authMiddleware";
 import Discount from "../models/Discount";
 import Refund from "../models/Refund";
 import Invoice from "../models/Invoice";
+import Student from "../models/Student";
 import Expense from "../models/Expense";
 import User from "../models/User";
 import JazzCashTransaction from "../models/JazzCashTransaction";
@@ -199,8 +200,36 @@ export const createRefund = async (req: AuthRequest, res: Response) => {
     // - if a caller could set status: "APPROVED" here at creation time, the
     // refund would be recorded as approved while the invoice was never
     // actually adjusted, silently desyncing the fee ledger from its status.
-    const { status, approvedBy, requestedByUserId, ...safeBody } = req.body;
-    const refund = await Refund.create({ ...safeBody, schoolId: req.user!.schoolId, requestedByUserId: req.user!.userId });
+    const schoolId = req.user!.schoolId;
+    const amount = Number(req.body.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Refund amount must be a number greater than zero" });
+    }
+    if (!req.body.reason || !String(req.body.reason).trim()) {
+      return res.status(400).json({ message: "A reason is required for a refund" });
+    }
+    const student = await Student.findOne({ _id: req.body.studentId, schoolId });
+    if (!student) return res.status(404).json({ message: "Student not found in your school" });
+    if (req.body.invoiceId) {
+      const invoice = await Invoice.findOne({ _id: req.body.invoiceId, schoolId, studentId: student._id });
+      if (!invoice) return res.status(404).json({ message: "Invoice not found for this student" });
+      // A refund can never be larger than what was actually paid, minus other
+      // refunds still waiting for approval on the same invoice.
+      const pending = await Refund.find({ schoolId, invoiceId: invoice._id, status: "PENDING" }).select("amount");
+      const pendingTotal = pending.reduce((sum, r) => sum + (r.amount || 0), 0);
+      const refundable = (invoice.paidAmount || 0) - pendingTotal;
+      if (amount > refundable + 0.005) {
+        return res.status(400).json({ message: `Refund of Rs. ${amount} is more than the refundable amount of Rs. ${Math.max(0, refundable)} on this invoice` });
+      }
+    }
+    const refund = await Refund.create({
+      schoolId,
+      studentId: student._id,
+      invoiceId: req.body.invoiceId || undefined,
+      amount,
+      reason: String(req.body.reason).trim(),
+      requestedByUserId: req.user!.userId,
+    });
     res.status(201).json(refund);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -242,6 +271,15 @@ export const updateRefundStatus = async (req: AuthRequest, res: Response) => {
     }
 
     const previousStatus = existing.status;
+    // Two pending refunds can each be valid alone but not together. Check the
+    // invoice BEFORE saving the approval, so a refused approval leaves the
+    // refund still PENDING instead of "approved" with no effect on the invoice.
+    if (status === "APPROVED" && existing.invoiceId) {
+      const inv = await Invoice.findOne({ _id: existing.invoiceId, schoolId: req.user!.schoolId }).select("paidAmount");
+      if (inv && existing.amount > (inv.paidAmount || 0) + 0.005) {
+        return res.status(400).json({ message: "This refund is now larger than the amount paid on the invoice (another refund was approved first). Reject it or create a smaller one." });
+      }
+    }
     existing.status = status;
     await existing.save();
 

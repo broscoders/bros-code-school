@@ -38,7 +38,19 @@ export const markAttendance = async (req: AuthRequest, res: Response) => {
     const existing = await Attendance.findOne({ studentId: req.body.studentId, date: new Date(req.body.date), schoolId: req.user!.schoolId });
     const record = await Attendance.findOneAndUpdate(
       { studentId: req.body.studentId, date: new Date(req.body.date), schoolId: req.user!.schoolId },
-      { ...req.body, schoolId: req.user!.schoolId },
+      {
+        studentId: belongsToSchool._id,
+        date: new Date(req.body.date),
+        status: req.body.status,
+        remarks: req.body.remarks,
+        schoolId: req.user!.schoolId,
+        // Who marked it and which class it belongs to come from the login and
+        // the student record - never from the request body, so a teacher
+        // cannot record attendance under someone else's name.
+        markedBy: req.user!.userId,
+        classId: belongsToSchool.classId,
+        sectionId: belongsToSchool.sectionId,
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
@@ -487,6 +499,20 @@ export const createInvoice = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user!.schoolId;
     let finalAmount = Number(req.body.amount);
+    if (!Number.isFinite(finalAmount) || finalAmount <= 0) {
+      return res.status(400).json({ message: "Invoice amount must be a number greater than zero" });
+    }
+    if (!req.body.feeType || !String(req.body.feeType).trim()) {
+      return res.status(400).json({ message: "Fee type is required" });
+    }
+    if (!req.body.dueDate || Number.isNaN(new Date(req.body.dueDate).getTime())) {
+      return res.status(400).json({ message: "A valid due date is required" });
+    }
+    // The student must belong to the logged-in user's own school. Without
+    // this an accountant could bill another school's student (the invoice
+    // was stored under their own schoolId but pointed at a foreign student).
+    const invoiceStudent = await Student.findOne({ _id: req.body.studentId, schoolId });
+    if (!invoiceStudent) return res.status(404).json({ message: "Student not found in your school" });
     const activeDiscount = await Discount.findOne({ schoolId, studentId: req.body.studentId, status: "APPROVED", isActive: true });
     let originalAmount: number | undefined;
     if (activeDiscount) {
@@ -498,8 +524,12 @@ export const createInvoice = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // Only whitelisted fields are taken from the request. The old
+    // "...req.body" let a caller set paidAmount, status, paidDate, etc.
     const invoice = await Invoice.create({
-      ...req.body,
+      studentId: invoiceStudent._id,
+      feeType: String(req.body.feeType).trim(),
+      dueDate: req.body.dueDate,
       schoolId,
       amount: finalAmount,
       originalAmount,
@@ -527,10 +557,13 @@ export const createInvoice = async (req: AuthRequest, res: Response) => {
 export const bulkCreateInvoices = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user!.schoolId;
-    const { classId, sectionId, feeType, amount, dueDate } = req.body;
-
-    if (!classId || !feeType || !amount || !dueDate) {
+    const { classId, sectionId, feeType, dueDate } = req.body;
+    const amount = Number(req.body.amount);
+    if (!classId || !feeType || !dueDate || !req.body.amount) {
       return res.status(400).json({ message: "classId, feeType, amount and dueDate are required" });
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Invoice amount must be a number greater than zero" });
     }
 
     const filter: Record<string, any> = { schoolId, classId, status: "ACTIVE" };
@@ -589,10 +622,22 @@ export const getInvoices = async (req: AuthRequest, res: Response) => {
 // at a time.
 export const getAllInvoices = async (req: AuthRequest, res: Response) => {
   try {
-    const invoices = await Invoice.find({ schoolId: req.user!.schoolId })
-      .populate({ path: "studentId", populate: { path: "userId" } })
-      .sort({ createdAt: -1 })
-      .limit(2000);
+    // Paging: ?page=1&limit=500 (limit max 2000, default 2000 so existing
+    // screens keep working). X-Total-Count says how many invoices exist in
+    // total, so a truncated list can be detected and fetched in full.
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit || "2000"), 10) || 2000, 1), 2000);
+    const page = Math.max(parseInt(String(req.query.page || "1"), 10) || 1, 1);
+    const filter = { schoolId: req.user!.schoolId };
+    const [total, invoices] = await Promise.all([
+      Invoice.countDocuments(filter),
+      Invoice.find(filter)
+        .populate({ path: "studentId", populate: { path: "userId" } })
+        .sort({ createdAt: -1, _id: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit),
+    ]);
+    res.setHeader("X-Total-Count", String(total));
+    res.setHeader("Access-Control-Expose-Headers", "X-Total-Count");
     res.json(invoices);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -652,6 +697,12 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
 
     const paymentNow = Number(req.body.amount) || 0;
     if (paymentNow <= 0) return res.status(400).json({ message: "Payment amount must be greater than zero" });
+    if (existing.status === "CANCELLED") return res.status(400).json({ message: "This invoice is cancelled and cannot accept payments" });
+    const remaining = existing.amount - (existing.paidAmount || 0);
+    if (remaining <= 0.005) return res.status(400).json({ message: "This invoice is already fully paid" });
+    if (paymentNow > remaining + 0.005) {
+      return res.status(400).json({ message: `Payment of Rs. ${paymentNow} is more than the remaining balance of Rs. ${remaining}` });
+    }
 
     // Atomic read-and-write in one step: the previous version read
     // existing.paidAmount, computed the new total in application code, then
@@ -669,7 +720,13 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
       { new: true }
     );
     if (!invoice) return res.status(404).json({ message: "Invoice not found" });
-
+    // Safety net for two payments landing at the same moment: the check above
+    // reads the balance first, so if the atomic increment pushed the total
+    // past the invoice amount, undo this payment and refuse it.
+    if ((invoice.paidAmount || 0) > invoice.amount + 0.005) {
+      await Invoice.updateOne({ _id: invoice._id }, { $inc: { paidAmount: -paymentNow } });
+      return res.status(409).json({ message: "Another payment was recorded at the same time. Please refresh and try again." });
+    }
     const newStatus = (invoice.paidAmount || 0) >= invoice.amount ? "PAID" : "PARTIAL";
     if (invoice.status !== newStatus) {
       invoice.status = newStatus;
