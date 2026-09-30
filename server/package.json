@@ -12,7 +12,8 @@
     "seed:volume": "tsx src/scripts/volumetest/seedVolumeTest.ts",
     "clean:volume": "tsx src/scripts/volumetest/cleanVolumeTest.ts",
     "seed:full": "tsx src/scripts/realdata/seedRealSchoolData.ts",
-    "clean:full": "tsx src/scripts/realdata/cleanRealSchoolData.ts"
+    "clean:full": "tsx src/scripts/realdata/cleanRealSchoolData.ts",
+    "seed:sections": "tsx src/scripts/realdata/seedAllSections.ts"
   },
   "keywords": [],
   "author": "",

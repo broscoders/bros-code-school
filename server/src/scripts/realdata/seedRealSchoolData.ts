@@ -132,24 +132,47 @@ async function main() {
     return u;
   };
 
-  // ---- teachers: 3 per class (reused classes get NEW extra teachers too,
-  // additive only - existing teachers of a reused class are left alone)
-  const teachers: any[] = [];
-  let tn = 0;
-  for (const c of classes) {
-    const subs = subjects.filter((s) => String(s.classId) === String(c._id));
-    for (let i = 0; i < 3; i++) {
-      tn++;
-      const first = pick(tn % 2 ? MALE : FEMALE, tn * 3);
-      const u = mkUser(`${tn % 2 ? "Sir" : "Miss"} ${first} ${pick(SURNAMES, tn)}`, `teacher${tn}@${DOMAIN}`, "TEACHER", phone(tn * 13));
-      teachers.push({ _id: oid(), schoolId, userId: u._id, employeeId: `${TAG_PREFIX}T${tn}`, qualification: pick(["BS", "MSc", "M.Ed", "MA"], tn), subjects: subs.slice(i * 2, i * 2 + 2).map((s) => s._id), assignedClasses: [c._id], employmentStatus: "ACTIVE" });
+  // ---- teachers: 3 per class. Idempotent - if this school is already fully
+  // staffed (from an earlier run), reuse those teachers instead of trying to
+  // create teacher1@... again, which would collide on the unique email.
+  let teachers: any[] = [];
+  let newTeacherDocs: any[] = []; // only the ones created THIS run - the only ones safe to insertMany
+  const teachersNeeded = classes.length * 3;
+  const existingTeacherCount = await Teacher.countDocuments({ schoolId, employeeId: new RegExp("^" + TAG_PREFIX + "T") });
+  if (existingTeacherCount >= teachersNeeded) {
+    teachers = await Teacher.find({ schoolId, employeeId: new RegExp("^" + TAG_PREFIX + "T") });
+    console.log(`Reusing ${teachers.length} teachers already created by an earlier run.`);
+  } else {
+    let tn = existingTeacherCount;
+    for (const c of classes) {
+      const subs = subjects.filter((s) => String(s.classId) === String(c._id));
+      for (let i = 0; i < 3; i++) {
+        tn++;
+        const first = pick(tn % 2 ? MALE : FEMALE, tn * 3);
+        const u = mkUser(`${tn % 2 ? "Sir" : "Miss"} ${first} ${pick(SURNAMES, tn)}`, `teacher${tn}@${DOMAIN}`, "TEACHER", phone(tn * 13));
+        const t = { _id: oid(), schoolId, userId: u._id, employeeId: `${TAG_PREFIX}T${tn}`, qualification: pick(["BS", "MSc", "M.Ed", "MA"], tn), subjects: subs.slice(i * 2, i * 2 + 2).map((s) => s._id), assignedClasses: [c._id], employmentStatus: "ACTIVE" };
+        teachers.push(t);
+        newTeacherDocs.push(t);
+      }
     }
   }
 
-  // ---- families and students, spread evenly across all class+section slots
+  // ---- families and students, spread evenly across all class+section
+  // slots. STUDENTS is how many NEW students to add THIS run - numbering
+  // continues from whatever already exists, so running this script again
+  // (to add more students / roughly double what's there) never collides
+  // with the students/parents an earlier run already created.
+  const existingAdmissionNos = await Student.find({ schoolId, admissionNumber: new RegExp("^" + TAG_PREFIX) }).select("admissionNumber");
+  let studentNo = 0;
+  existingAdmissionNos.forEach((s: any) => { const n = parseInt(s.admissionNumber.slice(TAG_PREFIX.length), 10); if (!isNaN(n)) studentNo = Math.max(studentNo, n); });
+  const existingParentEmails = await User.find({ schoolId, email: new RegExp("^parent\\d+@" + DOMAIN.replace(/\./g, "\\.") + "$") }).select("email");
+  let familyNo = 0;
+  existingParentEmails.forEach((u: any) => { const m = /^parent(\d+)@/.exec(u.email); if (m) familyNo = Math.max(familyNo, parseInt(m[1], 10)); });
+  if (studentNo > 0 || familyNo > 0) console.log(`Continuing numbering from an earlier run: student #${studentNo}, family #${familyNo}.`);
+
   const students: any[] = [], parents: any[] = [];
-  let studentNo = 0, familyNo = 0;
-  while (studentNo < STUDENTS) {
+  let addedThisRun = 0;
+  while (addedThisRun < STUDENTS) {
     familyNo++;
     const surname = pick(SURNAMES, familyNo * 5);
     const kids = 1 + (familyNo % 3 === 0 ? 2 : familyNo % 2); // 1..3 children
@@ -157,8 +180,9 @@ async function main() {
     const pu = mkUser(`${fatherFirst} ${surname}`, `parent${familyNo}@${DOMAIN}`, "PARENT", phone(familyNo * 31));
     const childIds: Types.ObjectId[] = [];
     const parentId = oid();
-    for (let c = 0; c < kids && studentNo < STUDENTS; c++) {
+    for (let c = 0; c < kids && addedThisRun < STUDENTS; c++) {
       studentNo++;
+      addedThisRun++;
       const female = (studentNo + c) % 2 === 0;
       const first = pick(female ? FEMALE : MALE, studentNo * 11);
       const sec = sections[(studentNo * 7 + c * 3) % sections.length];
@@ -170,7 +194,7 @@ async function main() {
     parents.push({ _id: parentId, schoolId, userId: pu._id, children: childIds, relationship: "Father" });
   }
   await User.insertMany(users, { ordered: false });
-  await Teacher.insertMany(teachers);
+  if (newTeacherDocs.length) await Teacher.insertMany(newTeacherDocs);
   await Parent.insertMany(parents);
   await chunkInsert(Student, students);
   console.log(`Created ${students.length} students in ${parents.length} families, ${teachers.length} teachers, ${users.length} user accounts total.`);
@@ -206,25 +230,40 @@ async function main() {
   });
   await chunkInsert(Attendance, att, 2000);
 
-  // ---- exams + results (one midterm per section per subject; ~85% published)
-  // Exam names are tagged so cleanup only ever removes exams THIS script
-  // created, even inside a reused class like Grade 9/10/11.
-  const exams: any[] = [], results: any[] = [];
+  // ---- exams + results (one midterm per section per subject; ~85%
+  // published). Exam names are tagged so cleanup only ever removes exams
+  // THIS script created, even inside a reused class like Grade 9/10/11.
+  // Reuses an existing tagged exam for a section+subject if one was already
+  // made by an earlier run, so re-running this script adds results for the
+  // NEW students onto the same exam instead of creating a duplicate one.
+  const newExams: any[] = [], results: any[] = [];
   const studentsBySection = new Map<string, any[]>();
   students.forEach((s) => { const key = String(s.sectionId); (studentsBySection.get(key) || studentsBySection.set(key, []).get(key)!).push(s); });
+  let examCounter = 0;
   for (const sec of sections) {
     const subs = subjects.filter((s) => String(s.classId) === String(sec.classId));
     for (const sub of subs) {
-      const exam = { _id: oid(), schoolId, classId: sec.classId, sectionId: sec._id, subjectId: sub._id, name: `${TAG_PREFIX}Midterm - ${sub.name}`, examType: "MIDTERM", date: new Date("2026-09-20"), totalMarks: 100 };
-      exams.push(exam);
-      const published = exams.length % 7 !== 0;
+      examCounter++;
+      let exam = await Exam.findOne({ schoolId, sectionId: sec._id, subjectId: sub._id, name: `${TAG_PREFIX}Midterm - ${sub.name}` });
+      let published: boolean;
+      if (exam) {
+        // Reusing an exam from an earlier run - match whatever that exam's
+        // existing results were published as, so new students' results are
+        // consistent with their classmates' on the same exam.
+        const existingResult = await Result.findOne({ examId: exam._id }).select("isPublished");
+        published = existingResult ? existingResult.isPublished : true;
+      } else {
+        exam = { _id: oid(), schoolId, classId: sec.classId, sectionId: sec._id, subjectId: sub._id, name: `${TAG_PREFIX}Midterm - ${sub.name}`, examType: "MIDTERM", date: new Date("2026-09-20"), totalMarks: 100 } as any;
+        published = examCounter % 7 !== 0;
+        newExams.push({ ...exam, isPublished: published, publishedAt: published ? new Date("2026-09-25") : undefined });
+      }
       (studentsBySection.get(String(sec._id)) || []).forEach((s, si) => {
-        const marks = 35 + ((si * 17 + exams.length * 5) % 66);
-        results.push({ examId: exam._id, studentId: s._id, marksObtained: marks, grade: marks >= 80 ? "A" : marks >= 65 ? "B" : marks >= 50 ? "C" : marks >= 40 ? "D" : "F", isPublished: published, publishedAt: published ? new Date("2026-09-25") : undefined });
+        const marks = 35 + ((si * 17 + examCounter * 5) % 66);
+        results.push({ examId: exam!._id, studentId: s._id, marksObtained: marks, grade: marks >= 80 ? "A" : marks >= 65 ? "B" : marks >= 50 ? "C" : marks >= 40 ? "D" : "F", isPublished: published, publishedAt: published ? new Date("2026-09-25") : undefined });
       });
     }
   }
-  await Exam.insertMany(exams);
+  if (newExams.length) await Exam.insertMany(newExams);
   await chunkInsert(Result, results, 2000);
 
   // ---- homework / assignments / announcements / events / admission leads
@@ -253,7 +292,7 @@ async function main() {
 
   console.log("\n==================== SUMMARY ====================");
   console.log(`Students: ${students.length} | Parents: ${parents.length} | Teachers: ${teachers.length} | User accounts: ${users.length}`);
-  console.log(`Invoices: ${invoices.length} | Attendance rows: ${att.length} | Exams: ${exams.length} | Results: ${results.length}`);
+  console.log(`Invoices: ${invoices.length} | Attendance rows: ${att.length} | New exams: ${newExams.length} | New results: ${results.length}`);
   console.log(`Homework: ${homework.length} | Assignments: ${assignments.length}`);
   console.log(`\nSample logins (password for all: ${PASSWORD}):`);
   console.log(`  Teacher: teacher1@${DOMAIN}  |  Parent: parent1@${DOMAIN}  |  Student: student1@${DOMAIN}`);
