@@ -38,7 +38,7 @@ export default function PublicSite() {
   }
 
   const current = data.pages.find((p) => p.pageType === activePage);
-  const primary = data.school.primaryColor || "#1e9fe0";
+  const primary = data.school.primaryColor || "#4f8cff";
 
   return (
     <div className="min-h-screen bg-white text-gray-900">

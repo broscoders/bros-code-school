@@ -101,7 +101,7 @@ export default function Login() {
     <div className="min-h-screen relative flex items-center justify-center px-6 py-10">
       <AuthBackdrop />
 
-      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_20px_70px_-15px_rgba(30,159,224,0.35)] p-8">
+      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_20px_70px_-15px_rgba(79, 140, 255,0.35)] p-8">
         {pendingToken ? (
           <>
             <h2 className="font-display text-2xl font-bold text-white mb-1">Two-factor code</h2>

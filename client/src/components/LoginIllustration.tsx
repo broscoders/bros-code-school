@@ -58,10 +58,10 @@ export default function LoginIllustration() {
           <rect key={"s" + row} x="193" y={22 + row * 30} width="17" height="17" rx="1" fill={row === 1 ? "#ffd580" : "#1c2647"} fillOpacity={row === 1 ? 0.8 : 0.5} />
         ))}
 
-        <rect x="88" y="90" width="22" height="30" fill="#1e9fe0" fillOpacity="0.4" />
+        <rect x="88" y="90" width="22" height="30" fill="#4f8cff" fillOpacity="0.4" />
       </g>
 
-      <ellipse cx="180" cy="255" rx="180" ry="9" fill="#1e9fe0" fillOpacity="0.12" />
+      <ellipse cx="180" cy="255" rx="180" ry="9" fill="#4f8cff" fillOpacity="0.12" />
     </svg>
   );
 }

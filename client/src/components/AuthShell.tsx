@@ -25,7 +25,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
     <div className="min-h-screen relative flex items-center justify-center px-6 py-10">
       <AuthBackdrop />
 
-      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_20px_70px_-15px_rgba(30,159,224,0.35)] p-8">
+      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_20px_70px_-15px_rgba(79,140,255,0.35)] p-8">
         {brandLogo ? (
           <img src={brandLogo} alt="" className="w-12 h-12 rounded-xl object-cover shadow-lg mb-5" />
         ) : (
@@ -33,7 +33,7 @@ export default function AuthShell({ eyebrow, title, subtitle, children, footer }
             BC
           </div>
         )}
-        {eyebrow && <p className="text-[#4db8f0] text-xs font-semibold tracking-wide mb-1">{eyebrow}</p>}
+        {eyebrow && <p className="text-primary-light text-xs font-semibold tracking-wide mb-1">{eyebrow}</p>}
         <h2 className="font-display text-2xl font-bold text-white mb-1">{title}</h2>
         {subtitle && <p className="text-white/50 text-xs mb-6">{subtitle}</p>}
         {children}

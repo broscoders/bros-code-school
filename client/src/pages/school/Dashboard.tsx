@@ -115,7 +115,7 @@ export default function Dashboard() {
                 contentStyle={{ background: "#141830", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12 }}
                 labelStyle={{ color: "#f3f5f9" }}
               />
-              <Line type="monotone" dataKey="students" stroke="#1e9fe0" strokeWidth={2.5} dot={{ r: 3, fill: "#1e9fe0" }} />
+              <Line type="monotone" dataKey="students" stroke="#4f8cff" strokeWidth={2.5} dot={{ r: 3, fill: "#4f8cff" }} />
             </LineChart>
           </ResponsiveContainer>
           </div>

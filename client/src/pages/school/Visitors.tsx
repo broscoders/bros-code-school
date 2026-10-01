@@ -35,7 +35,7 @@ export default function Visitors() {
     win.document.write(`
       <html><head><title>Visitor Pass</title></head>
       <body style="font-family: sans-serif; padding: 24px;">
-        <div style="width: 340px; border: 2px solid #1e9fe0; border-radius: 12px; padding: 20px;">
+        <div style="width: 340px; border: 2px solid #4f8cff; border-radius: 12px; padding: 20px;">
           <p style="font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 0;">Visitor Pass</p>
           <h2 style="margin: 6px 0;">${v.name}</h2>
           <p style="margin: 4px 0; font-size: 13px;"><b>Purpose:</b> ${v.purpose}</p>

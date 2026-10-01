@@ -46,7 +46,7 @@ export default function StudentLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-canvas overflow-hidden">
+    <div className="flex h-screen app-glow overflow-hidden">
       {mobileOpen && <div className="fixed inset-0 bg-black/60 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />}
       <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transform transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="p-5 flex items-center justify-between gap-3 border-b border-border">
@@ -61,7 +61,7 @@ export default function StudentLayout() {
         </div>
         <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `flex items-center gap-3 pl-4 pr-3 py-2.5 text-sm transition-colors border-l-2 ${isActive ? "border-l-primary text-primary font-medium bg-primary/[0.07]" : "border-l-transparent text-muted hover:bg-white/5 hover:text-ink hover:border-l-border"}`}>
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `relative flex items-center gap-3 px-3 py-2.5 mx-1 text-sm rounded-xl transition-all ${isActive ? "text-white font-semibold bg-gradient-to-r from-primary to-violet shadow-lg shadow-primary/25" : "text-muted hover:bg-white/5 hover:text-ink hover:translate-x-0.5"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>
