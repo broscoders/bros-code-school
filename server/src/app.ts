@@ -47,7 +47,9 @@ const app = express();
 
 const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : "*";
 
-app.use(cors({ origin: allowedOrigins }));
+// exposedHeaders lets the browser read X-Total-Count (used for paging the
+// invoices list) - without this the header is sent but JS can't see it.
+app.use(cors({ origin: allowedOrigins, exposedHeaders: ["X-Total-Count"] }));
 app.use(express.json());
 
 app.get("/", (req, res) => {
