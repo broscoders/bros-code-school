@@ -11,7 +11,7 @@ export default function AuthBackdrop() {
         style={{
           background:
             "radial-gradient(ellipse 1000px 800px at 50% -10%, rgba(79,140,255,0.20), transparent 60%), " +
-            "radial-gradient(ellipse 800px 700px at 85% 100%, rgba(245,158,11,0.10), transparent 55%), " +
+            "radial-gradient(ellipse 800px 700px at 85% 100%, rgba(27,63,160,0.18), transparent 55%), " +
             "radial-gradient(ellipse 800px 700px at 5% 100%, rgba(79,140,255,0.12), transparent 55%), " +
             "linear-gradient(180deg, #05060d 0%, #070a18 55%, #05060d 100%)",
         }}

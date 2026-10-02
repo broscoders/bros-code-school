@@ -5,6 +5,7 @@ import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, KeyRound } from "luci
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import AuthBackdrop from "../../components/AuthBackdrop";
+import AuthBrandPanel from "../../components/AuthBrandPanel";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -98,10 +99,19 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-6 py-10">
+    <div className="min-h-screen relative flex">
       <AuthBackdrop />
+      <AuthBrandPanel />
 
-      <div className="relative z-10 w-full max-w-sm bg-[#0b1024]/70 backdrop-blur-xl border border-white/10 rounded-3xl shadow-[0_20px_70px_-15px_rgba(79, 140, 255,0.35)] p-8">
+      <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-10 lg:border-l lg:border-white/10">
+      <div className="w-full max-w-sm">
+        {brandLogo ? (
+          <img src={brandLogo} alt="" className="w-11 h-11 rounded-xl object-cover shadow-lg mb-6 lg:hidden" />
+        ) : (
+          <div className="w-11 h-11 tab-corner bg-gradient-to-br from-primary to-primary-deep text-white flex items-center justify-center font-display font-bold text-sm shadow-lg shadow-primary/30 mb-6 lg:hidden">
+            BC
+          </div>
+        )}
         {pendingToken ? (
           <>
             <h2 className="font-display text-2xl font-bold text-white mb-1">Two-factor code</h2>
@@ -149,15 +159,8 @@ export default function Login() {
           </>
         ) : (
         <>
-        {brandLogo ? (
-          <img src={brandLogo} alt="" className="w-12 h-12 rounded-xl object-cover shadow-lg mb-5" />
-        ) : (
-          <div className="w-12 h-12 tab-corner bg-gradient-to-br from-primary to-primary-dark text-white flex items-center justify-center font-display font-bold text-base shadow-lg shadow-primary/30 mb-5">
-            BC
-          </div>
-        )}
-        <h2 className="font-display text-2xl font-bold text-white mb-1">Welcome back</h2>
-        <p className="text-white/50 text-xs mb-6">Sign in to access your dashboard</p>
+        <h2 className="font-display text-2xl font-semibold text-white mb-1">Sign in</h2>
+        <p className="text-white/50 text-xs mb-6">Use your school account to continue</p>
 
         <form onSubmit={handleSubmit}>
           {error && (
@@ -248,6 +251,7 @@ export default function Login() {
         </form>
         </>
         )}
+      </div>
       </div>
     </div>
   );

@@ -93,7 +93,7 @@ export default function Dashboard() {
         <StatCard label="Total Students" value={loading ? "..." : counts.students} icon={Users} tone="primary" />
         <StatCard label="Total Teachers" value={loading ? "..." : counts.teachers} icon={GraduationCap} tone="teal" />
         <StatCard label="Pending Admissions" value={loading ? "..." : counts.admissions} icon={ClipboardList} tone="accent" />
-        <StatCard label="Announcements" value={loading ? "..." : counts.announcements} icon={Bell} tone="violet" />
+        <StatCard label="Announcements" value={loading ? "..." : counts.announcements} icon={Bell} tone="steel" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">

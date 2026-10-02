@@ -61,7 +61,7 @@ export default function ParentLayout() {
         </div>
         <nav className="flex-1 p-3 space-y-1 mt-2 overflow-y-auto">
           {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={({ isActive }) => `relative flex items-center gap-3 px-3 py-2.5 mx-1 text-sm rounded-xl transition-all ${isActive ? "text-white font-semibold bg-gradient-to-r from-primary to-violet shadow-lg shadow-primary/25" : "text-muted hover:bg-white/5 hover:text-ink hover:translate-x-0.5"}`}>
+            <NavLink key={item.to} to={item.to} className={({ isActive }) => `relative flex items-center gap-3 px-3 py-2.5 mx-1 text-sm rounded-xl transition-all ${isActive ? "text-white font-semibold bg-gradient-to-r from-primary to-primary-deep shadow-lg shadow-primary/25" : "text-muted hover:bg-white/5 hover:text-ink hover:translate-x-0.5"}`}>
               <item.icon size={17} />
               {item.label}
             </NavLink>

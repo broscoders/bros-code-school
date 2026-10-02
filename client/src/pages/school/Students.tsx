@@ -222,7 +222,7 @@ export default function Students() {
         <StatCard label="Showing" value={totalCount} icon={Users} tone="primary" />
         <StatCard label="Active" value={activeCount} icon={UserCheck} tone="success" />
         <StatCard label="Withdrawn / Suspended" value={withdrawnCount} icon={UserX} tone="danger" />
-        <StatCard label="Alumni / Graduated" value={alumniCount} icon={GraduationCap} tone="violet" />
+        <StatCard label="Alumni / Graduated" value={alumniCount} icon={GraduationCap} tone="steel" />
       </div>
       <button onClick={() => setShowPromoteModal(true)} className="mb-4 bg-primary/10 text-primary text-sm px-4 py-2 rounded-lg font-medium hover:bg-primary/20 transition-colors">
         Promote / Graduate Students
