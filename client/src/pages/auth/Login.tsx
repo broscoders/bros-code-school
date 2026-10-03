@@ -5,7 +5,6 @@ import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, KeyRound } from "luci
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import AuthBackdrop from "../../components/AuthBackdrop";
-import AuthBrandPanel from "../../components/AuthBrandPanel";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -99,22 +98,27 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen relative flex">
+    <div className="min-h-screen relative flex items-center justify-center px-6 py-12">
       <AuthBackdrop />
-      <AuthBrandPanel />
 
-      <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-10 lg:border-l lg:border-white/10">
-      <div className="w-full max-w-sm">
-        {brandLogo ? (
-          <img src={brandLogo} alt="" className="w-11 h-11 rounded-xl object-cover shadow-lg mb-6 lg:hidden" />
-        ) : (
-          <div className="w-11 h-11 tab-corner bg-gradient-to-br from-primary to-primary-deep text-white flex items-center justify-center font-display font-bold text-sm shadow-lg shadow-primary/30 mb-6 lg:hidden">
-            BC
-          </div>
-        )}
+      <div className="relative z-10 w-full max-w-[400px]">
+        <div className="flex flex-col items-center gap-3 mb-7">
+          {brandLogo ? (
+            <img src={brandLogo} alt="" className="w-12 h-12 rounded-xl object-cover shadow-lg" />
+          ) : (
+            <div className="w-12 h-12 tab-corner bg-gradient-to-br from-primary to-primary-deep text-white flex items-center justify-center font-display font-bold text-base shadow-lg shadow-primary/30">
+              BC
+            </div>
+          )}
+          <span className="font-display text-white/90 font-semibold text-sm">Bro&apos;s Code School</span>
+        </div>
+
+        <div className="relative tab-corner bg-surface/80 backdrop-blur-xl border border-white/10 shadow-[0_30px_90px_-25px_rgba(79,140,255,0.45)] px-8 py-9 overflow-hidden">
+          <div className="ledger-rule absolute inset-0 opacity-[0.045] pointer-events-none" />
+          <div className="relative">
         {pendingToken ? (
           <>
-            <h2 className="font-display text-2xl font-bold text-white mb-1">Two-factor code</h2>
+            <h2 className="font-display text-2xl font-semibold text-white mb-1">Two-factor code</h2>
             <p className="text-white/50 text-xs mb-6">Enter the 6-digit code from your authenticator app, or a backup code.</p>
 
             <form onSubmit={handleTwoFactorSubmit}>
@@ -251,7 +255,10 @@ export default function Login() {
         </form>
         </>
         )}
-      </div>
+          </div>
+        </div>
+
+        <p className="text-center text-white/25 text-[11px] mt-6">Bro&apos;s Code</p>
       </div>
     </div>
   );
