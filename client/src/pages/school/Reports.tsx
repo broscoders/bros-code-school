@@ -54,8 +54,20 @@ export default function Reports() {
   };
 
   const exportFeesCSV = async () => {
-    const res = await api.get(`/ops/invoices/all?schoolId=${schoolId}`);
-    const rows = res.data.map((i: any) => ({
+    // The backend now pages this endpoint (max 2000 per page) instead of
+    // silently truncating at 2000 total, so a school with more invoices than
+    // that needs every page fetched here rather than just the first one.
+    let all: any[] = [];
+    let page = 1;
+    const limit = 2000;
+    for (;;) {
+      const res = await api.get(`/ops/invoices/all?schoolId=${schoolId}&page=${page}&limit=${limit}`);
+      all = all.concat(res.data);
+      const total = Number(res.headers["x-total-count"] ?? all.length);
+      if (all.length >= total || res.data.length === 0) break;
+      page++;
+    }
+    const rows = all.map((i: any) => ({
       student: i.studentId?.userId?.name || "",
       feeType: i.feeType,
       amount: i.amount,

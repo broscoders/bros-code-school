@@ -5,7 +5,7 @@ import { Calendar } from "lucide-react";
 
 const typeColors: Record<string, string> = {
   EXAM: "bg-danger-soft text-danger",
-  PTM: "bg-violet-50 text-violet-600",
+  PTM: "bg-steel/12 text-steel",
   HOLIDAY: "bg-success-soft text-success",
   SPORTS: "bg-warning-soft text-warning",
   TRIP: "bg-primary/10 text-primary",

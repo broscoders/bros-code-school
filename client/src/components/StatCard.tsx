@@ -1,13 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 
-type Tone = "primary" | "success" | "danger" | "accent" | "violet" | "teal" | "neutral";
+type Tone = "primary" | "success" | "danger" | "accent" | "steel" | "teal" | "neutral";
 
 const toneStyles: Record<Tone, { text: string; bg: string }> = {
   primary: { text: "text-primary", bg: "bg-primary/12" },
   success: { text: "text-success", bg: "bg-success-soft" },
   danger: { text: "text-danger", bg: "bg-danger-soft" },
   accent: { text: "text-accent", bg: "bg-accent-soft" },
-  violet: { text: "text-violet", bg: "bg-violet/12" },
+  steel: { text: "text-steel", bg: "bg-steel/12" },
   teal: { text: "text-teal", bg: "bg-teal/12" },
   neutral: { text: "text-ink-soft", bg: "bg-white/5" },
 };
@@ -30,9 +30,9 @@ export default function StatCard({ label, value, icon: Icon, tone = "neutral", t
   const trendIsGood = trend ? trend.direction === trendGood : true;
 
   return (
-    <div className="relative bg-surface border border-border rounded-xl p-4 pt-5 overflow-hidden">
-      <div className={`absolute top-0 right-0 w-9 h-9 tab-corner flex items-start justify-end p-1.5 ${styles.bg}`}>
-        <Icon size={14} className={styles.text} />
+    <div className="card card-hover relative p-5 overflow-hidden anim-in">
+      <div className={`absolute top-4 right-4 w-9 h-9 rounded-xl flex items-center justify-center ${styles.bg}`}>
+        <Icon size={16} className={styles.text} />
       </div>
       <p className="font-display text-[1.75rem] leading-none font-bold text-ink tabular-nums">{value}</p>
       <p className="text-xs text-muted mt-2">{label}</p>
