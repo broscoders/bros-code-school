@@ -303,7 +303,7 @@ export const getMyTeacher = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getTeachers = async (req: AuthRequest, res: Response) => { (req: AuthRequest, res: Response) => {
+export const getTeachers = async (req: AuthRequest, res: Response) => {
   try {
     const filter: Record<string, any> = { schoolId: req.user!.schoolId };
     const status = req.query.status as string | undefined;
