@@ -1,38 +1,69 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
-import { useAuthStore } from "../../store/authStore";
 import { Award } from "lucide-react";
 
 export default function TeacherMarks() {
-  const schoolId = useAuthStore((s) => s.user?.schoolId);
   const teacher = useMyTeacherRecord();
   const [exams, setExams] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [classId, setClassId] = useState("");
   const [examId, setExamId] = useState("");
   const [marksMap, setMarksMap] = useState<Record<string, string>>({});
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const selectedExam = exams.find((ex) => ex._id === examId);
 
   useEffect(() => {
-    if (classId) {
-      api.get(`/ops/exams?classId=${classId}`).then((res) => setExams(res.data));
-      api.get(`/people/students?schoolId=${schoolId}`).then((res) =>
-        setStudents(res.data.filter((s: any) => s.classId === classId || s.classId?._id === classId))
-      );
+    setExamId("");
+    setMarksMap({});
+    if (!classId) {
+      setExams([]);
+      setStudents([]);
+      return;
     }
+    api.get(`/ops/exams?classId=${classId}`).then((res) => setExams(res.data)).catch(() => setExams([]));
+    api.get(`/people/students?classId=${classId}`).then((res) => setStudents(res.data)).catch(() => setStudents([]));
   }, [classId]);
 
+  // show marks that were already entered for this exam
+  useEffect(() => {
+    setMarksMap({});
+    if (!examId) return;
+    api
+      .get(`/ops/results/by-exam/${examId}`)
+      .then((res) => {
+        const saved: Record<string, string> = {};
+        for (const r of res.data as any[]) saved[r.studentId?._id || r.studentId] = String(r.marksObtained);
+        setMarksMap(saved);
+      })
+      .catch(() => {});
+  }, [examId]);
+
   const saveAll = async () => {
-    await Promise.all(
-      students.map((s) =>
-        marksMap[s._id]
-          ? api.post("/ops/results", { examId, studentId: s._id, marksObtained: marksMap[s._id] })
-          : Promise.resolve()
-      )
+    setMsg(null);
+    const entries = students.filter((s) => marksMap[s._id] !== undefined && marksMap[s._id] !== "");
+    if (entries.length === 0) return setMsg({ type: "err", text: "Enter marks for at least one student." });
+    const total = selectedExam?.totalMarks;
+    const bad = entries.find((s) => {
+      const n = Number(marksMap[s._id]);
+      return Number.isNaN(n) || n < 0 || (total !== undefined && n > total);
+    });
+    if (bad) return setMsg({ type: "err", text: `Invalid marks for ${bad.userId?.name || "a student"} (must be between 0 and ${total ?? "total marks"}).` });
+
+    setSaving(true);
+    const results = await Promise.allSettled(
+      entries.map((s) => api.post("/ops/results", { examId, studentId: s._id, marksObtained: Number(marksMap[s._id]) }))
     );
-    setMsg("Marks saved.");
-    setTimeout(() => setMsg(""), 2500);
+    const failed = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+    setSaving(false);
+    if (failed.length === 0) {
+      setMsg({ type: "ok", text: `Marks saved for ${entries.length} student(s).` });
+    } else {
+      const reason = (failed[0].reason as any)?.response?.data?.message || "Server error";
+      setMsg({ type: "err", text: `${results.length - failed.length} saved, ${failed.length} failed: ${reason}` });
+    }
   };
 
   return (
@@ -55,7 +86,7 @@ export default function TeacherMarks() {
           </select>
         </div>
 
-        {msg && <p className="text-success text-sm mb-3">{msg}</p>}
+        {msg && <p className={`${msg.type === "ok" ? "text-success" : "text-danger"} text-sm mb-3`}>{msg.text}</p>}
 
         {examId && students.length > 0 && (
           <div className="space-y-2">
@@ -64,15 +95,15 @@ export default function TeacherMarks() {
                 <span className="text-sm">{s.userId?.name} ({s.admissionNumber})</span>
                 <input
                   type="number"
-                  placeholder="Marks"
-                  value={marksMap[s._id] || ""}
+                  placeholder="Marks" min={0} max={selectedExam?.totalMarks}
+                  value={marksMap[s._id] ?? ""}
                   onChange={(e) => setMarksMap({ ...marksMap, [s._id]: e.target.value })}
                   className="w-24 text-sm border border-border rounded-md px-2 py-1"
                 />
               </div>
             ))}
-            <button onClick={saveAll} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium mt-3 hover:bg-primary-light transition-colors">
-              Save Marks
+            <button onClick={saveAll} disabled={saving} className="disabled:opacity-60 bg-primary text-white px-4 py-2 rounded-md text-sm font-medium mt-3 hover:bg-primary-light transition-colors">
+              {saving ? "Saving..." : "Save Marks"}
             </button>
           </div>
         )}
