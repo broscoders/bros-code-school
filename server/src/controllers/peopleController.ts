@@ -61,6 +61,18 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
       filter._id = myStudent?._id || null;
     }
 
+    // A plain teacher only ever sees students of the classes assigned to
+    // them (before, any teacher could list every student in the school).
+    if (role === "TEACHER" || role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      const assigned = (me?.assignedClasses || []).map((c) => c.toString());
+      if (qClass) {
+        if (!assigned.includes(qClass)) return res.json([]);
+      } else {
+        filter.classId = { $in: assigned };
+      }
+    }
+
     const students = await Student.find(filter).populate("userId classId sectionId");
     res.json(students);
   } catch (err) {

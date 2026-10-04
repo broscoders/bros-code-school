@@ -20,6 +20,13 @@ export default function TeacherAttendance() {
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // A teacher with exactly one class gets it selected automatically;
+  // with several classes they choose from the dropdown.
+  useEffect(() => {
+    const list: ClassItem[] = teacher?.assignedClasses || [];
+    if (list.length === 1) setClassId(list[0]._id);
+  }, [teacher]);
+
   // Sections of the chosen class
   useEffect(() => {
     setSectionId("");
@@ -29,7 +36,13 @@ export default function TeacherAttendance() {
       setSections([]);
       return;
     }
-    api.get(`/academics/sections?classId=${classId}`).then((res) => setSections(res.data)).catch(() => setSections([]));
+    api
+      .get(`/academics/sections?classId=${classId}`)
+      .then((res) => {
+        setSections(res.data);
+        if (res.data.length === 1) setSectionId(res.data[0]._id);
+      })
+      .catch(() => setSections([]));
   }, [classId]);
 
   // Students of the chosen section + whatever was already saved for that date
@@ -105,10 +118,14 @@ export default function TeacherAttendance() {
           <p className="text-sm text-danger mb-3">No classes are assigned to you yet. Ask the school admin to assign your classes.</p>
         )}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-          <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm">
-            <option value="">Select Class</option>
-            {assigned.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-          </select>
+          {assigned.length > 1 ? (
+            <select value={classId} onChange={(e) => setClassId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm">
+              <option value="">Select Class</option>
+              {assigned.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </select>
+          ) : (
+            <div className="border border-border rounded-md px-3 py-2 text-sm bg-black/5">{assigned[0]?.name || "No class assigned"}</div>
+          )}
           <select value={sectionId} onChange={(e) => setSectionId(e.target.value)} className="border border-border rounded-md px-3 py-2 text-sm" disabled={!classId}>
             <option value="">Select Section</option>
             {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
