@@ -31,6 +31,12 @@ type NavGroup = { label: string; items: NavItem[] };
 // with `roles` is narrowed to just those (School Admin/Principal always
 // see everything, handled in isVisibleForRole below, regardless of what
 // a specific item lists).
+// Regrouped for clarity - the previous "Campus Operations" (12 items) and
+// "Growth & Communication" (10 items) buckets mixed unrelated concerns
+// (HR, facilities, credentials, system config all in one place) with no
+// clear theme, making items hard to find. Every `to`/`roles` pairing below
+// is unchanged from before - only which group an item sits in, and a
+// couple of labels, changed.
 const navGroups: NavGroup[] = [
   {
     label: "Overview",
@@ -40,11 +46,13 @@ const navGroups: NavGroup[] = [
     label: "People & Admissions",
     items: [
       { to: "/admissions", label: "Admissions", icon: ClipboardList, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR"] },
+      { to: "/crm", label: "Leads / CRM", icon: Phone, roles: ["ADMISSION_STAFF"] },
       { to: "/students", label: "Students", icon: Users, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST"] },
       { to: "/parents", label: "Parents", icon: Users, roles: ["HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST"] },
       { to: "/teachers", label: "Teachers", icon: GraduationCap, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/hr", label: "HR / Staff", icon: Users, roles: ["HEAD"] },
       { to: "/staff-attendance", label: "Staff Attendance", icon: UserCheck, roles: ["HEAD"] },
+      { to: "/leave-requests", label: "Leave Requests", icon: FileWarning, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
     ],
   },
   {
@@ -52,13 +60,20 @@ const navGroups: NavGroup[] = [
     items: [
       { to: "/academics", label: "Academics", icon: BookOpen, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/timetable", label: "Timetable", icon: Calendar, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/report-cards", label: "Report Cards", icon: FileBarChart, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/lms-overview", label: "LMS Overview", icon: GraduationCap, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/online-exams", label: "Online Exams", icon: MonitorCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+    ],
+  },
+  {
+    // What teachers have recorded day to day - oversight views, not a
+    // second place to do the teacher's job (see Attendance.tsx).
+    label: "Daily Records",
+    items: [
       { to: "/attendance", label: "Attendance", icon: CalendarCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/homework", label: "Homework", icon: ClipboardCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/assignments", label: "Assignments", icon: FileText, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/exams", label: "Exams & Results", icon: Award, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
-      { to: "/report-cards", label: "Report Cards", icon: FileBarChart, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
-      { to: "/lms-overview", label: "LMS Overview", icon: GraduationCap, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
-      { to: "/online-exams", label: "Online Exams", icon: MonitorCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
     ],
   },
   {
@@ -70,35 +85,40 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: "Campus Operations",
+    label: "Campus Life",
     items: [
       { to: "/hostel", label: "Hostel", icon: Boxes, roles: ["HOSTEL_WARDEN"] },
-      { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes, roles: ["HEAD"] },
-      { to: "/maintenance", label: "Maintenance", icon: AlertTriangle, roles: ["HEAD", "RECEPTIONIST"] },
-      { to: "/discipline", label: "Discipline", icon: AlertTriangle, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
-      { to: "/achievements", label: "Achievements", icon: Trophy, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
-      { to: "/visitors", label: "Visitors", icon: Users, roles: ["RECEPTIONIST", "HOSTEL_WARDEN"] },
-      { to: "/health", label: "Health & Medical", icon: AlertTriangle, roles: ["NURSE"] },
-      { to: "/leave-requests", label: "Leave Requests", icon: FileWarning, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/library", label: "Library", icon: LibraryIcon, roles: ["LIBRARIAN"] },
       { to: "/transport", label: "Transport", icon: Bus, roles: ["TRANSPORT_MANAGER"] },
-      { to: "/operations", label: "Operations", icon: Boxes, roles: ["HEAD", "RECEPTIONIST"] },
       { to: "/canteen", label: "Canteen", icon: Boxes, roles: ["RECEPTIONIST"] },
     ],
   },
   {
-    label: "Growth & Communication",
+    label: "Safety & Facilities",
     items: [
-      { to: "/crm", label: "Leads / CRM", icon: Phone, roles: ["ADMISSION_STAFF"] },
-      { to: "/academy", label: "Academy", icon: Boxes, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/inventory-assets", label: "Inventory & Assets", icon: Boxes, roles: ["HEAD"] },
+      { to: "/maintenance", label: "Maintenance", icon: AlertTriangle, roles: ["HEAD", "RECEPTIONIST"] },
+      { to: "/discipline", label: "Discipline", icon: AlertTriangle, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
+      { to: "/visitors", label: "Visitors", icon: Users, roles: ["RECEPTIONIST", "HOSTEL_WARDEN"] },
+      { to: "/health", label: "Health & Medical", icon: AlertTriangle, roles: ["NURSE"] },
+      { to: "/operations", label: "Complaints & Events", icon: Boxes, roles: ["HEAD", "RECEPTIONIST"] },
+    ],
+  },
+  {
+    label: "Student Life",
+    items: [
+      { to: "/achievements", label: "Achievements", icon: Trophy, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/certificates", label: "Certificates", icon: BadgeCheck, roles: ["HEAD", "ACADEMIC_COORDINATOR", "ADMISSION_STAFF"] },
       { to: "/id-cards", label: "ID Cards", icon: IdCard, roles: ["HEAD", "RECEPTIONIST"] },
-      { to: "/documents", label: "Documents", icon: FolderOpen, roles: ["HEAD", "RECEPTIONIST"] },
-      { to: "/automation", label: "Automation", icon: Zap, roles: ["HEAD"] },
-      { to: "/website-cms", label: "Website / CMS", icon: Globe, roles: ["HEAD"] },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
       { to: "/announcements", label: "Announcements", icon: Megaphone, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/surveys", label: "Surveys", icon: MessageSquareText, roles: ["HEAD", "ACADEMIC_COORDINATOR"] },
       { to: "/calendar", label: "Calendar", icon: Calendar },
+      { to: "/documents", label: "Documents", icon: FolderOpen, roles: ["HEAD", "RECEPTIONIST"] },
     ],
   },
   {
@@ -109,8 +129,17 @@ const navGroups: NavGroup[] = [
       { to: "/roles-permissions", label: "Roles & Permissions", icon: Lock, roles: [] },
       { to: "/audit-logs", label: "Audit Logs", icon: ShieldCheck, roles: [] },
       { to: "/communication-log", label: "Communication Log", icon: Mail, roles: [] },
+      { to: "/automation", label: "Automation", icon: Zap, roles: ["HEAD"] },
+      { to: "/website-cms", label: "Website / CMS", icon: Globe, roles: ["HEAD"] },
       { to: "/settings", label: "Settings", icon: SettingsIcon, roles: [] },
     ],
+  },
+  {
+    // A separate product line (academy/training-center mode), not a
+    // school admin function - kept on its own rather than buried in an
+    // unrelated group.
+    label: "Academy",
+    items: [{ to: "/academy", label: "Academy", icon: Boxes, roles: ["HEAD", "ACADEMIC_COORDINATOR"] }],
   },
 ];
 

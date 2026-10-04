@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { Settings2 } from "lucide-react";
+import { MessageSquareWarning } from "lucide-react";
 
+// Was a 4-tab page: Library, Transport, Complaints, Calendar/Events. The
+// Library and Transport tabs duplicated the dedicated Library.tsx and
+// Transport.tsx pages (which are more complete - e.g. this page could add
+// a book but not issue one, add a vehicle but not assign a student to it),
+// so they're removed here; use the Library / Transport pages for those.
+// Complaints and Events have no other page, so they stay.
 export default function Operations() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const userId = useAuthStore((s) => s.user?.id);
-  const [tab, setTab] = useState<"library" | "transport" | "complaints" | "events">("library");
-
-  const [books, setBooks] = useState<any[]>([]);
-  const [bookForm, setBookForm] = useState({ title: "", author: "", category: "", totalCopies: "1" });
-
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [vehicleForm, setVehicleForm] = useState({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "" });
+  const [tab, setTab] = useState<"complaints" | "events">("complaints");
 
   const [complaints, setComplaints] = useState<any[]>([]);
   const [complaintForm, setComplaintForm] = useState({ category: "GENERAL", subject: "", description: "" });
@@ -21,14 +21,10 @@ export default function Operations() {
   const [eventForm, setEventForm] = useState({ title: "", eventType: "HOLIDAY", date: "" });
 
   const loadAll = async () => {
-    const [b, v, c, e] = await Promise.all([
-      api.get(`/library/books?schoolId=${schoolId}`),
-      api.get(`/transport/vehicles?schoolId=${schoolId}`),
+    const [c, e] = await Promise.all([
       api.get(`/complaints?schoolId=${schoolId}`),
       api.get(`/events?schoolId=${schoolId}`),
     ]);
-    setBooks(b.data);
-    setVehicles(v.data);
     setComplaints(c.data);
     setEvents(e.data);
   };
@@ -36,20 +32,6 @@ export default function Operations() {
   useEffect(() => {
     if (schoolId) loadAll();
   }, [schoolId]);
-
-  const addBook = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await api.post("/library/books", { ...bookForm, schoolId, availableCopies: bookForm.totalCopies });
-    setBookForm({ title: "", author: "", category: "", totalCopies: "1" });
-    loadAll();
-  };
-
-  const addVehicle = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await api.post("/transport/vehicles", { ...vehicleForm, schoolId });
-    setVehicleForm({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "" });
-    loadAll();
-  };
 
   const addComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,18 +48,16 @@ export default function Operations() {
   };
 
   const tabs = [
-    { id: "library", label: "Library" },
-    { id: "transport", label: "Transport" },
     { id: "complaints", label: "Complaints" },
-    { id: "events", label: "Calendar" },
+    { id: "events", label: "Events" },
   ] as const;
 
   return (
     <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
-        <p className="section-label">Operations</p>
-        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Settings2 size={22} className="text-primary" />School Operations</h1>
-        <p className="text-muted mt-1 text-sm">Library, transport, complaints and calendar in one place.</p>
+        <p className="section-label">Safety & Facilities</p>
+        <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><MessageSquareWarning size={22} className="text-primary" />Complaints & Events</h1>
+        <p className="text-muted mt-1 text-sm">Raise or track complaint tickets, and add calendar events.</p>
       </div>
 
       <div className="flex gap-1 mt-6 border-b border-border">
@@ -93,56 +73,6 @@ export default function Operations() {
           </button>
         ))}
       </div>
-
-      {tab === "library" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addBook} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
-            <h2 className="font-display font-semibold text-primary-dark mb-1">Add Book</h2>
-            <input placeholder="Title" value={bookForm.title} onChange={(e) => setBookForm({ ...bookForm, title: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Author" value={bookForm.author} onChange={(e) => setBookForm({ ...bookForm, author: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
-            <input placeholder="Category" value={bookForm.category} onChange={(e) => setBookForm({ ...bookForm, category: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
-            <input type="number" placeholder="Total Copies" value={bookForm.totalCopies} onChange={(e) => setBookForm({ ...bookForm, totalCopies: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" />
-            <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Book</button>
-          </form>
-          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
-            <h2 className="font-display font-semibold text-primary-dark mb-3">Books</h2>
-            <ul className="text-sm divide-y divide-black/5">
-              {books.length === 0 && <li className="py-2 text-muted">No books yet.</li>}
-              {books.map((b) => (
-                <li key={b._id} className="py-2 flex justify-between">
-                  <span>{b.title}</span>
-                  <span className="text-muted text-xs">{b.availableCopies}/{b.totalCopies} available</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {tab === "transport" && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
-          <form onSubmit={addVehicle} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-2 h-fit">
-            <h2 className="font-display font-semibold text-primary-dark mb-1">Add Vehicle</h2>
-            <input placeholder="Vehicle Number" value={vehicleForm.vehicleNumber} onChange={(e) => setVehicleForm({ ...vehicleForm, vehicleNumber: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Driver Name" value={vehicleForm.driverName} onChange={(e) => setVehicleForm({ ...vehicleForm, driverName: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Driver Contact" value={vehicleForm.driverContact} onChange={(e) => setVehicleForm({ ...vehicleForm, driverContact: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
-            <input placeholder="Route Name" value={vehicleForm.routeName} onChange={(e) => setVehicleForm({ ...vehicleForm, routeName: e.target.value })} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
-            <button className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium w-full hover:bg-primary-light transition-colors">+ Add Vehicle</button>
-          </form>
-          <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
-            <h2 className="font-display font-semibold text-primary-dark mb-3">Vehicles</h2>
-            <ul className="text-sm divide-y divide-black/5">
-              {vehicles.length === 0 && <li className="py-2 text-muted">No vehicles yet.</li>}
-              {vehicles.map((v) => (
-                <li key={v._id} className="py-2 flex justify-between">
-                  <span>{v.vehicleNumber} - {v.routeName}</span>
-                  <span className="text-muted text-xs">{v.driverName}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      )}
 
       {tab === "complaints" && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
