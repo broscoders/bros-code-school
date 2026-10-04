@@ -1,6 +1,8 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import CurriculumTopic from "../models/CurriculumTopic";
+import Subject from "../models/Subject";
+import { isAssignedToClass } from "../utils/accessControl";
 
 // Any teacher may add topics (route-level: TEACHING_STAFF). We do not
 // restrict this to "only the teacher assigned to this subject" the way
@@ -13,14 +15,22 @@ export const addTopic = async (req: AuthRequest, res: Response) => {
     if (!chapterName || !topicName) {
       return res.status(400).json({ message: "Chapter name and topic name are required" });
     }
+    if (!classId || !subjectId || !academicSessionId) {
+      return res.status(400).json({ message: "Session, class and subject are required" });
+    }
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
+    const subject = await Subject.findOne({ _id: subjectId, classId, schoolId: req.user!.schoolId });
+    if (!subject) return res.status(404).json({ message: "Subject not found in this class" });
     const topic = await CurriculumTopic.create({
       schoolId: req.user!.schoolId,
       academicSessionId,
       classId,
       subjectId,
-      chapterName,
-      topicName,
-      order: order || 0,
+      chapterName: String(chapterName).trim(),
+      topicName: String(topicName).trim(),
+      order: Number(order) || 0,
       updatedBy: req.user!.userId,
     });
     res.status(201).json(topic);
@@ -34,6 +44,11 @@ export const getTopics = async (req: AuthRequest, res: Response) => {
     const classId = req.query.classId as string;
     const subjectId = req.query.subjectId as string;
     const academicSessionId = req.query.academicSessionId as string | undefined;
+    // Without these two, the filter below silently matched EVERY topic in the school
+    if (!classId || !subjectId) return res.status(400).json({ message: "classId and subjectId are required" });
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const topics = await CurriculumTopic.find({
       schoolId: req.user!.schoolId,
       classId,
@@ -52,12 +67,18 @@ export const updateTopicStatus = async (req: AuthRequest, res: Response) => {
     if (!["NOT_STARTED", "IN_PROGRESS", "COMPLETED"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
+    const existing = await CurriculumTopic.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existing) return res.status(404).json({ message: "Topic not found" });
+    if (!(await isAssignedToClass(req, existing.classId.toString()))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const topic = await CurriculumTopic.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
       {
         status,
+        // moving back from COMPLETED must clear the old completion date
         ...(teacherNotes !== undefined ? { teacherNotes } : {}),
-        ...(status === "COMPLETED" ? { completedAt: new Date() } : {}),
+        ...(status === "COMPLETED" ? { completedAt: new Date() } : { completedAt: null }),
         updatedBy: req.user!.userId,
       },
       { new: true }
@@ -71,8 +92,12 @@ export const updateTopicStatus = async (req: AuthRequest, res: Response) => {
 
 export const deleteTopic = async (req: AuthRequest, res: Response) => {
   try {
-    const topic = await CurriculumTopic.findOneAndDelete({ _id: req.params.id, schoolId: req.user!.schoolId });
-    if (!topic) return res.status(404).json({ message: "Topic not found" });
+    const existing = await CurriculumTopic.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existing) return res.status(404).json({ message: "Topic not found" });
+    if (!(await isAssignedToClass(req, existing.classId.toString()))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
+    await existing.deleteOne();
     res.json({ message: "Deleted" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

@@ -3,7 +3,7 @@ import {
   sendMessage, getThread, getInbox, setCommunicationHours,
   createPTMSlot, getPTMSlotsByTeacher, getAllTeacherSlots, bookPTMSlot,
   createLeaveRequest, getLeaveRequests, updateLeaveStatus,
-  addStudyMaterial, getStudyMaterial,
+  addStudyMaterial, getStudyMaterial, deleteStudyMaterial,
 } from "../controllers/communicationController";
 import { protect, requireRole } from "../middleware/authMiddleware";
 import { TEACHING_STAFF, ACADEMIC_STAFF, EVERYONE, ROLES } from "../middleware/permissions";
@@ -27,5 +27,6 @@ router.put("/leave-requests/:id/status", protect, requireRole(...ACADEMIC_STAFF)
 
 router.post("/study-material", protect, requireRole(...TEACHING_STAFF), addStudyMaterial);
 router.get("/study-material", protect, requireRole(...EVERYONE), getStudyMaterial);
+router.delete("/study-material/:id", protect, requireRole(...TEACHING_STAFF), deleteStudyMaterial);
 
 export default router;

@@ -11,14 +11,19 @@ export default function TeacherAcademy() {
 
   useEffect(() => {
     if (teacher?._id) {
-      api.get(`/academy/batches/mine?teacherId=${teacher._id}`).then((res) => setBatches(res.data));
+      api.get(`/academy/batches/mine?teacherId=${teacher._id}`).then((res) => setBatches(res.data)).catch(() => setBatches([]));
     }
   }, [teacher]);
 
   const openBatch = async (batch: any) => {
     setActiveBatch(batch);
-    const res = await api.get(`/academy/batches/${batch._id}/students`);
-    setEnrollments(res.data);
+    setEnrollments([]);
+    try {
+      const res = await api.get(`/academy/batches/${batch._id}/students`);
+      setEnrollments(res.data);
+    } catch {
+      setEnrollments([]);
+    }
   };
 
   if (activeBatch) {

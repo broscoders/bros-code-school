@@ -2,18 +2,28 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Complaint from "../models/Complaint";
 
+const CATEGORIES = ["ACADEMIC", "FEE", "TRANSPORT", "TEACHER", "GENERAL", "TECHNICAL"];
+const STATUSES = ["OPEN", "IN_REVIEW", "RESOLVED"];
+
 export const createComplaint = async (req: AuthRequest, res: Response) => {
   try {
     // Reachable by EVERYONE (including parents/students) to file a
-    // complaint, but only front-desk staff should move it through its
-    // status workflow (see updateComplaintStatus) - stripping these keeps
-    // a complainant from marking their own complaint resolved/closed.
-    const { status, ...safeBody } = req.body;
-    const ticketNumber = "SC-" + Date.now().toString(36).toUpperCase();
+    // complaint, but only front-desk staff move it through its status
+    // workflow. Only these three fields are accepted from the client now.
+    const { category, subject, description } = req.body;
+    if (!CATEGORIES.includes(category)) return res.status(400).json({ message: "Please choose a valid category" });
+    if (!subject || !String(subject).trim() || !description || !String(description).trim()) {
+      return res.status(400).json({ message: "Subject and description are required" });
+    }
+    // Date.now() alone can collide when two tickets are filed in the same
+    // millisecond (ticketNumber is unique), so add a random suffix.
+    const ticketNumber = "SC-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 5).toUpperCase();
     const complaint = await Complaint.create({
-      ...safeBody,
       schoolId: req.user!.schoolId,
       raisedBy: req.user!.userId,
+      category,
+      subject: String(subject).trim(),
+      description: String(description).trim(),
       ticketNumber,
     });
     res.status(201).json(complaint);
@@ -45,6 +55,7 @@ export const getMyComplaints = async (req: AuthRequest, res: Response) => {
 
 export const updateComplaintStatus = async (req: AuthRequest, res: Response) => {
   try {
+    if (!STATUSES.includes(req.body.status)) return res.status(400).json({ message: "Invalid status" });
     const complaint = await Complaint.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
       { status: req.body.status },

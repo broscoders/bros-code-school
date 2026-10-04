@@ -33,14 +33,24 @@ export default function TeacherCurriculum() {
       api.get(`/academics/sessions?schoolId=${schoolId}`).then((res) => {
         const active = res.data.find((s: any) => s.isActive) || res.data[0];
         if (active) setSessionId(active._id);
-      });
+      }).catch(() => {});
     }
   }, [schoolId]);
 
+  const flash = (text: string) => {
+    setMsg(text);
+    setTimeout(() => setMsg(""), 3500);
+  };
+
   const load = async () => {
     if (!classId || !subjectId) return;
-    const res = await api.get(`/curriculum/topics?classId=${classId}&subjectId=${subjectId}&academicSessionId=${sessionId}`);
-    setTopics(res.data);
+    try {
+      const res = await api.get(`/curriculum/topics?classId=${classId}&subjectId=${subjectId}&academicSessionId=${sessionId}`);
+      setTopics(res.data);
+    } catch (err: any) {
+      setTopics([]);
+      flash(err?.response?.data?.message || "Could not load topics.");
+    }
   };
 
   useEffect(() => {
@@ -51,23 +61,39 @@ export default function TeacherCurriculum() {
   const addTopic = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!classId || !subjectId) {
-      setMsg("Select a class and subject first.");
-      setTimeout(() => setMsg(""), 2500);
+      flash("Select a class and subject first.");
       return;
     }
-    await api.post("/curriculum/topics", { ...form, classId, subjectId, academicSessionId: sessionId, order: topics.length });
-    setForm({ chapterName: "", topicName: "" });
-    load();
+    if (!sessionId) {
+      flash("No academic session found. Ask the school admin to create one.");
+      return;
+    }
+    try {
+      await api.post("/curriculum/topics", { ...form, classId, subjectId, academicSessionId: sessionId, order: topics.length });
+      setForm({ chapterName: "", topicName: "" });
+      load();
+    } catch (err: any) {
+      flash(err?.response?.data?.message || "Could not add the topic.");
+    }
   };
 
   const setStatus = async (topicId: string, status: string) => {
-    await api.put(`/curriculum/topics/${topicId}/status`, { status });
-    load();
+    try {
+      await api.put(`/curriculum/topics/${topicId}/status`, { status });
+      load();
+    } catch (err: any) {
+      flash(err?.response?.data?.message || "Could not update the status.");
+    }
   };
 
   const removeTopic = async (topicId: string) => {
-    await api.delete(`/curriculum/topics/${topicId}`);
-    load();
+    if (!window.confirm("Delete this topic?")) return;
+    try {
+      await api.delete(`/curriculum/topics/${topicId}`);
+      load();
+    } catch (err: any) {
+      flash(err?.response?.data?.message || "Could not delete the topic.");
+    }
   };
 
   const completedCount = topics.filter((t) => t.status === "COMPLETED").length;

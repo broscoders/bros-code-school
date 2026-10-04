@@ -75,9 +75,20 @@ export const getInbox = async (req: AuthRequest, res: Response) => {
 // Teacher communication hours
 export const setCommunicationHours = async (req: AuthRequest, res: Response) => {
   try {
+    const hours = req.body.communicationHours;
+    if (typeof hours !== "string" || hours.length > 200) {
+      return res.status(400).json({ message: "Communication hours must be text (max 200 characters)" });
+    }
+    // A teacher can only change their own hours (admins can change any).
+    if (req.user!.role === "TEACHER" || req.user!.role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!me || me._id.toString() !== req.params.id) {
+        return res.status(403).json({ message: "You can only change your own communication hours" });
+      }
+    }
     const teacher = await Teacher.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
-      { communicationHours: req.body.communicationHours },
+      { communicationHours: hours.trim() },
       { new: true }
     );
     if (!teacher) return res.status(404).json({ message: "Teacher not found" });
@@ -90,7 +101,28 @@ export const setCommunicationHours = async (req: AuthRequest, res: Response) => 
 // PTM
 export const createPTMSlot = async (req: AuthRequest, res: Response) => {
   try {
-    const slot = await PTMSlot.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { date, time } = req.body;
+    if (!date || !time || !String(time).trim()) return res.status(400).json({ message: "Date and time are required" });
+    const when = new Date(date);
+    if (Number.isNaN(when.getTime())) return res.status(400).json({ message: "Invalid date" });
+
+    // Teachers always create slots for themselves; admins must say which teacher.
+    let teacherId: string | undefined = req.body.teacherId;
+    if (req.user!.role === "TEACHER" || req.user!.role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+      if (!me) return res.status(403).json({ message: "Teacher profile not found" });
+      teacherId = me._id.toString();
+    } else {
+      if (!teacherId) return res.status(400).json({ message: "teacherId is required" });
+      if (!(await Teacher.exists({ _id: teacherId, schoolId }))) return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const duplicate = await PTMSlot.findOne({ schoolId, teacherId, date: when, time: String(time).trim() });
+    if (duplicate) return res.status(409).json({ message: "You already have a slot at this date and time" });
+
+    // isBooked / parentId / studentId can no longer be pre-set by the client
+    const slot = await PTMSlot.create({ schoolId, teacherId, date: when, time: String(time).trim() });
     res.status(201).json(slot);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -237,6 +269,25 @@ export const addStudyMaterial = async (req: AuthRequest, res: Response) => {
 
     const material = await StudyMaterial.create({ schoolId, classId, subjectId, teacherId: teacher._id, title, chapter, fileUrl });
     res.status(201).json(material);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const deleteStudyMaterial = async (req: AuthRequest, res: Response) => {
+  try {
+    const material = await StudyMaterial.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!material) return res.status(404).json({ message: "Study material not found" });
+    // only the teacher who uploaded it (or an admin) can remove it
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isAdmin) {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!me || me._id.toString() !== material.teacherId.toString()) {
+        return res.status(403).json({ message: "You can only delete your own uploads" });
+      }
+    }
+    await material.deleteOne();
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

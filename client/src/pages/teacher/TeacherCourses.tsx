@@ -15,29 +15,29 @@ export default function TeacherCourses() {
   const [lessons, setLessons] = useState<any[]>([]);
   const [lessonForm, setLessonForm] = useState({ moduleName: "", title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
   const [progressSummary, setProgressSummary] = useState<any>(null);
+  const [msg, setMsg] = useState<string | null>(null);
 
   const load = async () => {
     if (!teacher?._id) return;
-    const res = await api.get(`/lms/courses/teacher?teacherId=${teacher._id}`);
-    setCourses(res.data);
+    try {
+      const res = await api.get(`/lms/courses/teacher?teacherId=${teacher._id}`);
+      setCourses(res.data);
+    } catch {
+      setCourses([]);
+    }
   };
 
   useEffect(() => {
     if (teacher?._id) {
       load();
-      api.get(`/academics/classes?schoolId=${teacher.schoolId}`).then((res) => {
-        // Match the backend's isAssignedToClass check - only offer classes
-        // this teacher is actually assigned to, so the dropdown can't lead
-        // to a 403 the person has no way to explain to themselves.
-        const assignedIds = new Set((teacher.assignedClasses || []).map((c: any) => c._id || c));
-        setClasses(res.data.filter((c: any) => assignedIds.has(c._id)));
-      });
+      // assignedClasses is already populated by /people/teachers/me
+      setClasses(teacher.assignedClasses || []);
     }
   }, [teacher]);
 
   useEffect(() => {
     if (form.classId) {
-      api.get(`/academics/subjects?classId=${form.classId}`).then((res) => setSubjects(res.data));
+      api.get(`/academics/subjects?classId=${form.classId}`).then((res) => setSubjects(res.data)).catch(() => setSubjects([]));
     } else {
       setSubjects([]);
     }
@@ -45,36 +45,60 @@ export default function TeacherCourses() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/lms/courses", { ...form, createdBy: teacher._id });
-    setShowForm(false);
-    setForm({ title: "", description: "", classId: "", subjectId: "" });
-    load();
+    setMsg(null);
+    try {
+      await api.post("/lms/courses", form);
+      setShowForm(false);
+      setForm({ title: "", description: "", classId: "", subjectId: "" });
+      load();
+    } catch (err: any) {
+      setMsg(err?.response?.data?.message || "Could not create the course.");
+    }
   };
 
   const togglePublish = async (course: any) => {
-    await api.put(`/lms/courses/${course._id}/publish`, { isPublished: !course.isPublished });
-    load();
+    try {
+      await api.put(`/lms/courses/${course._id}/publish`, { isPublished: !course.isPublished });
+      setMsg(null);
+      load();
+    } catch (err: any) {
+      setMsg(err?.response?.data?.message || "Could not change publish status.");
+    }
   };
 
   const openCourse = async (course: any) => {
     setActiveCourse(course);
-    const res = await api.get(`/lms/lessons?courseId=${course._id}`);
-    setLessons(res.data);
-    const summaryRes = await api.get(`/lms/courses/${course._id}/progress-summary`);
-    setProgressSummary(summaryRes.data);
+    try {
+      const res = await api.get(`/lms/lessons?courseId=${course._id}`);
+      setLessons(res.data);
+      const summaryRes = await api.get(`/lms/courses/${course._id}/progress-summary`);
+      setProgressSummary(summaryRes.data);
+    } catch (err: any) {
+      setMsg(err?.response?.data?.message || "Could not load this course.");
+    }
   };
 
   const addLesson = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeCourse) return;
-    await api.post("/lms/lessons", { ...lessonForm, courseId: activeCourse._id });
-    setLessonForm({ moduleName: "", title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
-    openCourse(activeCourse);
+    setMsg(null);
+    try {
+      await api.post("/lms/lessons", { ...lessonForm, courseId: activeCourse._id });
+      setLessonForm({ moduleName: "", title: "", contentType: "TEXT", contentUrl: "", textContent: "" });
+      openCourse(activeCourse);
+    } catch (err: any) {
+      setMsg(err?.response?.data?.message || "Could not add the lesson.");
+    }
   };
 
   const removeLesson = async (id: string) => {
-    await api.delete(`/lms/lessons/${id}`);
-    openCourse(activeCourse);
+    if (!window.confirm("Delete this lesson? Student progress on it will also be removed.")) return;
+    try {
+      await api.delete(`/lms/lessons/${id}`);
+      openCourse(activeCourse);
+    } catch (err: any) {
+      setMsg(err?.response?.data?.message || "Could not delete the lesson.");
+    }
   };
 
   if (activeCourse) {
@@ -82,6 +106,7 @@ export default function TeacherCourses() {
       <div className="p-4 sm:p-8">
         <button onClick={() => setActiveCourse(null)} className="text-primary text-sm underline mb-4">&larr; Back to Courses</button>
         <h1 className="font-display text-2xl font-bold text-primary-dark">{activeCourse.title}</h1>
+        {msg && <p className="text-danger text-sm mt-2">{msg}</p>}
 
         {progressSummary && (
           <div className="bg-surface rounded-xl border border-border shadow-sm p-4 mt-4">
@@ -149,6 +174,8 @@ export default function TeacherCourses() {
           {showForm ? "Cancel" : "+ New Course"}
         </button>
       </div>
+
+      {msg && <p className="text-danger text-sm mt-3">{msg}</p>}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 grid grid-cols-2 gap-3">

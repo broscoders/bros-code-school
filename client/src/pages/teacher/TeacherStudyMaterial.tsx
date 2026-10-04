@@ -45,6 +45,17 @@ export default function TeacherStudyMaterial() {
     }
   };
 
+  const remove = async (id: string) => {
+    if (!window.confirm("Delete this material? Students will no longer see it.")) return;
+    try {
+      await api.delete(`/comm/study-material/${id}`);
+      setMsg(null);
+      loadList(form.classId);
+    } catch (err: any) {
+      setMsg({ type: "err", text: err?.response?.data?.message || "Could not delete." });
+    }
+  };
+
   return (
     <div className="p-4 sm:p-8">
       <div className="border-b border-border pb-5 mb-6">
@@ -79,7 +90,10 @@ export default function TeacherStudyMaterial() {
             {list.map((m) => (
               <li key={m._id} className="py-2 flex justify-between gap-3">
                 <span>{m.title}{m.chapter ? ` - ${m.chapter}` : ""} <span className="text-muted text-xs">({m.subjectId?.name})</span></span>
-                <a href={m.fileUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Open</a>
+                <span className="flex gap-3 shrink-0">
+                  <a href={m.fileUrl} target="_blank" rel="noreferrer" className="text-primary text-xs">Open</a>
+                  <button type="button" onClick={() => remove(m._id)} className="text-danger text-xs">Delete</button>
+                </span>
               </li>
             ))}
           </ul>

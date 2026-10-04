@@ -13,26 +13,29 @@ export default function TeacherQuizzes() {
   const [error, setError] = useState("");
   const [viewingResults, setViewingResults] = useState<any>(null);
   const [results, setResults] = useState<any[]>([]);
+  const [actionMsg, setActionMsg] = useState<string | null>(null);
 
   const load = async () => {
     if (!teacher?._id) return;
-    const res = await api.get(`/quizzes/teacher?teacherId=${teacher._id}`);
-    setQuizzes(res.data);
+    try {
+      const res = await api.get(`/quizzes/teacher?teacherId=${teacher._id}`);
+      setQuizzes(res.data);
+    } catch {
+      setQuizzes([]);
+    }
   };
 
   useEffect(() => {
     if (teacher?._id) {
       load();
-      api.get(`/academics/classes?schoolId=${teacher.schoolId}`).then((res) => {
-        const assignedIds = new Set((teacher.assignedClasses || []).map((c: any) => c._id || c));
-        setClasses(res.data.filter((c: any) => assignedIds.has(c._id)));
-      });
+      // assignedClasses is already populated by /people/teachers/me
+      setClasses(teacher.assignedClasses || []);
     }
   }, [teacher]);
 
   useEffect(() => {
     if (form.classId) {
-      api.get(`/academics/subjects?classId=${form.classId}`).then((res) => setSubjects(res.data));
+      api.get(`/academics/subjects?classId=${form.classId}`).then((res) => setSubjects(res.data)).catch(() => setSubjects([]));
     } else {
       setSubjects([]);
     }
@@ -62,7 +65,6 @@ export default function TeacherQuizzes() {
         ...form,
         timeLimitMinutes: Number(form.timeLimitMinutes),
         maxAttempts: form.maxAttempts ? Number(form.maxAttempts) : undefined,
-        createdBy: teacher._id,
         questions,
       });
       setShowForm(false);
@@ -75,14 +77,24 @@ export default function TeacherQuizzes() {
   };
 
   const togglePublish = async (quiz: any) => {
-    await api.put(`/quizzes/${quiz._id}/publish`, { isPublished: !quiz.isPublished });
-    load();
+    try {
+      await api.put(`/quizzes/${quiz._id}/publish`, { isPublished: !quiz.isPublished });
+      setActionMsg(null);
+      load();
+    } catch (err: any) {
+      setActionMsg(err?.response?.data?.message || "Could not change publish status.");
+    }
   };
 
   const viewResults = async (quiz: any) => {
     setViewingResults(quiz);
-    const res = await api.get(`/quizzes/${quiz._id}/results`);
-    setResults(res.data);
+    setResults([]);
+    try {
+      const res = await api.get(`/quizzes/${quiz._id}/results`);
+      setResults(res.data);
+    } catch (err: any) {
+      setActionMsg(err?.response?.data?.message || "Could not load results.");
+    }
   };
 
   return (
@@ -101,7 +113,7 @@ export default function TeacherQuizzes() {
       {showForm && (
         <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4 space-y-3">
           {error && <p className="text-danger text-sm">{error}</p>}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input placeholder="Quiz Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
             <input type="number" placeholder="Time Limit (minutes)" value={form.timeLimitMinutes} onChange={(e) => setForm({ ...form, timeLimitMinutes: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
             <select value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required>
@@ -165,6 +177,8 @@ export default function TeacherQuizzes() {
         </form>
       )}
 
+      {actionMsg && <p className="text-danger text-sm mt-3">{actionMsg}</p>}
+
       <div className="bg-surface rounded-xl border border-border shadow-sm mt-4 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -216,9 +230,19 @@ export default function TeacherQuizzes() {
                         onClick={async () => {
                           const val = window.prompt(`Override score for ${r.studentId?.userId?.name} (out of ${r.totalQuestions}):`, String(r.score));
                           if (val === null) return;
-                          await api.put(`/quizzes/attempt/${r._id}/override-score`, { score: Number(val) });
-                          const refreshed = await api.get(`/quizzes/${viewingResults._id}/results`);
-                          setResults(refreshed.data);
+                          const n = Number(val);
+                          if (val.trim() === "" || Number.isNaN(n) || n < 0 || n > r.totalQuestions) {
+                            setActionMsg(`Score must be a number between 0 and ${r.totalQuestions}.`);
+                            return;
+                          }
+                          try {
+                            await api.put(`/quizzes/attempt/${r._id}/override-score`, { score: n });
+                            const refreshed = await api.get(`/quizzes/${viewingResults._id}/results`);
+                            setResults(refreshed.data);
+                            setActionMsg(null);
+                          } catch (err: any) {
+                            setActionMsg(err?.response?.data?.message || "Could not save the score.");
+                          }
                         }}
                         className="text-[10px] bg-accent-soft text-accent px-1.5 py-0.5 rounded-full font-medium"
                       >
