@@ -25,9 +25,16 @@ export default function StaffAttendance() {
   useEffect(() => {
     api.get("/hr/attendance/roster").then((res) => {
       setRoster(res.data);
-      const initial: Record<string, string> = {};
-      res.data.forEach((s: any) => (initial[s.userId] = "PRESENT"));
-      setStatusMap(initial);
+      // Only fill in a PRESENT default for staff not already in statusMap -
+      // this fetch and the one below (today's already-saved attendance) both
+      // run on mount, in parallel, with no guaranteed order. A plain
+      // overwrite here could land AFTER the real statuses are merged in,
+      // silently resetting everyone back to PRESENT.
+      setStatusMap((prev) => {
+        const next = { ...prev };
+        res.data.forEach((s: any) => { if (!(s.userId in next)) next[s.userId] = "PRESENT"; });
+        return next;
+      });
     });
   }, []);
 

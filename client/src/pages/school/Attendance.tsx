@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
-import { CalendarCheck, Check, FileSpreadsheet } from "lucide-react";
+import { CalendarCheck, FileSpreadsheet } from "lucide-react";
 import { exportAttendanceRegister } from "../../utils/excelExport";
 
-const STATUS_OPTIONS = ["PRESENT", "ABSENT", "LATE", "LEAVE"];
 const statusColors: Record<string, string> = {
-  PRESENT: "bg-success text-white",
-  ABSENT: "bg-danger text-white",
-  LATE: "bg-warning text-white",
-  LEAVE: "bg-primary text-white",
+  PRESENT: "bg-success-soft text-success",
+  ABSENT: "bg-danger-soft text-danger",
+  LATE: "bg-warning-soft text-warning",
+  LEAVE: "bg-primary/12 text-primary",
 };
 
+// Admin view of attendance. This is a REPORT, not a marking tool - marking
+// attendance is the teacher's job (Teacher > Attendance). Admin sees what
+// was recorded, same as a principal would check the register, rather than
+// a duplicate "mark everyone present then save" form (which also used to
+// default every student to PRESENT without checking what the teacher had
+// already recorded - opening this page and hitting Save would have silently
+// overwritten the real attendance for the day).
 export default function Attendance() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const [classes, setClasses] = useState<any[]>([]);
@@ -21,8 +27,7 @@ export default function Attendance() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [students, setStudents] = useState<any[]>([]);
   const [statusMap, setStatusMap] = useState<Record<string, string>>({});
-  const [saving, setSaving] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (schoolId) api.get(`/academics/classes?schoolId=${schoolId}`).then((res) => setClasses(res.data));
@@ -39,42 +44,25 @@ export default function Attendance() {
   }, [classId]);
 
   useEffect(() => {
-    if (sectionId) {
-      api.get(`/people/students?schoolId=${schoolId}&status=ACTIVE`).then((res) => {
-        const list = res.data.filter((s: any) => (s.sectionId?._id || s.sectionId) === sectionId);
-        setStudents(list);
-        const initial: Record<string, string> = {};
-        list.forEach((s: any) => (initial[s._id] = "PRESENT"));
-        setStatusMap(initial);
-      });
-    } else {
-      setStudents([]);
-    }
-  }, [sectionId]);
-
-  const setAll = (status: string) => {
-    const next: Record<string, string> = {};
-    students.forEach((s) => (next[s._id] = status));
-    setStatusMap(next);
-  };
-
-  const saveAttendance = async () => {
-    setSaving(true);
-    setMsg("");
-    try {
-      const records = students.map((s) => ({ studentId: s._id, status: statusMap[s._id] || "PRESENT" }));
-      const res = await api.post("/ops/attendance/bulk", { classId, sectionId, date, records });
-      setMsg(`Saved attendance for ${res.data.marked} students.`);
-    } catch (err: any) {
-      setMsg(err.response?.data?.message || "Failed to save attendance");
-    } finally {
-      setSaving(false);
-      setTimeout(() => setMsg(""), 3000);
-    }
-  };
+    if (!sectionId || !date) { setStudents([]); return; }
+    setLoading(true);
+    const [year, month] = date.split("-").map(Number);
+    api.get(`/ops/attendance/register?sectionId=${sectionId}&month=${month}&year=${year}`)
+      .then((res) => {
+        const { students: regStudents, records } = res.data;
+        setStudents(regStudents);
+        const map: Record<string, string> = {};
+        records
+          .filter((r: any) => new Date(r.date).toISOString().slice(0, 10) === date)
+          .forEach((r: any) => { map[r.studentId] = r.status; });
+        setStatusMap(map);
+      })
+      .finally(() => setLoading(false));
+  }, [sectionId, date]);
 
   const presentCount = Object.values(statusMap).filter((v) => v === "PRESENT").length;
   const absentCount = Object.values(statusMap).filter((v) => v === "ABSENT").length;
+  const markedCount = Object.keys(statusMap).length;
 
   const [exportMonth, setExportMonth] = useState(new Date().getMonth() + 1);
   const [exportYear, setExportYear] = useState(new Date().getFullYear());
@@ -122,7 +110,7 @@ export default function Attendance() {
           <CalendarCheck size={22} className="text-primary" />
           Attendance
         </h1>
-        <p className="text-muted mt-1 text-sm">Mark attendance for a whole class at once.</p>
+        <p className="text-muted mt-1 text-sm">What teachers have recorded, by class and date.</p>
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 flex flex-wrap gap-3 items-end">
@@ -169,67 +157,39 @@ export default function Attendance() {
         </div>
       )}
 
-      {students.length > 0 && (
+      {loading && <p className="text-sm text-muted mt-4">Loading...</p>}
+
+      {!loading && sectionId && students.length > 0 && (
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex gap-3 text-sm">
-              <span className="text-success font-medium">{presentCount} Present</span>
-              <span className="text-danger font-medium">{absentCount} Absent</span>
-              <span className="text-muted">{students.length} Total</span>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setAll("PRESENT")} className="text-xs px-3 py-1.5 rounded-full bg-success-soft text-success font-medium">
-                Mark All Present
-              </button>
-              <button onClick={() => setAll("ABSENT")} className="text-xs px-3 py-1.5 rounded-full bg-danger-soft text-danger font-medium">
-                Mark All Absent
-              </button>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 text-sm mb-4">
+            <span className="text-success font-medium">{presentCount} Present</span>
+            <span className="text-danger font-medium">{absentCount} Absent</span>
+            <span className="text-muted">{students.length} Total</span>
+            {markedCount === 0 && <span className="text-muted">· Not marked yet for this date</span>}
           </div>
 
           <div className="divide-y divide-border">
-            {students.map((s) => (
-              <div key={s._id} className="flex items-center justify-between py-2.5">
+            {students.map((s: any) => (
+              <div key={s.id} className="flex items-center justify-between py-2.5">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-display font-semibold">
-                    {s.userId?.name?.charAt(0) || "?"}
+                    {s.name?.charAt(0) || "?"}
                   </div>
                   <div>
-                    <p className="text-sm text-ink font-medium">{s.userId?.name}</p>
+                    <p className="text-sm text-ink font-medium">{s.name}</p>
                     <p className="text-[11px] text-muted">{s.admissionNumber}</p>
                   </div>
                 </div>
-                <div className="flex gap-1.5">
-                  {STATUS_OPTIONS.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setStatusMap({ ...statusMap, [s._id]: opt })}
-                      className={`text-[11px] px-2.5 py-1 rounded-full font-medium transition-colors ${
-                        statusMap[s._id] === opt ? statusColors[opt] : "bg-white/5 text-muted hover:bg-white/10"
-                      }`}
-                    >
-                      {opt === "PRESENT" && statusMap[s._id] === opt && <Check size={10} className="inline mr-0.5" />}
-                      {opt.charAt(0) + opt.slice(1).toLowerCase()}
-                    </button>
-                  ))}
-                </div>
+                <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${statusMap[s.id] ? statusColors[statusMap[s.id]] : "bg-white/5 text-muted"}`}>
+                  {statusMap[s.id] ? statusMap[s.id].charAt(0) + statusMap[s.id].slice(1).toLowerCase() : "Not marked"}
+                </span>
               </div>
             ))}
           </div>
-
-          {msg && <p className={`text-sm mt-4 ${msg.includes("Saved") ? "text-success" : "text-danger"}`}>{msg}</p>}
-
-          <button
-            onClick={saveAttendance}
-            disabled={saving}
-            className="w-full bg-primary text-white py-2.5 rounded-lg text-sm font-semibold mt-4 hover:bg-primary-dark disabled:opacity-60 transition-colors"
-          >
-            {saving ? "Saving..." : "Save Attendance"}
-          </button>
         </div>
       )}
 
-      {sectionId && students.length === 0 && (
+      {!loading && sectionId && students.length === 0 && (
         <div className="bg-surface rounded-xl border border-border shadow-sm p-8 mt-4 text-center text-muted text-sm">
           No active students found in this section.
         </div>
