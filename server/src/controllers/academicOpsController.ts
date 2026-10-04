@@ -10,7 +10,9 @@ import FeeStructure from "../models/FeeStructure";
 import Invoice from "../models/Invoice";
 import Student from "../models/Student";
 import Section from "../models/Section";
+import Subject from "../models/Subject";
 import Parent from "../models/Parent";
+import Teacher from "../models/Teacher";
 import Discount from "../models/Discount";
 import User from "../models/User";
 import { canAccessStudent, isOwnClass, isAssignedToClass } from "../utils/accessControl";
@@ -93,56 +95,87 @@ export const bulkMarkAttendance = async (req: AuthRequest, res: Response) => {
   try {
     const { classId, sectionId, date, records } = req.body;
     const schoolId = req.user!.schoolId;
+    const VALID_STATUSES = ["PRESENT", "ABSENT", "LATE", "LEAVE"];
 
-    const section = await Section.findOne({ _id: sectionId, schoolId });
-    if (!section) return res.status(404).json({ message: "Section not found in your school" });
+    if (!classId || !sectionId || !date || !Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ message: "classId, sectionId, date and at least one record are required" });
+    }
+    const attDate = new Date(date);
+    if (Number.isNaN(attDate.getTime())) return res.status(400).json({ message: "Invalid date" });
+    if (attDate.getTime() > Date.now() + 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ message: "Attendance cannot be marked for a future date" });
+    }
+    if (records.some((r: any) => !r || !VALID_STATUSES.includes(r.status))) {
+      return res.status(400).json({ message: "Each record needs a valid status (PRESENT, ABSENT, LATE or LEAVE)" });
+    }
+
+    // The section must exist in this school AND belong to the class sent.
+    const section = await Section.findOne({ _id: sectionId, classId, schoolId });
+    if (!section) return res.status(404).json({ message: "Section not found in this class" });
 
     if (!(await isAssignedToClass(req, classId))) {
       return res.status(403).json({ message: "You are not assigned to this class" });
     }
 
-    const studentIds = (records || []).map((r: any) => r.studentId);
-    const validStudents = await Student.find({ _id: { $in: studentIds }, schoolId }).select("_id");
+    // Only students who really belong to this class + section can be marked.
+    // Before, a teacher assigned to class A could send class A's id with
+    // students from class B and mark them.
+    const studentIds = records.map((r: any) => r.studentId);
+    const validStudents = await Student.find({ _id: { $in: studentIds }, schoolId, classId, sectionId }).select("_id");
     const validIds = new Set(validStudents.map((s) => s._id.toString()));
+    const validRecords = records.filter((r: any) => validIds.has(String(r.studentId)));
+    if (validRecords.length === 0) return res.status(400).json({ message: "No valid students to mark" });
 
-    const ops = (records || [])
-      .filter((r: any) => validIds.has(r.studentId))
-      .map((r: any) => ({
-        updateOne: {
-          filter: { studentId: r.studentId, date: new Date(date) },
-          update: {
-            $set: {
-              status: r.status,
-              schoolId,
-              classId,
-              sectionId,
-              markedBy: req.user!.userId,
-            },
-          },
-          upsert: true,
-        },
-      }));
+    const previous = await Attendance.find({ schoolId, date: attDate, studentId: { $in: [...validIds] } }).select("studentId status");
+    const prevStatus = new Map(previous.map((p) => [p.studentId.toString(), p.status]));
 
-    if (ops.length === 0) return res.status(400).json({ message: "No valid students to mark" });
-
+    const ops: any[] = validRecords.map((r: any) => ({
+      updateOne: {
+        filter: { studentId: r.studentId, date: attDate },
+        update: { $set: { status: r.status, schoolId, classId, sectionId, markedBy: req.user!.userId } },
+        upsert: true,
+      },
+    }));
     await Attendance.bulkWrite(ops);
 
-    const absentOrLate = records.filter((r: any) => validIds.has(r.studentId) && (r.status === "ABSENT" || r.status === "LATE"));
-    for (const rec of absentOrLate) {
+    // Notify parents only when the status actually changed to ABSENT/LATE
+    // (re-saving the same sheet no longer sends the same alert again), and
+    // only say "today" when the date really is today.
+    const isToday = attDate.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+    const toNotify = validRecords.filter(
+      (r: any) => (r.status === "ABSENT" || r.status === "LATE") && prevStatus.get(String(r.studentId)) !== r.status
+    );
+    for (const rec of toNotify) {
       const student = await Student.findById(rec.studentId).populate("userId");
-      const parent = await Parent.findOne({ children: rec.studentId });
+      const parent = await Parent.findOne({ children: rec.studentId, schoolId });
       if (parent) {
         await notify({
           schoolId,
           userId: parent.userId.toString(),
           title: rec.status === "ABSENT" ? "Child marked absent" : "Child marked late",
-          message: `${(student?.userId as any)?.name || "Your child"} was marked ${rec.status.toLowerCase()} today.`,
+          message: `${(student?.userId as any)?.name || "Your child"} was marked ${rec.status.toLowerCase()} ${isToday ? "today" : "on " + attDate.toISOString().slice(0, 10)}.`,
           category: "ATTENDANCE",
         });
       }
     }
 
-    res.json({ marked: ops.length, parentsNotified: absentOrLate.length });
+    res.json({ marked: ops.length, skipped: records.length - validRecords.length, parentsNotified: toNotify.length });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// Returns one section's attendance for one date, so the teacher screen can
+// show what was already saved instead of defaulting everyone to PRESENT.
+export const getSectionAttendanceForDate = async (req: AuthRequest, res: Response) => {
+  try {
+    const { classId, sectionId, date } = req.query as Record<string, string>;
+    if (!classId || !sectionId || !date) return res.status(400).json({ message: "classId, sectionId and date are required" });
+    if (!(await isAssignedToClass(req, classId))) return res.status(403).json({ message: "You are not assigned to this class" });
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return res.status(400).json({ message: "Invalid date" });
+    const records = await Attendance.find({ schoolId: req.user!.schoolId, classId, sectionId, date: d }).select("studentId status");
+    res.json(records);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -199,11 +232,34 @@ export const getAttendanceRegister = async (req: AuthRequest, res: Response) => 
 
 export const createHomework = async (req: AuthRequest, res: Response) => {
   try {
-    if (!(await isAssignedToClass(req, req.body.classId))) {
+    const schoolId = req.user!.schoolId;
+    const { classId, sectionId, subjectId } = req.body;
+    if (!classId || !sectionId || !subjectId || !req.body.title || !req.body.dueDate) {
+      return res.status(400).json({ message: "Class, section, subject, title and due date are required" });
+    }
+    if (Number.isNaN(new Date(req.body.dueDate).getTime())) return res.status(400).json({ message: "Invalid due date" });
+    if (!(await isAssignedToClass(req, classId))) {
       return res.status(403).json({ message: "You are not assigned to this class" });
     }
-    const hw = await Homework.create({ ...req.body, schoolId: req.user!.schoolId });
-    res.status(201).json(hw);
+    // class/section/subject must all exist in this school and match each other
+    const section = await Section.findOne({ _id: sectionId, classId, schoolId });
+    if (!section) return res.status(404).json({ message: "Section not found in this class" });
+    // teacherId comes from the login, never from the request body
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+    if (!teacher) return res.status(403).json({ message: "Only users with a teacher profile can create this" });
+    const subject = await Subject.findOne({ _id: subjectId, classId, schoolId });
+    if (!subject) return res.status(404).json({ message: "Subject not found in this class" });
+    const doc = await Homework.create({
+      title: req.body.title,
+      description: req.body.description,
+      dueDate: req.body.dueDate,
+      schoolId,
+      classId,
+      sectionId,
+      subjectId,
+      teacherId: teacher._id,
+    });
+    res.status(201).json(doc);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -254,11 +310,35 @@ export const submitHomework = async (req: AuthRequest, res: Response) => {
 
 export const createAssignment = async (req: AuthRequest, res: Response) => {
   try {
-    if (!(await isAssignedToClass(req, req.body.classId))) {
+    const schoolId = req.user!.schoolId;
+    const { classId, sectionId, subjectId } = req.body;
+    if (!classId || !sectionId || !subjectId || !req.body.title || !req.body.dueDate) {
+      return res.status(400).json({ message: "Class, section, subject, title and due date are required" });
+    }
+    if (Number.isNaN(new Date(req.body.dueDate).getTime())) return res.status(400).json({ message: "Invalid due date" });
+    if (!(await isAssignedToClass(req, classId))) {
       return res.status(403).json({ message: "You are not assigned to this class" });
     }
-    const assignment = await Assignment.create({ ...req.body, schoolId: req.user!.schoolId });
-    res.status(201).json(assignment);
+    // class/section/subject must all exist in this school and match each other
+    const section = await Section.findOne({ _id: sectionId, classId, schoolId });
+    if (!section) return res.status(404).json({ message: "Section not found in this class" });
+    // teacherId comes from the login, never from the request body
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+    if (!teacher) return res.status(403).json({ message: "Only users with a teacher profile can create this" });
+    const subject = await Subject.findOne({ _id: subjectId, classId, schoolId });
+    if (!subject) return res.status(404).json({ message: "Subject not found in this class" });
+    const doc = await Assignment.create({
+      title: req.body.title,
+      instructions: req.body.instructions,
+      totalMarks: req.body.totalMarks === "" || req.body.totalMarks == null ? undefined : Number(req.body.totalMarks),
+      dueDate: req.body.dueDate,
+      schoolId,
+      classId,
+      sectionId,
+      subjectId,
+      teacherId: teacher._id,
+    });
+    res.status(201).json(doc);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -341,6 +421,9 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
 
     const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
     if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
+    if (!belongsToSchool.classId || belongsToSchool.classId.toString() !== exam.classId.toString()) {
+      return res.status(400).json({ message: "This student is not in the exam's class" });
+    }
 
     const marksObtained = Number(req.body.marksObtained);
     if (Number.isNaN(marksObtained) || marksObtained < 0) {
@@ -475,6 +558,9 @@ export const getResultsByExam = async (req: AuthRequest, res: Response) => {
   try {
     const exam = await Exam.findOne({ _id: req.params.examId, schoolId: req.user!.schoolId });
     if (!exam) return res.status(404).json({ message: "Exam not found" });
+    if (!(await isAssignedToClass(req, exam.classId.toString()))) {
+      return res.status(403).json({ message: "You are not assigned to this exam's class" });
+    }
 
     const results = await Result.find({ examId: req.params.examId }).populate({
       path: "studentId",

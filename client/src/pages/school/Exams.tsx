@@ -31,6 +31,11 @@ export default function Exams() {
     }
   }, [examForm.classId]);
 
+  const loadResultsForExam = async (examId: string) => {
+    const res = await api.get(`/ops/results/by-exam/${examId}`).catch(() => ({ data: [] }));
+    setResults(res.data || []);
+  };
+
   useEffect(() => {
     if (resultForm.examId) {
       loadResultsForExam(resultForm.examId);
@@ -38,11 +43,6 @@ export default function Exams() {
       setResults([]);
     }
   }, [resultForm.examId]);
-
-  const loadResultsForExam = async (examId: string) => {
-    const res = await api.get(`/ops/results/by-exam/${examId}`).catch(() => ({ data: [] }));
-    setResults(res.data || []);
-  };
 
   const selectedExam = exams.find((ex) => ex._id === resultForm.examId);
 

@@ -1,8 +1,8 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import {
   createStudent, getStudents, getStudentById, updateStudentStatus, transferStudent,
   createParent, getParents, findParentByEmail,
-  createTeacher, getTeachers, updateTeacherStatus,
+  createTeacher, getTeachers, getMyTeacher, updateTeacherStatus,
   updateUserAccountStatus,
 } from "../controllers/peopleController";
 import { protect, requireRole } from "../middleware/authMiddleware";
@@ -24,6 +24,7 @@ router.get("/parents", protect, requireRole(...ANY_ADMIN_STAFF), getParents);
 router.get("/parents/by-email", protect, requireRole(...ADMISSIONS_STAFF), findParentByEmail);
 
 router.post("/teachers", protect, requireRole(...TOP_ADMIN, ROLES.HEAD), createTeacher);
+router.get("/teachers/me", protect, requireRole(ROLES.TEACHER, ROLES.ACADEMY_TEACHER), getMyTeacher);
 router.get("/teachers", protect, requireRole(...EVERYONE), getTeachers);
 router.put("/teachers/:id/status", protect, requireRole(...TOP_ADMIN, ROLES.HEAD), updateTeacherStatus);
 
