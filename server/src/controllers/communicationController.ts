@@ -5,7 +5,8 @@ import User from "../models/User";
 import Teacher from "../models/Teacher";
 import PTMSlot from "../models/PTMSlot";
 import Parent from "../models/Parent";
-import { canAccessStudent } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass, isOwnClass } from "../utils/accessControl";
+import Subject from "../models/Subject";
 import LeaveRequest from "../models/LeaveRequest";
 import StudyMaterial from "../models/StudyMaterial";
 
@@ -219,7 +220,22 @@ export const updateLeaveStatus = async (req: AuthRequest, res: Response) => {
 // Study Material
 export const addStudyMaterial = async (req: AuthRequest, res: Response) => {
   try {
-    const material = await StudyMaterial.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { classId, subjectId, title, chapter, fileUrl } = req.body;
+    if (!classId || !subjectId || !title || !fileUrl) {
+      return res.status(400).json({ message: "Class, subject, title and file are required" });
+    }
+    if (!/^https?:\/\//i.test(String(fileUrl))) return res.status(400).json({ message: "Invalid file link" });
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
+    const subject = await Subject.findOne({ _id: subjectId, classId, schoolId });
+    if (!subject) return res.status(404).json({ message: "Subject not found in this class" });
+    // teacherId comes from the login, never from the request body
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+    if (!teacher) return res.status(403).json({ message: "Only users with a teacher profile can upload study material" });
+
+    const material = await StudyMaterial.create({ schoolId, classId, subjectId, teacherId: teacher._id, title, chapter, fileUrl });
     res.status(201).json(material);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -228,7 +244,16 @@ export const addStudyMaterial = async (req: AuthRequest, res: Response) => {
 
 export const getStudyMaterial = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await StudyMaterial.find({ schoolId: req.user!.schoolId, classId: req.query.classId as string }).populate("subjectId");
+    const classId = req.query.classId as string | undefined;
+    if (!classId) return res.status(400).json({ message: "classId is required" });
+    const role = req.user!.role;
+    if ((role === "STUDENT" || role === "PARENT") && !(await isOwnClass(req, classId))) {
+      return res.status(403).json({ message: "You can only view study material of your own class" });
+    }
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
+    const list = await StudyMaterial.find({ schoolId: req.user!.schoolId, classId }).populate("subjectId").sort({ createdAt: -1 });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

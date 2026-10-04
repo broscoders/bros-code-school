@@ -11,7 +11,7 @@ export default function TeacherTimetable() {
 
   useEffect(() => {
     if (teacher?._id) {
-      api.get(`/timetable/teacher?teacherId=${teacher._id}`).then((res) => setSlots(res.data));
+      api.get(`/timetable/teacher?teacherId=${teacher._id}`).then((res) => setSlots(res.data)).catch(() => setSlots([]));
     }
   }, [teacher]);
 
