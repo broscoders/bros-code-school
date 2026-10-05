@@ -43,6 +43,11 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
     if (!status || status === "ACTIVE") filter.status = "ACTIVE";
     else if (status !== "ANY") filter.status = status;
 
+    const qClass = req.query.classId as string | undefined;
+    const qSection = req.query.sectionId as string | undefined;
+    if (qClass && /^[a-f\d]{24}$/i.test(qClass)) filter.classId = qClass;
+    if (qSection && /^[a-f\d]{24}$/i.test(qSection)) filter.sectionId = qSection;
+
     const role = req.user!.role;
     // This list had no per-role scoping at all - any PARENT or STUDENT
     // could hit it and get every student in the school (name, email via
@@ -54,6 +59,18 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
     } else if (role === "STUDENT") {
       const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
       filter._id = myStudent?._id || null;
+    }
+
+    // A plain teacher only ever sees students of the classes assigned to
+    // them (before, any teacher could list every student in the school).
+    if (role === "TEACHER" || role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      const assigned = (me?.assignedClasses || []).map((c) => c.toString());
+      if (qClass) {
+        if (!assigned.includes(qClass)) return res.json([]);
+      } else {
+        filter.classId = { $in: assigned };
+      }
     }
 
     const students = await Student.find(filter).populate("userId classId sectionId");
@@ -281,6 +298,18 @@ export const createTeacher = async (req: AuthRequest, res: Response) => {
   try {
     const teacher = await Teacher.create({ ...req.body, schoolId: req.user!.schoolId });
     res.status(201).json(teacher);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// The logged-in teacher's own record. The teacher portal used to download
+// every teacher in the school and search for itself in the browser.
+export const getMyTeacher = async (req: AuthRequest, res: Response) => {
+  try {
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId }).populate("userId subjects assignedClasses");
+    if (!teacher) return res.status(404).json({ message: "Teacher profile not found" });
+    res.json(teacher);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
