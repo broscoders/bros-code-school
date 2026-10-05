@@ -3,6 +3,7 @@ import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { Bus, Users } from "lucide-react";
 import StatCard from "../../components/StatCard";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Transport() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -12,6 +13,7 @@ export default function Transport() {
   const [vehicleForm, setVehicleForm] = useState({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "", capacity: "40" });
   const [assignForm, setAssignForm] = useState({ studentId: "", vehicleId: "", monthlyFee: "" });
   const [msg, setMsg] = useState("");
+  const { error: actionError, run } = useApiAction();
 
   const loadVehicles = async () => {
     const res = await api.get("/transport/vehicles");
@@ -31,21 +33,25 @@ export default function Transport() {
   const addVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     const stopsArr = vehicleForm.stops.split(",").map((s) => s.trim()).filter(Boolean);
-    await api.post("/transport/vehicles", { ...vehicleForm, capacity: Number(vehicleForm.capacity) || 40, stops: stopsArr, schoolId });
-    setVehicleForm({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "", capacity: "40" });
-    loadVehicles();
+    await run(async () => {
+      await api.post("/transport/vehicles", { ...vehicleForm, capacity: Number(vehicleForm.capacity) || 40, stops: stopsArr });
+      setVehicleForm({ vehicleNumber: "", driverName: "", driverContact: "", routeName: "", stops: "", capacity: "40" });
+      loadVehicles();
+    }, "Could not add the vehicle");
   };
 
   const setVehicleStatus = async (id: string, status: string) => {
-    await api.put(`/transport/vehicles/${id}/status`, { status });
-    loadVehicles();
+    await run(async () => {
+      await api.put(`/transport/vehicles/${id}/status`, { status });
+      loadVehicles();
+    }, "Could not change the vehicle status");
   };
 
   const assignStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
     try {
-      await api.post("/transport/assign", { ...assignForm, monthlyFee: Number(assignForm.monthlyFee), schoolId });
+      await api.post("/transport/assign", { ...assignForm, monthlyFee: Number(assignForm.monthlyFee) });
       setAssignForm({ studentId: "", vehicleId: "", monthlyFee: "" });
       loadAssignments();
     } catch (err: any) {
@@ -54,8 +60,12 @@ export default function Transport() {
   };
 
   const removeAssignment = async (id: string) => {
-    await api.put(`/transport/assign/${id}/remove`, {});
-    loadAssignments();
+    if (!window.confirm("Remove this student from the route?")) return;
+    await run(async () => {
+      await api.put(`/transport/assign/${id}/remove`, {});
+      loadAssignments();
+      loadVehicles();
+    }, "Could not remove the assignment");
   };
 
   return (
@@ -68,6 +78,7 @@ export default function Transport() {
         </h1>
         <p className="text-muted mt-1 text-sm">Manage vehicles, routes, and student transport assignments.</p>
       </div>
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
         <StatCard label="Vehicles / Routes" value={vehicles.length} icon={Bus} tone="primary" />

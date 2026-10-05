@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { UserCheck } from "lucide-react";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Visitors() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const [list, setList] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", contact: "", purpose: "", personToMeet: "" });
+  const { error: actionError, run } = useApiAction();
 
   const load = async () => {
     const res = await api.get(`/health/visitors?schoolId=${schoolId}`);
@@ -19,14 +21,18 @@ export default function Visitors() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/health/visitors", { ...form, schoolId });
-    setForm({ name: "", contact: "", purpose: "", personToMeet: "" });
-    load();
+    await run(async () => {
+      await api.post("/health/visitors", form);
+      setForm({ name: "", contact: "", purpose: "", personToMeet: "" });
+      load();
+    }, "Could not check in the visitor");
   };
 
   const checkout = async (id: string) => {
-    await api.put(`/health/visitors/${id}/checkout`, {});
-    load();
+    await run(async () => {
+      await api.put(`/health/visitors/${id}/checkout`, {});
+      load();
+    }, "Could not check out the visitor");
   };
 
   const printPass = (v: any) => {
@@ -58,6 +64,7 @@ export default function Visitors() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><UserCheck size={22} className="text-primary" />Visitor Management</h1>
         <p className="text-muted mt-1 text-sm">Register and track visitors entering the school.</p>
       </div>
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input placeholder="Visitor Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm" required />

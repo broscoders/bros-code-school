@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Health() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
-  const userId = useAuthStore((s) => s.user?.id);
   const [students, setStudents] = useState<any[]>([]);
   const [selected, setSelected] = useState("");
   const [profile, setProfile] = useState({ studentId: "", bloodGroup: "", allergies: "", emergencyContactName: "", emergencyContactPhone: "", medicalNotes: "" });
   const [incidents, setIncidents] = useState<any[]>([]);
   const [incidentForm, setIncidentForm] = useState({ studentId: "", description: "", actionTaken: "", severity: "MINOR" });
   const [msg, setMsg] = useState("");
+  const { error: actionError, run } = useApiAction();
 
   const STATUS_COLORS: Record<string, string> = {
     OPEN: "bg-warning/10 text-warning",
@@ -46,23 +47,29 @@ export default function Health() {
 
   const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/health/health-profile", { ...profile, schoolId, studentId: selected });
-    setMsg("Health profile saved.");
-    setTimeout(() => setMsg(""), 2500);
+    const ok = await run(() => api.post("/health/health-profile", { ...profile, studentId: selected }), "Could not save the health profile");
+    if (ok) {
+      setMsg("Health profile saved.");
+      setTimeout(() => setMsg(""), 2500);
+    }
   };
 
   const logIncident = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/health/medical-incidents", { ...incidentForm, schoolId, recordedBy: userId });
-    setIncidentForm({ studentId: "", description: "", actionTaken: "", severity: "MINOR" });
-    const res = await api.get(`/health/medical-incidents?schoolId=${schoolId}`);
-    setIncidents(res.data);
+    await run(async () => {
+      await api.post("/health/medical-incidents", incidentForm);
+      setIncidentForm({ studentId: "", description: "", actionTaken: "", severity: "MINOR" });
+      const res = await api.get(`/health/medical-incidents?schoolId=${schoolId}`);
+      setIncidents(res.data);
+    }, "Could not log the incident");
   };
 
   const updateIncident = async (id: string, field: string, value: any) => {
-    await api.put(`/health/medical-incidents/${id}`, { [field]: value });
-    const res = await api.get(`/health/medical-incidents?schoolId=${schoolId}`);
-    setIncidents(res.data);
+    await run(async () => {
+      await api.put(`/health/medical-incidents/${id}`, { [field]: value });
+      const res = await api.get(`/health/medical-incidents?schoolId=${schoolId}`);
+      setIncidents(res.data);
+    }, "Could not update the incident");
   };
 
   return (
@@ -72,6 +79,7 @@ export default function Health() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1">Health & Medical Records</h1>
         <p className="text-muted mt-1 text-sm">Manage student health profiles and incidents. Access is restricted to authorized staff.</p>
       </div>
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">

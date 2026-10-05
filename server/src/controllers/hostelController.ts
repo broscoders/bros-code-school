@@ -8,7 +8,14 @@ import Student from "../models/Student";
 // Buildings
 export const createBuilding = async (req: AuthRequest, res: Response) => {
   try {
-    const building = await HostelBuilding.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const name = String(req.body.name || "").trim();
+    if (!name) return res.status(400).json({ message: "Building name is required" });
+    if (!["BOYS", "GIRLS"].includes(req.body.type)) return res.status(400).json({ message: "Building type must be BOYS or GIRLS" });
+    if (await HostelBuilding.exists({ schoolId, name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") })) {
+      return res.status(409).json({ message: `A building named "${name}" already exists` });
+    }
+    const building = await HostelBuilding.create({ schoolId, name, type: req.body.type, wardenName: req.body.wardenName ? String(req.body.wardenName).trim() : undefined });
     res.status(201).json(building);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -27,9 +34,18 @@ export const getBuildings = async (req: AuthRequest, res: Response) => {
 // Rooms
 export const createRoom = async (req: AuthRequest, res: Response) => {
   try {
-    const building = await HostelBuilding.findOne({ _id: req.body.buildingId, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const building = await HostelBuilding.findOne({ _id: req.body.buildingId, schoolId });
     if (!building) return res.status(404).json({ message: "Building not found" });
-    const room = await HostelRoom.create({ ...req.body, schoolId: req.user!.schoolId });
+    const roomNumber = String(req.body.roomNumber || "").trim();
+    const capacity = Number(req.body.capacity);
+    if (!roomNumber) return res.status(400).json({ message: "Room number is required" });
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 50) return res.status(400).json({ message: "Capacity must be a whole number between 1 and 50" });
+    if (await HostelRoom.exists({ schoolId, buildingId: building._id, roomNumber })) {
+      return res.status(409).json({ message: `Room ${roomNumber} already exists in ${building.name}` });
+    }
+    // occupied always starts at 0 (the client could previously send any value)
+    const room = await HostelRoom.create({ schoolId, buildingId: building._id, roomNumber, capacity });
     res.status(201).json(room);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -38,7 +54,9 @@ export const createRoom = async (req: AuthRequest, res: Response) => {
 
 export const getRooms = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await HostelRoom.find({ schoolId: req.user!.schoolId, buildingId: req.query.buildingId as string });
+    const filter: Record<string, any> = { schoolId: req.user!.schoolId };
+    if (req.query.buildingId) filter.buildingId = req.query.buildingId as string;
+    const list = await HostelRoom.find(filter).sort({ roomNumber: 1 });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -48,8 +66,10 @@ export const getRooms = async (req: AuthRequest, res: Response) => {
 // Allocation
 export const allocateRoom = async (req: AuthRequest, res: Response) => {
   try {
-    const student = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
-    if (!student) return res.status(404).json({ message: "Student not found in your school" });
+    const student = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId, status: "ACTIVE" });
+    if (!student) return res.status(404).json({ message: "Active student not found in your school" });
+    const monthlyFee = req.body.monthlyFee === undefined || req.body.monthlyFee === "" ? 0 : Number(req.body.monthlyFee);
+    if (!Number.isFinite(monthlyFee) || monthlyFee < 0) return res.status(400).json({ message: "Monthly fee must be zero or more" });
 
     const existingActive = await HostelAllocation.findOne({
       schoolId: req.user!.schoolId,
@@ -80,15 +100,20 @@ export const allocateRoom = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Room is full or not found" });
     }
 
-    const allocation = await HostelAllocation.create({
-      schoolId: req.user!.schoolId,
-      studentId: req.body.studentId,
-      roomId: req.body.roomId,
-      isActive: true,
-      ...(req.body.monthlyFee !== undefined ? { monthlyFee: req.body.monthlyFee } : {}),
-    });
-
-    res.status(201).json(allocation);
+    try {
+      const allocation = await HostelAllocation.create({
+        schoolId: req.user!.schoolId,
+        studentId: req.body.studentId,
+        roomId: req.body.roomId,
+        isActive: true,
+        monthlyFee,
+      });
+      res.status(201).json(allocation);
+    } catch (createErr) {
+      // the bed was already reserved above - give it back so it isn't lost
+      await HostelRoom.findByIdAndUpdate(req.body.roomId, { $inc: { occupied: -1 } });
+      throw createErr;
+    }
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -109,12 +134,14 @@ export const getAllocations = async (req: AuthRequest, res: Response) => {
 // occupied forever, and the room can never be reused.
 export const deallocateRoom = async (req: AuthRequest, res: Response) => {
   try {
-    const allocation = await HostelAllocation.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
-    if (!allocation) return res.status(404).json({ message: "Allocation not found" });
-    if (!allocation.isActive) return res.status(400).json({ message: "This allocation is already inactive" });
-
-    allocation.isActive = false;
-    await allocation.save();
+    // atomic: two quick clicks can't both free the same bed (the old
+    // read-then-save version could decrement the room twice)
+    const allocation = await HostelAllocation.findOneAndUpdate(
+      { _id: req.params.id, schoolId: req.user!.schoolId, isActive: true },
+      { isActive: false },
+      { new: true }
+    );
+    if (!allocation) return res.status(404).json({ message: "Allocation not found or already inactive" });
 
     await HostelRoom.findOneAndUpdate(
       { _id: allocation.roomId, schoolId: req.user!.schoolId, $expr: { $gt: ["$occupied", 0] } },

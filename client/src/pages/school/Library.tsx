@@ -11,29 +11,52 @@ export default function Library() {
   const [bookForm, setBookForm] = useState({ title: "", author: "", category: "", totalCopies: "1" });
   const [issueForm, setIssueForm] = useState({ bookId: "", studentId: "", dueDate: "" });
   const [msg, setMsg] = useState("");
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [error, setError] = useState("");
 
   const loadBooks = async () => {
-    const res = await api.get("/library/books");
-    setBooks(res.data);
+    try {
+      const [res, tx] = await Promise.all([api.get("/library/books"), api.get("/library/transactions?status=OPEN")]);
+      setBooks(res.data);
+      setTransactions(tx.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not load the library");
+    }
   };
 
   useEffect(() => {
     loadBooks();
-    if (schoolId) api.get(`/people/students?schoolId=${schoolId}&status=ACTIVE`).then((res) => setStudents(res.data));
+    if (schoolId) api.get(`/people/students?schoolId=${schoolId}&status=ACTIVE`).then((res) => setStudents(res.data)).catch(() => setStudents([]));
   }, [schoolId]);
+
+  const returnBook = async (id: string) => {
+    setError("");
+    try {
+      await api.put(`/library/return/${id}`, {});
+      loadBooks();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not return the book");
+      loadBooks();
+    }
+  };
 
   const addBook = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/library/books", { ...bookForm, totalCopies: Number(bookForm.totalCopies), availableCopies: Number(bookForm.totalCopies), schoolId });
-    setBookForm({ title: "", author: "", category: "", totalCopies: "1" });
-    loadBooks();
+    setError("");
+    try {
+      await api.post("/library/books", { ...bookForm, totalCopies: Number(bookForm.totalCopies) });
+      setBookForm({ title: "", author: "", category: "", totalCopies: "1" });
+      loadBooks();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not add the book");
+    }
   };
 
   const issueBook = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg("");
     try {
-      await api.post("/library/issue", { ...issueForm, schoolId });
+      await api.post("/library/issue", issueForm);
       setMsg("Book issued successfully.");
       setIssueForm({ bookId: "", studentId: "", dueDate: "" });
       loadBooks();
@@ -56,6 +79,8 @@ export default function Library() {
         </h1>
         <p className="text-muted mt-1 text-sm">Manage books, copies, and issue/return records.</p>
       </div>
+
+      {error && <p className="text-danger text-sm mt-4">{error}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <StatCard label="Total Titles" value={books.length} icon={BookOpen} tone="primary" />
@@ -91,11 +116,50 @@ export default function Library() {
               <option value="">Select Student</option>
               {students.map((s) => <option key={s._id} value={s._id}>{s.userId?.name} ({s.admissionNumber})</option>)}
             </select>
-            <input type="date" value={issueForm.dueDate} onChange={(e) => setIssueForm({ ...issueForm, dueDate: e.target.value })} className="w-full" required />
+            <input type="date" min={new Date().toISOString().slice(0, 10)} value={issueForm.dueDate} onChange={(e) => setIssueForm({ ...issueForm, dueDate: e.target.value })} className="w-full" required />
             <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium w-full hover:bg-primary-dark transition-colors">
               Issue Book
             </button>
           </form>
+        </div>
+      </div>
+
+      <div className="bg-surface rounded-xl border border-border shadow-sm mt-6 overflow-hidden">
+        <div className="px-5 py-3 border-b border-border">
+          <h2 className="font-display font-semibold text-ink text-sm">Issued Books ({transactions.length})</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-white/5 text-ink-soft text-left">
+              <tr>
+                <th className="p-3 font-medium">Book</th>
+                <th className="p-3 font-medium">Student</th>
+                <th className="p-3 font-medium">Due</th>
+                <th className="p-3 font-medium"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {transactions.length === 0 ? (
+                <tr><td colSpan={4} className="p-6 text-center text-muted">No books are currently issued.</td></tr>
+              ) : (
+                transactions.map((t) => {
+                  const overdue = new Date(t.dueDate).getTime() < new Date().setHours(0, 0, 0, 0);
+                  return (
+                    <tr key={t._id} className="border-t border-border">
+                      <td className="p-3 text-ink">{t.bookId?.title || "-"}</td>
+                      <td className="p-3 text-muted">{t.studentId?.userId?.name || "-"} ({t.studentId?.admissionNumber || "-"})</td>
+                      <td className={`p-3 ${overdue ? "text-danger font-medium" : "text-muted"}`}>
+                        {new Date(t.dueDate).toLocaleDateString()}{overdue ? " - overdue" : ""}
+                      </td>
+                      <td className="p-3 text-right">
+                        <button onClick={() => returnBook(t._id)} className="text-xs border border-border rounded-md px-3 py-1 hover:bg-black/5">Return</button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 

@@ -6,7 +6,27 @@ import Student from "../models/Student";
 
 export const addVehicle = async (req: AuthRequest, res: Response) => {
   try {
-    const vehicle = await Vehicle.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const vehicleNumber = String(req.body.vehicleNumber || "").trim();
+    const driverName = String(req.body.driverName || "").trim();
+    const driverContact = String(req.body.driverContact || "").trim();
+    const routeName = String(req.body.routeName || "").trim();
+    if (!vehicleNumber || !driverName || !driverContact || !routeName) {
+      return res.status(400).json({ message: "Vehicle number, driver name, driver contact and route are required" });
+    }
+    const capacity = req.body.capacity === undefined || req.body.capacity === "" ? 40 : Number(req.body.capacity);
+    if (!Number.isInteger(capacity) || capacity < 1 || capacity > 200) {
+      return res.status(400).json({ message: "Capacity must be a whole number between 1 and 200" });
+    }
+    if (await Vehicle.exists({ schoolId, vehicleNumber: new RegExp(`^${vehicleNumber.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") })) {
+      return res.status(409).json({ message: `Vehicle ${vehicleNumber} is already registered` });
+    }
+    // occupied/status are not taken from the client (it could create a bus
+    // that already looks full, or pre-set to MAINTENANCE)
+    const vehicle = await Vehicle.create({
+      schoolId, vehicleNumber, driverName, driverContact, routeName, capacity,
+      stops: Array.isArray(req.body.stops) ? req.body.stops.map((x: any) => String(x).trim()).filter(Boolean) : [],
+    });
     res.status(201).json(vehicle);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -43,10 +63,13 @@ export const updateVehicleStatus = async (req: AuthRequest, res: Response) => {
 export const assignStudentToVehicle = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user!.schoolId;
-    const { studentId, vehicleId, monthlyFee } = req.body;
+    const { studentId, vehicleId } = req.body;
+    const monthlyFee = Number(req.body.monthlyFee);
+    if (!studentId || !vehicleId) return res.status(400).json({ message: "Student and vehicle are required" });
+    if (!Number.isFinite(monthlyFee) || monthlyFee < 0) return res.status(400).json({ message: "Monthly fee must be zero or more" });
 
-    const student = await Student.findOne({ _id: studentId, schoolId });
-    if (!student) return res.status(404).json({ message: "Student not found in your school" });
+    const student = await Student.findOne({ _id: studentId, schoolId, status: "ACTIVE" });
+    if (!student) return res.status(404).json({ message: "Active student not found in your school" });
 
     const existing = await TransportAssignment.findOne({ schoolId, studentId, isActive: true });
     if (existing) {
@@ -82,8 +105,14 @@ export const assignStudentToVehicle = async (req: AuthRequest, res: Response) =>
       return res.status(400).json({ message: "Vehicle not found, not active, or already at full capacity" });
     }
 
-    const assignment = await TransportAssignment.create({ schoolId, studentId, vehicleId, monthlyFee });
-    res.status(201).json(assignment);
+    try {
+      const assignment = await TransportAssignment.create({ schoolId, studentId, vehicleId, monthlyFee });
+      res.status(201).json(assignment);
+    } catch (createErr) {
+      // the seat was already reserved above - give it back so it isn't lost
+      await Vehicle.findByIdAndUpdate(vehicleId, { $inc: { occupied: -1 } });
+      throw createErr;
+    }
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

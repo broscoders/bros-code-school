@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Hostel() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -12,6 +13,7 @@ export default function Hostel() {
   const [roomForm, setRoomForm] = useState({ buildingId: "", roomNumber: "", capacity: "2" });
   const [allocForm, setAllocForm] = useState({ studentId: "", roomId: "", monthlyFee: "" });
   const [allocMsg, setAllocMsg] = useState("");
+  const { error: actionError, run } = useApiAction();
 
   const loadBuildings = async () => {
     const res = await api.get(`/hostel/buildings?schoolId=${schoolId}`);
@@ -55,17 +57,21 @@ export default function Hostel() {
 
   const addBuilding = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/hostel/buildings", { ...buildingForm, schoolId });
-    setBuildingForm({ name: "", type: "BOYS", wardenName: "" });
-    loadBuildings();
+    await run(async () => {
+      await api.post("/hostel/buildings", buildingForm);
+      setBuildingForm({ name: "", type: "BOYS", wardenName: "" });
+      loadBuildings();
+    }, "Could not add the building");
   };
 
   const addRoom = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/hostel/rooms", { ...roomForm, schoolId, capacity: Number(roomForm.capacity) });
-    setRoomForm({ ...roomForm, roomNumber: "" });
-    const res = await api.get(`/hostel/rooms?buildingId=${roomForm.buildingId}`);
-    setRooms(res.data);
+    await run(async () => {
+      await api.post("/hostel/rooms", { ...roomForm, capacity: Number(roomForm.capacity) });
+      setRoomForm({ ...roomForm, roomNumber: "" });
+      const res = await api.get(`/hostel/rooms?buildingId=${roomForm.buildingId}`);
+      setRooms(res.data);
+    }, "Could not add the room");
   };
 
   const allocate = async (e: React.FormEvent) => {
@@ -91,6 +97,7 @@ export default function Hostel() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1">Hostel Management</h1>
         <p className="text-muted mt-1 text-sm">Manage buildings, rooms and student allocation.</p>
       </div>
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
         <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
