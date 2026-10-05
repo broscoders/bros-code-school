@@ -21,9 +21,14 @@ export default function HRManagement() {
 
   const saveStatus = async () => {
     if (!managingStaff) return;
-    await api.put(`/hr/staff/${managingStaff._id}/status`, { ...statusForm, changedByName: user?.name });
-    setManagingStaff(null);
-    load();
+    setError("");
+    try {
+      await api.put(`/hr/staff/${managingStaff._id}/status`, statusForm);
+      setManagingStaff(null);
+      load();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not change the staff status");
+    }
   };
 
   const load = async () => {
@@ -41,9 +46,14 @@ export default function HRManagement() {
 
   const addDepartment = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/hr/departments", { ...deptForm, schoolId });
-    setDeptForm({ name: "" });
-    load();
+    setError("");
+    try {
+      await api.post("/hr/departments", deptForm);
+      setDeptForm({ name: "" });
+      load();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not add the department");
+    }
   };
 
   const addStaff = async (e: React.FormEvent) => {

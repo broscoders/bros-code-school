@@ -7,9 +7,15 @@ export default function LeaveRequests() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const [list, setList] = useState<any[]>([]);
 
+  const [error, setError] = useState("");
+
   const load = async () => {
-    const res = await api.get(`/comm/leave-requests?schoolId=${schoolId}`);
-    setList(res.data);
+    try {
+      const res = await api.get(`/comm/leave-requests?schoolId=${schoolId}`);
+      setList(res.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not load leave requests");
+    }
   };
 
   useEffect(() => {
@@ -17,8 +23,14 @@ export default function LeaveRequests() {
   }, [schoolId]);
 
   const updateStatus = async (id: string, status: string) => {
-    await api.put(`/comm/leave-requests/${id}/status`, { status });
-    load();
+    setError("");
+    try {
+      await api.put(`/comm/leave-requests/${id}/status`, { status });
+      load();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not update the request");
+      load();
+    }
   };
 
   return (
@@ -28,6 +40,7 @@ export default function LeaveRequests() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><FileWarning size={22} className="text-primary" />Leave Requests</h1>
         <p className="text-muted mt-1 text-sm">Approve or reject leave requests from students and teachers.</p>
       </div>
+      {error && <p className="text-danger text-sm mb-3">{error}</p>}
 
       <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden mt-6">
         <div className="overflow-x-auto">

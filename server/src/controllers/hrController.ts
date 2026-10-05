@@ -5,6 +5,7 @@ import StaffProfile from "../models/StaffProfile";
 import PayrollRecord from "../models/PayrollRecord";
 import StaffLoan from "../models/StaffLoan";
 import Teacher from "../models/Teacher";
+import User from "../models/User";
 import StaffAttendance from "../models/StaffAttendance";
 import { logAudit } from "../utils/auditLogger";
 import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../utils/accountSync";
@@ -22,9 +23,10 @@ export const getStaffRoster = async (req: AuthRequest, res: Response) => {
       StaffProfile.find({ schoolId: req.user!.schoolId, employmentStatus: "ACTIVE" }).populate("userId", "name role"),
     ]);
 
+    // skip records whose login account no longer exists instead of crashing the whole roster
     const roster = [
-      ...teachers.map((t) => ({ userId: (t.userId as any)._id, name: (t.userId as any).name, role: "TEACHER", employeeId: t.employeeId })),
-      ...staff.map((s) => ({ userId: (s.userId as any)._id, name: (s.userId as any).name, role: (s.userId as any).role, employeeId: s.employeeId })),
+      ...teachers.filter((t) => t.userId).map((t) => ({ userId: (t.userId as any)._id, name: (t.userId as any).name, role: "TEACHER", employeeId: t.employeeId })),
+      ...staff.filter((s) => s.userId).map((s) => ({ userId: (s.userId as any)._id, name: (s.userId as any).name, role: (s.userId as any).role, employeeId: s.employeeId })),
     ];
 
     res.json(roster);
@@ -35,22 +37,38 @@ export const getStaffRoster = async (req: AuthRequest, res: Response) => {
 
 export const markStaffAttendanceBulk = async (req: AuthRequest, res: Response) => {
   try {
+    const schoolId = req.user!.schoolId;
     const { date, records } = req.body as { date: string; records: { userId: string; status: string }[] };
-    if (!date || !Array.isArray(records)) {
-      return res.status(400).json({ message: "date and records are required" });
+    if (!date || !Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ message: "date and at least one record are required" });
+    }
+    const day = new Date(date);
+    if (Number.isNaN(day.getTime())) return res.status(400).json({ message: "Invalid date" });
+    if (day.getTime() > Date.now() + 24 * 60 * 60 * 1000) return res.status(400).json({ message: "Attendance cannot be marked for a future date" });
+    const VALID = ["PRESENT", "ABSENT", "LATE", "HALF_DAY", "LEAVE"];
+    if (records.some((r) => !r || !r.userId || !VALID.includes(r.status))) {
+      return res.status(400).json({ message: "Every record needs a staff member and a valid status" });
     }
 
-    let marked = 0;
-    for (const r of records) {
-      await StaffAttendance.findOneAndUpdate(
-        { schoolId: req.user!.schoolId, userId: r.userId, date: new Date(date) },
-        { status: r.status, markedBy: req.user!.userId },
-        { upsert: true, new: true }
-      );
-      marked++;
-    }
+    // only staff of THIS school; invalid statuses used to be saved as-is
+    // because findOneAndUpdate does not run enum validation
+    const ids = records.map((r) => r.userId);
+    const valid = await User.find({ _id: { $in: ids }, schoolId }).select("_id");
+    const ok = new Set(valid.map((u) => u._id.toString()));
+    const good = records.filter((r) => ok.has(String(r.userId)));
+    if (good.length === 0) return res.status(400).json({ message: "No valid staff members to mark" });
 
-    res.json({ marked });
+    await StaffAttendance.bulkWrite(
+      good.map((r): any => ({
+        updateOne: {
+          filter: { userId: r.userId, date: day },
+          update: { $set: { schoolId, status: r.status, markedBy: req.user!.userId } },
+          upsert: true,
+        },
+      }))
+    );
+
+    res.json({ marked: good.length, skipped: records.length - good.length });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -59,6 +77,7 @@ export const markStaffAttendanceBulk = async (req: AuthRequest, res: Response) =
 export const getStaffAttendanceForDate = async (req: AuthRequest, res: Response) => {
   try {
     const { date } = req.query as { date: string };
+    if (!date || Number.isNaN(new Date(date).getTime())) return res.status(400).json({ message: "A valid date is required" });
     const records = await StaffAttendance.find({ schoolId: req.user!.schoolId, date: new Date(date) });
     res.json(records);
   } catch (err) {
@@ -76,6 +95,9 @@ export const getStaffAttendanceRegister = async (req: AuthRequest, res: Response
 
     const monthNum = Number(month);
     const yearNum = Number(year);
+    if (!Number.isInteger(monthNum) || monthNum < 1 || monthNum > 12 || !Number.isInteger(yearNum) || yearNum < 2000 || yearNum > 2100) {
+      return res.status(400).json({ message: "month must be 1-12 and year must be a valid year" });
+    }
     const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
     const endDate = new Date(Date.UTC(yearNum, monthNum, 1));
 
@@ -92,7 +114,13 @@ export const getStaffAttendanceRegister = async (req: AuthRequest, res: Response
 
 export const createDepartment = async (req: AuthRequest, res: Response) => {
   try {
-    const dept = await Department.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const name = String(req.body.name || "").trim();
+    if (!name) return res.status(400).json({ message: "Department name is required" });
+    if (await Department.exists({ schoolId, name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") })) {
+      return res.status(409).json({ message: `A department named "${name}" already exists` });
+    }
+    const dept = await Department.create({ schoolId, name });
     res.status(201).json(dept);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -110,7 +138,23 @@ export const getDepartments = async (req: AuthRequest, res: Response) => {
 
 export const createStaffProfile = async (req: AuthRequest, res: Response) => {
   try {
-    const staff = await StaffProfile.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { userId, departmentId, joiningDate } = req.body;
+    const employeeId = String(req.body.employeeId || "").trim();
+    const designation = String(req.body.designation || "").trim();
+    const basicSalary = req.body.basicSalary === undefined || req.body.basicSalary === "" ? 0 : Number(req.body.basicSalary);
+
+    if (!userId || !employeeId || !designation) return res.status(400).json({ message: "Account, employee ID and designation are required" });
+    if (!Number.isFinite(basicSalary) || basicSalary < 0) return res.status(400).json({ message: "Basic salary must be zero or more" });
+
+    // must be a non-student, non-parent, non-teacher staff account of this school
+    const account = await User.findOne({ _id: userId, schoolId, role: { $nin: ["STUDENT", "PARENT", "TEACHER", "ACADEMY_TEACHER"] } });
+    if (!account) return res.status(404).json({ message: "Staff login account not found" });
+    if (await StaffProfile.exists({ userId, schoolId })) return res.status(409).json({ message: "This account already has a staff profile" });
+    if (await StaffProfile.exists({ schoolId, employeeId })) return res.status(409).json({ message: `Employee ID ${employeeId} is already used` });
+    if (departmentId && !(await Department.exists({ _id: departmentId, schoolId }))) return res.status(404).json({ message: "Department not found" });
+
+    const staff = await StaffProfile.create({ schoolId, userId, employeeId, designation, departmentId: departmentId || undefined, joiningDate: joiningDate || undefined, basicSalary });
     res.status(201).json(staff);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -169,38 +213,58 @@ export const updateStaffStatus = async (req: AuthRequest, res: Response) => {
   }
 };
 
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 export const generatePayroll = async (req: AuthRequest, res: Response) => {
   try {
-    const { staffId, month, year, allowances, deductions, bonus } = req.body;
-    const staff = await StaffProfile.findOne({ _id: staffId, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { staffId } = req.body;
+    // Amounts arrive from the form as strings ("500"). The old code did
+    // `(deductions || 0) + loanDeduction`, which JOINS the text instead of
+    // adding (500 + 200 became "500200"), so the stored deduction could be
+    // wildly different from the net salary that was calculated.
+    const allowances = Number(req.body.allowances || 0);
+    const deductions = Number(req.body.deductions || 0);
+    const bonus = Number(req.body.bonus || 0);
+    if ([allowances, deductions, bonus].some((n) => !Number.isFinite(n) || n < 0)) {
+      return res.status(400).json({ message: "Allowances, deductions and bonus must be zero or more" });
+    }
+    // month name is normalised so "august" and "August" can't both get a payslip
+    const month = MONTHS.find((m) => m.toLowerCase() === String(req.body.month || "").trim().toLowerCase());
+    const year = Number(req.body.year);
+    if (!month) return res.status(400).json({ message: "Please enter a valid month name (e.g. August)" });
+    if (!Number.isInteger(year) || year < 2000 || year > 2100) return res.status(400).json({ message: "Please enter a valid year" });
+
+    const staff = await StaffProfile.findOne({ _id: staffId, schoolId });
     if (!staff) return res.status(404).json({ message: "Staff not found" });
     if (staff.employmentStatus === "TERMINATED") {
       return res.status(400).json({ message: "Cannot generate payroll for a terminated staff member." });
     }
 
-    const existing = await PayrollRecord.findOne({ schoolId: req.user!.schoolId, staffId, month, year });
+    const existing = await PayrollRecord.findOne({ schoolId, staffId, month, year });
     if (existing) {
       return res.status(400).json({ message: `A payslip for ${month} ${year} already exists for this staff member.` });
     }
 
-    // Blueprint 39 explicitly calls for loan/advance repayments to be part
-    // of payroll - an approved loan's monthly installment is deducted here
-    // automatically, and the loan's remaining balance is paid down by that
-    // same amount so it eventually completes on its own.
-    const activeLoan = await StaffLoan.findOne({ schoolId: req.user!.schoolId, staffId, status: "APPROVED" });
+    // approved loan installment is deducted automatically
+    const activeLoan = await StaffLoan.findOne({ schoolId, staffId, status: "APPROVED" });
     const loanDeduction = activeLoan ? Math.min(activeLoan.monthlyDeduction, activeLoan.remainingBalance) : 0;
 
-    const netSalary = staff.basicSalary + Number(allowances || 0) + Number(bonus || 0) - Number(deductions || 0) - loanDeduction;
+    const totalDeductions = deductions + loanDeduction;
+    const netSalary = staff.basicSalary + allowances + bonus - totalDeductions;
+    if (netSalary < 0) {
+      return res.status(400).json({ message: `Deductions (Rs. ${totalDeductions}) are more than the earnings (Rs. ${staff.basicSalary + allowances + bonus}). Reduce the deductions.` });
+    }
 
     const record = await PayrollRecord.create({
-      schoolId: staff.schoolId,
+      schoolId,
       staffId,
       month,
       year,
       basicSalary: staff.basicSalary,
-      allowances: allowances || 0,
-      deductions: (deductions || 0) + loanDeduction,
-      bonus: bonus || 0,
+      allowances,
+      deductions: totalDeductions,
+      bonus,
       netSalary,
     });
 
@@ -218,19 +282,25 @@ export const generatePayroll = async (req: AuthRequest, res: Response) => {
 
 export const requestStaffLoan = async (req: AuthRequest, res: Response) => {
   try {
-    const { staffId, amount, reason, monthlyDeduction } = req.body;
-    const staff = await StaffProfile.findOne({ _id: staffId, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { staffId } = req.body;
+    const amount = Number(req.body.amount);
+    const monthlyDeduction = Number(req.body.monthlyDeduction);
+    const reason = String(req.body.reason || "").trim();
+    if (!reason) return res.status(400).json({ message: "A reason is required" });
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ message: "Loan amount must be greater than zero" });
+    // a 0 installment would mean the loan is never repaid
+    if (!Number.isFinite(monthlyDeduction) || monthlyDeduction <= 0 || monthlyDeduction > amount) {
+      return res.status(400).json({ message: "Monthly deduction must be greater than zero and not more than the loan amount" });
+    }
+    const staff = await StaffProfile.findOne({ _id: staffId, schoolId });
     if (!staff) return res.status(404).json({ message: "Staff not found" });
+    if (staff.employmentStatus === "TERMINATED") return res.status(400).json({ message: "Cannot give a loan to a terminated staff member" });
+    if (await StaffLoan.exists({ schoolId, staffId, status: { $in: ["PENDING", "APPROVED"] } })) {
+      return res.status(409).json({ message: "This staff member already has a pending or running loan" });
+    }
 
-    const loan = await StaffLoan.create({
-      schoolId: req.user!.schoolId,
-      staffId,
-      amount,
-      reason,
-      monthlyDeduction,
-      remainingBalance: amount,
-      requestedBy: req.user!.userId,
-    });
+    const loan = await StaffLoan.create({ schoolId, staffId, amount, reason, monthlyDeduction, remainingBalance: amount, requestedBy: req.user!.userId });
     res.status(201).json(loan);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -245,6 +315,11 @@ export const updateStaffLoanStatus = async (req: AuthRequest, res: Response) => 
     const { status } = req.body;
     if (!["APPROVED", "REJECTED"].includes(status)) return res.status(400).json({ message: "Invalid status" });
 
+    // separation of duties: whoever requested the loan can't approve it
+    const pending = await StaffLoan.findOne({ _id: req.params.id, schoolId: req.user!.schoolId, status: "PENDING" });
+    if (pending && pending.requestedBy.toString() === req.user!.userId) {
+      return res.status(403).json({ message: "You cannot approve a loan you requested yourself. Ask another admin to review it." });
+    }
     const loan = await StaffLoan.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId, status: "PENDING" },
       { status, approvedBy: req.user!.userId },
@@ -279,12 +354,27 @@ export const getPayrollRecords = async (req: AuthRequest, res: Response) => {
 
 export const markPayrollPaid = async (req: AuthRequest, res: Response) => {
   try {
+    // Only a PENDING payslip can be paid - paying twice used to just overwrite
+    // the paid date with no trace. The status filter makes it atomic too.
     const record = await PayrollRecord.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
+      { _id: req.params.id, schoolId: req.user!.schoolId, status: "PENDING" },
       { status: "PAID", paidDate: new Date() },
       { new: true }
     );
-    if (!record) return res.status(404).json({ message: "Payroll record not found" });
+    if (!record) {
+      const exists = await PayrollRecord.exists({ _id: req.params.id, schoolId: req.user!.schoolId });
+      return res.status(exists ? 400 : 404).json({ message: exists ? "This payslip is already marked as paid" : "Payroll record not found" });
+    }
+    await logAudit({
+      schoolId: req.user!.schoolId,
+      userId: req.user!.userId,
+      userName: await actorName(req),
+      userRole: req.user!.role,
+      action: "Marked payslip as paid",
+      recordType: "PayrollRecord",
+      recordId: record._id.toString(),
+      newValue: { status: "PAID", netSalary: record.netSalary, month: record.month, year: record.year },
+    });
     res.json(record);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

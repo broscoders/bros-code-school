@@ -11,42 +11,71 @@ export default function Payroll() {
   const [loanForm, setLoanForm] = useState({ staffId: "", amount: "", reason: "", monthlyDeduction: "" });
   const [form, setForm] = useState({ staffId: "", month: "", year: new Date().getFullYear().toString(), allowances: "0", deductions: "0", bonus: "0" });
 
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const fail = (err: any, fallback: string) => setMsg({ type: "err", text: err?.response?.data?.message || fallback });
+
   const load = async () => {
-    const res = await api.get(`/hr/payroll?schoolId=${schoolId}`);
-    setRecords(res.data);
-    const loanRes = await api.get(`/hr/loans?schoolId=${schoolId}`);
-    setLoans(loanRes.data);
+    try {
+      const [res, loanRes] = await Promise.all([api.get(`/hr/payroll?schoolId=${schoolId}`), api.get(`/hr/loans?schoolId=${schoolId}`)]);
+      setRecords(res.data);
+      setLoans(loanRes.data);
+    } catch (err) {
+      fail(err, "Could not load payroll data.");
+    }
   };
 
   useEffect(() => {
     if (schoolId) {
-      api.get(`/hr/staff?schoolId=${schoolId}`).then((res) => setStaff(res.data));
+      api.get(`/hr/staff?schoolId=${schoolId}`).then((res) => setStaff(res.data)).catch(() => setStaff([]));
       load();
     }
   }, [schoolId]);
 
   const generate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/hr/payroll", form);
-    setForm({ staffId: "", month: "", year: new Date().getFullYear().toString(), allowances: "0", deductions: "0", bonus: "0" });
-    load();
+    setMsg(null);
+    try {
+      await api.post("/hr/payroll", form);
+      setForm({ staffId: "", month: "", year: new Date().getFullYear().toString(), allowances: "0", deductions: "0", bonus: "0" });
+      setMsg({ type: "ok", text: "Payslip generated." });
+      load();
+    } catch (err) {
+      fail(err, "Could not generate the payslip.");
+    }
   };
 
   const markPaid = async (id: string) => {
-    await api.put(`/hr/payroll/${id}/pay`, {});
-    load();
+    if (!window.confirm("Mark this payslip as paid? This cannot be undone.")) return;
+    setMsg(null);
+    try {
+      await api.put(`/hr/payroll/${id}/pay`, {});
+      load();
+    } catch (err) {
+      fail(err, "Could not mark the payslip as paid.");
+    }
   };
 
   const requestLoan = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/hr/loans", { ...loanForm, schoolId, amount: Number(loanForm.amount), monthlyDeduction: Number(loanForm.monthlyDeduction) });
-    setLoanForm({ staffId: "", amount: "", reason: "", monthlyDeduction: "" });
-    load();
+    setMsg(null);
+    try {
+      await api.post("/hr/loans", { ...loanForm, amount: Number(loanForm.amount), monthlyDeduction: Number(loanForm.monthlyDeduction) });
+      setLoanForm({ staffId: "", amount: "", reason: "", monthlyDeduction: "" });
+      setMsg({ type: "ok", text: "Loan request saved." });
+      load();
+    } catch (err) {
+      fail(err, "Could not save the loan request.");
+    }
   };
 
   const setLoanStatus = async (id: string, status: string) => {
-    await api.put(`/hr/loans/${id}/status`, { status });
-    load();
+    setMsg(null);
+    try {
+      await api.put(`/hr/loans/${id}/status`, { status });
+      load();
+    } catch (err) {
+      fail(err, "Could not update the loan.");
+    }
   };
 
   return (
@@ -56,6 +85,8 @@ export default function Payroll() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><Wallet size={22} className="text-primary" />Payroll</h1>
         <p className="text-muted mt-1 text-sm">Generate and track staff salary payments.</p>
       </div>
+
+      {msg && <p className={`${msg.type === "ok" ? "text-success" : "text-danger"} text-sm mt-4`}>{msg.text}</p>}
 
       <form onSubmit={generate} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="col-span-3">
@@ -67,7 +98,10 @@ export default function Payroll() {
         </div>
         <div>
           <label className="block text-xs text-muted mb-1">Month</label>
-          <input placeholder="e.g. August" value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="w-full" required />
+          <select value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} className="w-full" required>
+            <option value="">Select month</option>
+            {["January","February","March","April","May","June","July","August","September","October","November","December"].map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
         </div>
         <div>
           <label className="block text-xs text-muted mb-1">Year</label>

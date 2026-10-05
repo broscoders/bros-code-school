@@ -102,6 +102,23 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+// SECURITY: the bcrypt password hash must never reach a browser. `password`
+// is not `select: false` (login/change-password read it from the document),
+// and 49 places populate the user into students/teachers/parents/staff/leave/
+// loans/payroll responses - so every one of those used to send each person's
+// password hash to whoever opened the list (teachers included). Stripping it
+// from serialisation fixes all of them at once without touching the login code.
+const stripSecrets = (_doc: unknown, ret: any) => {
+  delete ret.password;
+  delete ret.twoFactorSecret;
+  delete ret.twoFactorBackupCodes;
+  delete ret.verificationCode;
+  delete ret.passwordResetCode;
+  return ret;
+};
+userSchema.set("toJSON", { transform: stripSecrets });
+userSchema.set("toObject", { transform: stripSecrets });
+
 // Performance: speeds up the most common lookups (every list/detail screen filters by these).
 userSchema.index({ schoolId: 1 });
 userSchema.index({ schoolId: 1, role: 1 });

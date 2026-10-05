@@ -204,12 +204,24 @@ export const createLeaveRequest = async (req: AuthRequest, res: Response) => {
       req.body.teacherId = myTeacher._id;
     }
 
-    // Leave requests can only ever be approved via updateLeaveStatus (a
-    // separate, more-privileged endpoint) - without stripping these here, a
-    // teacher or parent could self-approve their own leave request just by
-    // including "status": "APPROVED" in this request body.
-    const { status, ...safeBody } = req.body;
-    const leave = await LeaveRequest.create({ ...safeBody, requestedBy: req.user!.userId, schoolId });
+    // Only these fields are taken from the client. status/requestedBy/schoolId
+    // are decided here, and teacherId is only ever the logged-in teacher
+    // (before, `...safeBody` let a student request carry a made-up teacherId).
+    const reason = String(req.body.reason || "").trim();
+    const when = new Date(req.body.date);
+    if (!reason) return res.status(400).json({ message: "A reason is required" });
+    if (Number.isNaN(when.getTime())) return res.status(400).json({ message: "A valid date is required" });
+    if (!["STUDENT", "TEACHER"].includes(req.body.type)) return res.status(400).json({ message: "Invalid leave type" });
+
+    const leave = await LeaveRequest.create({
+      schoolId,
+      requestedBy: req.user!.userId,
+      type: req.body.type,
+      studentId: req.body.type === "STUDENT" ? req.body.studentId : undefined,
+      teacherId: req.body.type === "TEACHER" ? req.body.teacherId : undefined,
+      reason,
+      date: when,
+    });
     res.status(201).json(leave);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -237,12 +249,15 @@ export const updateLeaveStatus = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: "You cannot approve your own leave request. Ask another admin to review it." });
     }
 
+    // a bad status string used to be saved as-is (no enum check on updates),
+    // and an already-decided request could be flipped back and forth
+    if (!["APPROVED", "REJECTED"].includes(req.body.status)) return res.status(400).json({ message: "Status must be APPROVED or REJECTED" });
     const leave = await LeaveRequest.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
+      { _id: req.params.id, schoolId: req.user!.schoolId, status: "PENDING" },
       { status: req.body.status },
       { new: true }
     );
-    if (!leave) return res.status(404).json({ message: "Leave request not found" });
+    if (!leave) return res.status(400).json({ message: "This request has already been decided" });
     res.json(leave);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
