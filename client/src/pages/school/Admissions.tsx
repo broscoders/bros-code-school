@@ -35,16 +35,28 @@ export default function Admissions() {
     }
   }, [schoolId]);
 
+  const [actionError, setActionError] = useState("");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/admissions", { ...form, schoolId });
-    setForm({ applicantName: "", parentName: "", parentContact: "", desiredClassId: "", academicSystem: "" });
-    load();
+    setActionError("");
+    try {
+      await api.post("/admissions", form);
+      setForm({ applicantName: "", parentName: "", parentContact: "", desiredClassId: "", academicSystem: "" });
+      load();
+    } catch (err: any) {
+      setActionError(err.response?.data?.message || "Could not save the admission.");
+    }
   };
 
   const updateStatus = async (id: string, status: string) => {
-    await api.put(`/admissions/${id}/status`, { status });
-    load();
+    setActionError("");
+    try {
+      await api.put(`/admissions/${id}/status`, { status });
+      load();
+    } catch (err: any) {
+      setActionError(err.response?.data?.message || "Could not update the status.");
+    }
   };
 
   const openConvert = async (admission: any) => {
@@ -85,6 +97,7 @@ export default function Admissions() {
         <p className="text-muted mt-1 text-sm">Manage the admission pipeline from application to enrollment.</p>
       </div>
 
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input placeholder="Applicant Name" value={form.applicantName} onChange={(e) => setForm({ ...form, applicantName: e.target.value })} required />
         <input placeholder="Parent Name" value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} required />
@@ -170,8 +183,8 @@ export default function Admissions() {
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
-              <select value={convertForm.sectionId} onChange={(e) => setConvertForm({ ...convertForm, sectionId: e.target.value })} className="w-full">
-                <option value="">Select Section (optional)</option>
+              <select value={convertForm.sectionId} onChange={(e) => setConvertForm({ ...convertForm, sectionId: e.target.value })} className="w-full" required>
+                <option value="">Select Section</option>
                 {sections.map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
               </select>
               <input placeholder="Admission Number" value={convertForm.admissionNumber} onChange={(e) => setConvertForm({ ...convertForm, admissionNumber: e.target.value })} className="w-full" required />

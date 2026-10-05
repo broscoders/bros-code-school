@@ -78,7 +78,22 @@ export const getDashboardSummary = async (req: AuthRequest, res: Response) => {
         canSeeFees
           ? Invoice.aggregate([
               { $match: { schoolId: oid, status: { $ne: "CANCELLED" } } },
-              { $group: { _id: "$status", amount: { $sum: "$amount" }, paid: { $sum: { $ifNull: ["$paidAmount", 0] } } } },
+              // Nothing ever flips an invoice to OVERDUE, so an unpaid invoice past its
+              // due date stayed "PENDING" forever and the Overdue slice was always 0.
+              // Work it out from the due date here instead.
+              {
+                $group: {
+                  _id: {
+                    $cond: [
+                      { $and: [{ $in: ["$status", ["PENDING", "PARTIAL"]] }, { $lt: ["$dueDate", now] }] },
+                      "OVERDUE",
+                      "$status",
+                    ],
+                  },
+                  amount: { $sum: "$amount" },
+                  paid: { $sum: { $ifNull: ["$paidAmount", 0] } },
+                },
+              },
             ])
           : Promise.resolve([]),
       ]);

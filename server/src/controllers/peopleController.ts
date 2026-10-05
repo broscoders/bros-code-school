@@ -11,6 +11,7 @@ import User from "../models/User";
 import Session from "../models/Session";
 import { logAudit } from "../utils/auditLogger";
 import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../utils/accountSync";
+import { actorName } from "../utils/auditActor";
 
 export const createStudent = async (req: AuthRequest, res: Response) => {
   try {
@@ -143,7 +144,7 @@ export const updateStudentStatus = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: req.user.schoolId,
         userId: req.user.userId,
-        userName: (req.body.changedByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: `Changed student status: ${oldStatus} -> ${status}`,
         recordType: "Student",
@@ -189,7 +190,7 @@ export const transferStudent = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: req.user.schoolId,
         userId: req.user.userId,
-        userName: (req.body.changedByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: "Transferred student to a new class/section",
         recordType: "Student",
@@ -252,7 +253,7 @@ export const updateUserAccountStatus = async (req: AuthRequest, res: Response) =
     await logAudit({
       schoolId: req.user!.schoolId,
       userId: req.user!.userId,
-      userName: (req.body.changedByName as string) || "Unknown",
+      userName: await actorName(req),
       userRole: req.user!.role,
       action: `Changed account status for ${target.email}: ${oldStatus} -> ${status}`,
       recordType: "User",
@@ -417,7 +418,7 @@ export const updateTeacherStatus = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: req.user.schoolId,
         userId: req.user.userId,
-        userName: (req.body.changedByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: `Changed teacher employment status: ${oldStatus} -> ${employmentStatus}`,
         recordType: "Teacher",

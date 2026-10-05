@@ -10,6 +10,7 @@ import { isNonEmptyString } from "../utils/validateStrings";
 import { checkOrgLimit } from "../utils/orgLimits";
 import { logAudit } from "../utils/auditLogger";
 import { sendMail, invitationEmailHtml } from "../utils/mailer";
+import { actorName } from "../utils/auditActor";
 
 const INVITE_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days, per Blueprint 9
 
@@ -91,7 +92,7 @@ export const createInvitation = async (req: AuthRequest, res: Response) => {
         token,
         status: "PENDING",
         invitedByUserId: req.user!.userId,
-        invitedByName: (req.body.invitedByName as string) || "Administrator",
+        invitedByName: await actorName(req),
         expiresAt,
         metadata,
       });
@@ -110,7 +111,7 @@ export const createInvitation = async (req: AuthRequest, res: Response) => {
     await logAudit({
       schoolId: req.user!.schoolId,
       userId: req.user!.userId,
-      userName: (req.body.invitedByName as string) || "Administrator",
+      userName: await actorName(req),
       userRole: req.user!.role,
       action: `Invited ${normalizedEmail} as ${validRole}`,
       recordType: "Invitation",
@@ -182,7 +183,7 @@ export const revokeInvitation = async (req: AuthRequest, res: Response) => {
     await logAudit({
       schoolId: req.user!.schoolId,
       userId: req.user!.userId,
-      userName: (req.body.revokedByName as string) || "Administrator",
+      userName: await actorName(req),
       userRole: req.user!.role,
       action: `Revoked invitation for ${invitation.email}`,
       recordType: "Invitation",

@@ -95,16 +95,16 @@ export const runRemindersForSchool = async (schoolId: any) => {
     const dueSoonRule = ruleFor("FEE_DUE_SOON");
     const overdueRule = ruleFor("FEE_OVERDUE");
     if (dueSoonRule?.isActive || overdueRule?.isActive) {
-      const invoices = await Invoice.find({ schoolId, status: { $in: ["PENDING", "OVERDUE"] } });
+      const invoices = await Invoice.find({ schoolId, status: { $in: ["PENDING", "PARTIAL", "OVERDUE"] } });
       for (const inv of invoices) {
         const student = await Student.findById(inv.studentId).populate("userId");
         if (!student) continue;
         const studentName = (student.userId as any)?.name || "your child";
 
         if (inv.dueDate < now && overdueRule?.isActive) {
-          await notifyParentOfStudent(inv.studentId, "Fee overdue", fillTemplate(overdueRule.messageTemplate, { studentName, amount: String(inv.amount) }), "FINANCE");
+          await notifyParentOfStudent(inv.studentId, "Fee overdue", fillTemplate(overdueRule.messageTemplate, { studentName, amount: String(inv.amount - (inv.paidAmount || 0)) }), "FINANCE");
         } else if (inv.dueDate >= now && inv.dueDate <= soon && dueSoonRule?.isActive) {
-          await notifyParentOfStudent(inv.studentId, "Fee due soon", fillTemplate(dueSoonRule.messageTemplate, { studentName, amount: String(inv.amount), dueDate: inv.dueDate.toLocaleDateString() }), "FINANCE");
+          await notifyParentOfStudent(inv.studentId, "Fee due soon", fillTemplate(dueSoonRule.messageTemplate, { studentName, amount: String(inv.amount - (inv.paidAmount || 0)), dueDate: inv.dueDate.toLocaleDateString() }), "FINANCE");
         }
       }
     }
