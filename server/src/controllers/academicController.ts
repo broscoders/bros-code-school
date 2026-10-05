@@ -9,6 +9,9 @@ import Student from "../models/Student";
 // Academic Session
 export const createSession = async (req: AuthRequest, res: Response) => {
   try {
+    const schoolId = req.user!.schoolId;
+    const name = String(req.body.name || "").trim();
+    if (!name) return res.status(400).json({ message: "Session name is required" });
     const startDate = new Date(req.body.startDate);
     const endDate = new Date(req.body.endDate);
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
@@ -17,7 +20,19 @@ export const createSession = async (req: AuthRequest, res: Response) => {
     if (endDate <= startDate) {
       return res.status(400).json({ message: "End date must be after the start date" });
     }
-    const session = await AcademicSession.create({ ...req.body, schoolId: req.user!.schoolId });
+    if (await AcademicSession.exists({ schoolId, name })) {
+      return res.status(409).json({ message: `A session named "${name}" already exists` });
+    }
+    // The first session becomes the active one. Later sessions are created
+    // inactive (activate them from the status dropdown) - before, every new
+    // session was created active too, so a school ended up with several
+    // "current" sessions at once.
+    const hasActive = await AcademicSession.exists({ schoolId, isActive: true });
+    const session = await AcademicSession.create({
+      schoolId, name, startDate, endDate,
+      isActive: !hasActive,
+      status: hasActive ? "CLOSED" : "ACTIVE",
+    });
     res.status(201).json(session);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -115,10 +130,15 @@ export const copySessionConfig = async (req: AuthRequest, res: Response) => {
 // Class
 export const createClass = async (req: AuthRequest, res: Response) => {
   try {
-    const existing = await ClassModel.findOne({ schoolId: req.user!.schoolId, sessionId: req.body.sessionId, name: req.body.name });
-    if (existing) return res.status(400).json({ message: `A class named "${req.body.name}" already exists in this session` });
-
-    const newClass = await ClassModel.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const name = String(req.body.name || "").trim();
+    const { sessionId, academicSystem } = req.body;
+    if (!name || !sessionId || !academicSystem) return res.status(400).json({ message: "Session, class name and academic system are required" });
+    if (!(await AcademicSession.exists({ _id: sessionId, schoolId }))) return res.status(404).json({ message: "Session not found in your school" });
+    if (await ClassModel.exists({ schoolId, sessionId, name })) {
+      return res.status(400).json({ message: `A class named "${name}" already exists in this session` });
+    }
+    const newClass = await ClassModel.create({ schoolId, sessionId, name, academicSystem });
     res.status(201).json(newClass);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -137,10 +157,20 @@ export const getClasses = async (req: AuthRequest, res: Response) => {
 // Section
 export const createSection = async (req: AuthRequest, res: Response) => {
   try {
-    const existing = await Section.findOne({ schoolId: req.user!.schoolId, classId: req.body.classId, name: req.body.name });
-    if (existing) return res.status(400).json({ message: `Section "${req.body.name}" already exists in this class` });
-
-    const section = await Section.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const name = String(req.body.name || "").trim();
+    const { classId } = req.body;
+    if (!name || !classId) return res.status(400).json({ message: "Class and section name are required" });
+    if (!(await ClassModel.exists({ _id: classId, schoolId }))) return res.status(404).json({ message: "Class not found in your school" });
+    let capacity: number | undefined;
+    if (req.body.capacity !== undefined && req.body.capacity !== null && req.body.capacity !== "") {
+      capacity = Number(req.body.capacity);
+      if (!Number.isInteger(capacity) || capacity < 1 || capacity > 500) return res.status(400).json({ message: "Capacity must be a whole number between 1 and 500" });
+    }
+    if (await Section.exists({ schoolId, classId, name })) {
+      return res.status(400).json({ message: `Section "${name}" already exists in this class` });
+    }
+    const section = await Section.create({ schoolId, classId, name, capacity });
     res.status(201).json(section);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -159,7 +189,15 @@ export const getSections = async (req: AuthRequest, res: Response) => {
 // Subject
 export const createSubject = async (req: AuthRequest, res: Response) => {
   try {
-    const subject = await Subject.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const name = String(req.body.name || "").trim();
+    const { classId, code } = req.body;
+    if (!name || !classId) return res.status(400).json({ message: "Class and subject name are required" });
+    if (!(await ClassModel.exists({ _id: classId, schoolId }))) return res.status(404).json({ message: "Class not found in your school" });
+    if (await Subject.exists({ schoolId, classId, name })) {
+      return res.status(400).json({ message: `Subject "${name}" already exists in this class` });
+    }
+    const subject = await Subject.create({ schoolId, classId, name, code });
     res.status(201).json(subject);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -189,8 +227,14 @@ export const promoteStudents = async (req: AuthRequest, res: Response) => {
 
     const targetClass = await ClassModel.findOne({ _id: toClassId, schoolId });
     if (!targetClass) return res.status(404).json({ message: "Destination class not found in your school" });
-    const targetSection = await Section.findOne({ _id: toSectionId, schoolId });
-    if (!targetSection) return res.status(404).json({ message: "Destination section not found in your school" });
+    const targetSection = await Section.findOne({ _id: toSectionId, classId: toClassId, schoolId });
+    if (!targetSection) return res.status(404).json({ message: "Destination section not found in the destination class" });
+    if (targetSection.capacity) {
+      const taken = await Student.countDocuments({ sectionId: toSectionId, schoolId, status: "ACTIVE" });
+      if (taken + studentIds.length > targetSection.capacity) {
+        return res.status(400).json({ message: `Section "${targetSection.name}" has ${targetSection.capacity - taken} free seat(s), but ${studentIds.length} students were selected` });
+      }
+    }
 
     const students = await Student.find({ _id: { $in: studentIds }, schoolId, status: "ACTIVE" });
 

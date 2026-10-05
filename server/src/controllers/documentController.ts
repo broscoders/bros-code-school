@@ -1,7 +1,8 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import SchoolDocument from "../models/SchoolDocument";
 import { canAccessStudent } from "../utils/accessControl";
+import { actorName } from "../utils/auditActor";
 
 export const uploadDocument = async (req: AuthRequest, res: Response) => {
   try {
@@ -22,7 +23,7 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
       relatedToId: relatedToId || undefined,
       expiryDate: expiryDate || undefined,
       uploadedBy: req.user!.userId,
-      uploadedByName: req.body.uploadedByName || "Unknown",
+      uploadedByName: await actorName(req),
       version: existingCount + 1,
     });
 

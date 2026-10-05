@@ -42,7 +42,8 @@ async function issueSessionToken(req: Request, userId: string, role: string, sch
 
 export const registerUser = async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, password, role, phone } = req.body;
+    const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : req.body.email;
     const schoolId = req.user!.schoolId;
 
     if (!name || !email || !password || !role) {
@@ -50,6 +51,30 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
     }
     if (!isNonEmptyString(email) || !isNonEmptyString(password)) {
       return res.status(400).json({ message: "Invalid email or password format" });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+
+    // Who may create which role. Before, ANY of the four allowed staff roles
+    // (even ADMISSION_STAFF) could create an account with role SCHOOL_ADMIN,
+    // PRINCIPAL or HEAD - i.e. promote themselves or a friend to full control.
+    const TOP = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD"];
+    const FRONT_DESK_CREATABLE = ["STUDENT", "PARENT"];
+    const ALL_ROLES = [
+      "SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT",
+      "RECEPTIONIST", "LIBRARIAN", "TRANSPORT_MANAGER", "NURSE", "HOSTEL_WARDEN", "TEACHER", "ACADEMY_TEACHER", "PARENT", "STUDENT",
+    ];
+    if (!ALL_ROLES.includes(role)) return res.status(400).json({ message: "Invalid role" });
+    const callerRole = req.user!.role;
+    if (callerRole === "ADMISSION_STAFF" && !FRONT_DESK_CREATABLE.includes(role)) {
+      return res.status(403).json({ message: "Admission staff can only create student and parent accounts" });
+    }
+    if (TOP.includes(role) && callerRole !== "SCHOOL_ADMIN") {
+      return res.status(403).json({ message: "Only the School Admin can create admin-level accounts" });
     }
 
     const existingUser = await User.findOne({ email });
@@ -82,9 +107,14 @@ export const registerUser = async (req: AuthRequest, res: Response) => {
 
     await sendMail(email, "Verify your email", verificationEmailHtml(name, code), schoolId);
 
+    // The Students / Teachers / Parents / HR forms create the login account
+    // first and then read `data.user.id` to create the profile. That field was
+    // missing from this response, so the second step threw and the form showed
+    // "Failed to add ..." even though the account had just been created.
     res.status(201).json({
       message: "Account created. Check your email for a verification code.",
       email: user.email,
+      user: { id: user._id.toString(), name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

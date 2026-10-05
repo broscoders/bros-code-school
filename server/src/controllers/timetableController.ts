@@ -2,6 +2,8 @@ import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Teacher from "../models/Teacher";
 import TimetableSlot from "../models/TimetableSlot";
+import Section from "../models/Section";
+import Subject from "../models/Subject";
 
 export const upsertSlot = async (req: AuthRequest, res: Response) => {
   try {
@@ -13,6 +15,31 @@ export const upsertSlot = async (req: AuthRequest, res: Response) => {
     // surfacing as "Server error" when saving a break period.
     const subjectId = req.body.subjectId || undefined;
     const teacherId = req.body.teacherId || undefined;
+
+    const DAYS = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+    const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
+    if (!classId || !sectionId || !DAYS.includes(dayOfWeek)) {
+      return res.status(400).json({ message: "Class, section and a valid day are required" });
+    }
+    if (!Number.isInteger(Number(periodNumber)) || Number(periodNumber) < 1 || Number(periodNumber) > 15) {
+      return res.status(400).json({ message: "Period number must be between 1 and 15" });
+    }
+    if (!TIME.test(String(startTime)) || !TIME.test(String(endTime))) {
+      return res.status(400).json({ message: "Start and end time must look like 08:30" });
+    }
+    if (String(endTime) <= String(startTime)) {
+      return res.status(400).json({ message: "End time must be after the start time" });
+    }
+    // class/section/subject/teacher must all belong to this school and agree with each other
+    if (!(await Section.exists({ _id: sectionId, classId, schoolId }))) {
+      return res.status(404).json({ message: "Section not found in this class" });
+    }
+    if (!isBreak && subjectId && !(await Subject.exists({ _id: subjectId, classId, schoolId }))) {
+      return res.status(404).json({ message: "Subject not found in this class" });
+    }
+    if (!isBreak && teacherId && !(await Teacher.exists({ _id: teacherId, schoolId }))) {
+      return res.status(404).json({ message: "Teacher not found in your school" });
+    }
 
     if (!isBreak && teacherId) {
       const teacherConflict = await TimetableSlot.findOne({
@@ -44,7 +71,7 @@ export const upsertSlot = async (req: AuthRequest, res: Response) => {
       }
     }
 
-    const setFields: Record<string, any> = { schoolId, classId, sectionId, dayOfWeek, periodNumber, startTime, endTime, room, isBreak: !!isBreak };
+    const setFields: Record<string, any> = { schoolId, classId, sectionId, dayOfWeek, periodNumber: Number(periodNumber), startTime, endTime, room, isBreak: !!isBreak };
     const unsetFields: Record<string, any> = {};
     if (isBreak) {
       // A break period shouldn't retain a leftover subject/teacher from

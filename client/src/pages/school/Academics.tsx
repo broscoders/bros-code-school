@@ -49,17 +49,25 @@ export default function Academics() {
   };
 
   const setSessionStatus = async (sessionId: string, status: string) => {
-    await api.put(`/academics/sessions/${sessionId}/status`, { status });
-    load();
+    try {
+      await api.put(`/academics/sessions/${sessionId}/status`, { status });
+      load();
+    } catch (err: any) {
+      setSessionMsg(err.response?.data?.message || "Could not change the session status");
+    }
   };
 
   const [copyForm, setCopyForm] = useState({ fromSessionId: "", toSessionId: "" });
   const [copyMsg, setCopyMsg] = useState("");
   const copyConfig = async () => {
     if (!copyForm.fromSessionId || !copyForm.toSessionId) return;
-    const res = await api.post("/academics/sessions/copy-config", copyForm);
-    setCopyMsg(`Copied: ${res.data.classesCreated} classes, ${res.data.sectionsCreated} sections, ${res.data.subjectsCreated} subjects.`);
-    load();
+    try {
+      const res = await api.post("/academics/sessions/copy-config", copyForm);
+      setCopyMsg(`Copied: ${res.data.classesCreated} classes, ${res.data.sectionsCreated} sections, ${res.data.subjectsCreated} subjects.`);
+      load();
+    } catch (err: any) {
+      setCopyMsg(err.response?.data?.message || "Could not copy the configuration");
+    }
   };
 
   const addClass = async (e: React.FormEvent) => {

@@ -10,6 +10,7 @@ import FeeStructure from "../models/FeeStructure";
 import Invoice from "../models/Invoice";
 import Student from "../models/Student";
 import Section from "../models/Section";
+import ClassModel from "../models/ClassModel";
 import Subject from "../models/Subject";
 import Parent from "../models/Parent";
 import Teacher from "../models/Teacher";
@@ -19,6 +20,7 @@ import { canAccessStudent, isOwnClass, isAssignedToClass } from "../utils/access
 import { logAudit } from "../utils/auditLogger";
 import { notify, notifyMany } from "../utils/notifier";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import { actorName } from "../utils/auditActor";
 
 export const markAttendance = async (req: AuthRequest, res: Response) => {
   try {
@@ -216,6 +218,14 @@ export const getAttendanceRegister = async (req: AuthRequest, res: Response) => 
 
     const monthNum = Number(month);
     const yearNum = Number(year);
+    if (!Number.isInteger(monthNum) || monthNum < 1 || monthNum > 12 || !Number.isInteger(yearNum) || yearNum < 2000 || yearNum > 2100) {
+      return res.status(400).json({ message: "month must be 1-12 and year must be a valid year" });
+    }
+    const sectionDoc = await Section.findOne({ _id: sectionId, schoolId: req.user!.schoolId });
+    if (!sectionDoc) return res.status(404).json({ message: "Section not found" });
+    if (!(await isAssignedToClass(req, sectionDoc.classId.toString()))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const startDate = new Date(Date.UTC(yearNum, monthNum - 1, 1));
     const endDate = new Date(Date.UTC(yearNum, monthNum, 1));
 
@@ -355,6 +365,7 @@ export const createAssignment = async (req: AuthRequest, res: Response) => {
 export const getAssignments = async (req: AuthRequest, res: Response) => {
   try {
     const classId = req.query.classId as string;
+    if (!classId) return res.status(400).json({ message: "classId is required" });
     if (["STUDENT", "PARENT"].includes(req.user!.role)) {
       const allowed = await isOwnClass(req, classId);
       if (!allowed) return res.status(403).json({ message: "You do not have access to this class" });
@@ -394,7 +405,24 @@ export const submitAssignment = async (req: AuthRequest, res: Response) => {
 
 export const createExam = async (req: AuthRequest, res: Response) => {
   try {
-    const exam = await Exam.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { classId, sectionId, subjectId, examType, date } = req.body;
+    const name = String(req.body.name || "").trim();
+    const totalMarks = Number(req.body.totalMarks);
+    if (!classId || !sectionId || !subjectId || !name || !examType || !date) {
+      return res.status(400).json({ message: "Class, section, subject, exam name, type and date are required" });
+    }
+    if (!["QUIZ", "TEST", "MIDTERM", "FINAL", "PRACTICAL", "ASSIGNMENT"].includes(examType)) {
+      return res.status(400).json({ message: "Invalid exam type" });
+    }
+    if (Number.isNaN(new Date(date).getTime())) return res.status(400).json({ message: "Invalid exam date" });
+    if (!Number.isFinite(totalMarks) || totalMarks <= 0 || totalMarks > 10000) {
+      return res.status(400).json({ message: "Total marks must be a number greater than zero" });
+    }
+    if (!(await Section.exists({ _id: sectionId, classId, schoolId }))) return res.status(404).json({ message: "Section not found in this class" });
+    if (!(await Subject.exists({ _id: subjectId, classId, schoolId }))) return res.status(404).json({ message: "Subject not found in this class" });
+
+    const exam = await Exam.create({ schoolId, classId, sectionId, subjectId, name, examType, date, totalMarks });
     res.status(201).json(exam);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -474,7 +502,7 @@ export const enterResult = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: req.user.schoolId,
         userId: req.user.userId,
-        userName: (req.body.enteredByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: existing ? (existing.isPublished ? "Corrected a published result" : "Updated result") : "Entered result",
         recordType: "Result",
@@ -530,7 +558,7 @@ export const publishResults = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: req.user.schoolId,
         userId: req.user.userId,
-        userName: (req.body.publishedByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: `Published results for exam: ${exam.name}`,
         recordType: "Exam",
@@ -582,7 +610,16 @@ export const getResultsByExam = async (req: AuthRequest, res: Response) => {
 
 export const createFeeStructure = async (req: AuthRequest, res: Response) => {
   try {
-    const fee = await FeeStructure.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { classId, frequency } = req.body;
+    const feeType = String(req.body.feeType || "").trim();
+    const amount = Number(req.body.amount);
+    if (!classId || !feeType || !["MONTHLY", "ONE_TIME", "ANNUAL"].includes(frequency)) {
+      return res.status(400).json({ message: "Class, fee type and a valid frequency are required" });
+    }
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ message: "Fee amount must be a number greater than zero" });
+    if (!(await ClassModel.exists({ _id: classId, schoolId }))) return res.status(404).json({ message: "Class not found in your school" });
+    const fee = await FeeStructure.create({ schoolId, classId, feeType, amount, frequency });
     res.status(201).json(fee);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -836,7 +873,7 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: invoice.schoolId.toString(),
         userId: req.user.userId,
-        userName: (req.body.markedByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: "Recorded invoice payment",
         recordType: "Invoice",

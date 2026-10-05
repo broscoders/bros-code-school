@@ -10,6 +10,7 @@ import JazzCashTransaction from "../models/JazzCashTransaction";
 import { logAudit } from "../utils/auditLogger";
 import { canAccessStudent } from "../utils/accessControl";
 import { callJazzCashMWallet, generateTxnRefNo, getJazzCashCredentials } from "../utils/jazzcash";
+import { actorName } from "../utils/auditActor";
 
 // Blueprint 36/85: online fee payment via JazzCash mobile wallet. Unlike
 // the plain payInvoice (staff-recorded, offline payments), this one IS
@@ -94,7 +95,7 @@ export const initiateJazzCashPayment = async (req: AuthRequest, res: Response) =
         await logAudit({
           schoolId: req.user!.schoolId,
           userId: req.user!.userId,
-          userName: (req.body.paidByName as string) || "Parent",
+          userName: await actorName(req),
           userRole: req.user!.role,
           action: "Paid invoice via JazzCash",
           recordType: "Invoice",
@@ -143,8 +144,25 @@ export const createDiscount = async (req: AuthRequest, res: Response) => {
     // these fields, a finance-staff member could include "status":
     // "APPROVED" in this request body and self-approve, skipping the
     // separate, more-privileged approval step entirely.
-    const { status, approvedBy, isActive, ...safeBody } = req.body;
-    const discount = await Discount.create({ ...safeBody, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { studentId, type, reason } = req.body;
+    if (!studentId || !["DISCOUNT", "SCHOLARSHIP"].includes(type) || !reason || !String(reason).trim()) {
+      return res.status(400).json({ message: "Student, type (discount or scholarship) and a reason are required" });
+    }
+    if (!(await Student.exists({ _id: studentId, schoolId }))) return res.status(404).json({ message: "Student not found in your school" });
+    const pct = req.body.percentage === undefined || req.body.percentage === "" ? undefined : Number(req.body.percentage);
+    const fixed = req.body.fixedAmount === undefined || req.body.fixedAmount === "" ? undefined : Number(req.body.fixedAmount);
+    // exactly one of percentage / fixed amount, and sensible values
+    if ((pct === undefined) === (fixed === undefined)) {
+      return res.status(400).json({ message: "Enter either a percentage or a fixed amount (not both, not neither)" });
+    }
+    if (pct !== undefined && (!Number.isFinite(pct) || pct <= 0 || pct > 100)) {
+      return res.status(400).json({ message: "Percentage must be between 1 and 100" });
+    }
+    if (fixed !== undefined && (!Number.isFinite(fixed) || fixed <= 0)) {
+      return res.status(400).json({ message: "Fixed amount must be greater than zero" });
+    }
+    const discount = await Discount.create({ schoolId, studentId, type, reason: String(reason).trim(), percentage: pct, fixedAmount: fixed });
     res.status(201).json(discount);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -313,7 +331,17 @@ export const updateRefundStatus = async (req: AuthRequest, res: Response) => {
 
 export const createExpense = async (req: AuthRequest, res: Response) => {
   try {
-    const expense = await Expense.create({ ...req.body, schoolId: req.user!.schoolId });
+    const amount = Number(req.body.amount);
+    const category = String(req.body.category || "").trim();
+    const description = String(req.body.description || "").trim();
+    if (!category || !description) return res.status(400).json({ message: "Category and description are required" });
+    if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ message: "Expense amount must be a number greater than zero" });
+    if (req.body.date && Number.isNaN(new Date(req.body.date).getTime())) return res.status(400).json({ message: "Invalid date" });
+    const expense = await Expense.create({
+      schoolId: req.user!.schoolId, category, description, amount,
+      vendor: req.body.vendor ? String(req.body.vendor).trim() : undefined,
+      date: req.body.date || undefined,
+    });
     res.status(201).json(expense);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

@@ -8,6 +8,7 @@ import Teacher from "../models/Teacher";
 import StaffAttendance from "../models/StaffAttendance";
 import { logAudit } from "../utils/auditLogger";
 import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../utils/accountSync";
+import { actorName } from "../utils/auditActor";
 
 // Blueprint 34 (Attendance): "Teacher/staff: Present, Absent, Late, Early
 // departure, Leave" - this was entirely missing (only student attendance
@@ -152,7 +153,7 @@ export const updateStaffStatus = async (req: AuthRequest, res: Response) => {
       await logAudit({
         schoolId: req.user.schoolId,
         userId: req.user.userId,
-        userName: (req.body.changedByName as string) || "Unknown",
+        userName: await actorName(req),
         userRole: req.user.role,
         action: `Changed staff employment status: ${oldStatus} -> ${employmentStatus}`,
         recordType: "StaffProfile",
