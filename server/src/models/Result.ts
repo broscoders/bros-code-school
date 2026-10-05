@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IResult extends Document {
@@ -23,5 +23,9 @@ const resultSchema = new Schema<IResult>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+resultSchema.index({ examId: 1 });
+resultSchema.index({ studentId: 1 });
 
 export default mongoose.model<IResult>("Result", resultSchema);

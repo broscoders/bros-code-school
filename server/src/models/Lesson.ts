@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export type LessonContentType = "VIDEO" | "PDF" | "TEXT" | "LINK";
@@ -32,5 +32,9 @@ const lessonSchema = new Schema<ILesson>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+lessonSchema.index({ schoolId: 1 });
+lessonSchema.index({ courseId: 1, order: 1 });
 
 export default mongoose.model<ILesson>("Lesson", lessonSchema);

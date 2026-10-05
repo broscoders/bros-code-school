@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface ILessonProgress extends Document {
@@ -25,5 +25,9 @@ const lessonProgressSchema = new Schema<ILessonProgress>(
 );
 
 lessonProgressSchema.index({ studentId: 1, lessonId: 1 }, { unique: true });
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+lessonProgressSchema.index({ schoolId: 1 });
+lessonProgressSchema.index({ courseId: 1, status: 1 });
 
 export default mongoose.model<ILessonProgress>("LessonProgress", lessonProgressSchema);

@@ -32,4 +32,9 @@ const invoiceSchema = new Schema<IInvoice>(
   { timestamps: true }
 );
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+invoiceSchema.index({ schoolId: 1 });
+invoiceSchema.index({ schoolId: 1, studentId: 1 });
+invoiceSchema.index({ schoolId: 1, status: 1 });
+
 export default mongoose.model<IInvoice>("Invoice", invoiceSchema);

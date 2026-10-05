@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IHostelRoom extends Document {
@@ -19,5 +19,8 @@ const hostelRoomSchema = new Schema<IHostelRoom>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+hostelRoomSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IHostelRoom>("HostelRoom", hostelRoomSchema);

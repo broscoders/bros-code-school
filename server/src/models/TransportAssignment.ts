@@ -19,4 +19,7 @@ const transportAssignmentSchema = new Schema<ITransportAssignment>(
   { timestamps: true }
 );
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+transportAssignmentSchema.index({ schoolId: 1 });
+
 export default mongoose.model<ITransportAssignment>("TransportAssignment", transportAssignmentSchema);

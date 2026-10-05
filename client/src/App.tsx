@@ -1,117 +1,130 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
-import VerifyEmail from "./pages/auth/VerifyEmail";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ChangePasswordRequired from "./pages/auth/ChangePasswordRequired";
-import ResetPassword from "./pages/auth/ResetPassword";
-import AcceptInvite from "./pages/auth/AcceptInvite";
-import Onboarding from "./pages/onboarding/Onboarding";
-import Dashboard from "./pages/school/Dashboard";
-import Students from "./pages/school/Students";
-import Teachers from "./pages/school/Teachers";
-import Parents from "./pages/school/Parents";
-import Academics from "./pages/school/Academics";
-import Timetable from "./pages/school/Timetable";
-import Documents from "./pages/school/Documents";
-import Library from "./pages/school/Library";
-import Transport from "./pages/school/Transport";
-import Automation from "./pages/school/Automation";
-import WebsiteCMS from "./pages/school/WebsiteCMS";
-import PublicSite from "./pages/public/PublicSite";
-import Fees from "./pages/school/Fees";
-import Announcements from "./pages/school/Announcements";
-import Attendance from "./pages/school/Attendance";
-import Homework from "./pages/school/Homework";
-import Assignments from "./pages/school/Assignments";
-import Exams from "./pages/school/Exams";
-import Admissions from "./pages/school/Admissions";
-import Academy from "./pages/school/Academy";
-import Operations from "./pages/school/Operations";
-import AuditLogs from "./pages/school/AuditLogs";
-import LeaveRequests from "./pages/school/LeaveRequests";
-import Surveys from "./pages/school/Surveys";
-import Settings from "./pages/school/Settings";
-import CRM from "./pages/school/CRM";
-import Certificates from "./pages/school/Certificates";
-import Discipline from "./pages/school/Discipline";
-import Achievements from "./pages/school/Achievements";
-import IDCards from "./pages/school/IDCards";
-import CalendarPage from "./pages/school/CalendarPage";
-import ReportCards from "./pages/school/ReportCards";
-import Reports from "./pages/school/Reports";
-import Accounting from "./pages/school/Accounting";
-import HRManagement from "./pages/school/HRManagement";
-import StaffAttendance from "./pages/school/StaffAttendance";
-import Payroll from "./pages/school/Payroll";
-import Hostel from "./pages/school/Hostel";
-import InventoryAssets from "./pages/school/InventoryAssets";
-import Maintenance from "./pages/school/Maintenance";
-import Visitors from "./pages/school/Visitors";
-import Health from "./pages/school/Health";
-import RolesPermissions from "./pages/school/RolesPermissions";
-import Invitations from "./pages/school/Invitations";
-import LMSOverview from "./pages/school/LMSOverview";
-import OnlineExamsOverview from "./pages/school/OnlineExamsOverview";
-import CommunicationLog from "./pages/school/CommunicationLog";
-import DashboardLayout from "./layouts/DashboardLayout";
-import ParentLayout from "./layouts/ParentLayout";
-import ParentDashboard from "./pages/parent/ParentDashboard";
-import ParentAttendance from "./pages/parent/ParentAttendance";
-import ParentHomework from "./pages/parent/ParentHomework";
-import ParentResults from "./pages/parent/ParentResults";
-import ParentFees from "./pages/parent/ParentFees";
-import ParentAnnouncements from "./pages/parent/ParentAnnouncements";
-import ParentHealth from "./pages/parent/ParentHealth";
-import ParentDiscipline from "./pages/parent/ParentDiscipline";
-import ParentAchievements from "./pages/parent/ParentAchievements";
-import ParentEvents from "./pages/parent/ParentEvents";
-import ParentComplaints from "./pages/parent/ParentComplaints";
-import ParentMessages from "./pages/parent/ParentMessages";
-import ParentPTM from "./pages/parent/ParentPTM";
-import ParentLeave from "./pages/parent/ParentLeave";
-import StudentLayout from "./layouts/StudentLayout";
-import StudentDashboard from "./pages/student/StudentDashboard";
-import StudentAttendance from "./pages/student/StudentAttendance";
-import StudentTimetable from "./pages/student/StudentTimetable";
-import StudentQuizzes from "./pages/student/StudentQuizzes";
-import StudentCourses from "./pages/student/StudentCourses";
-import StudentAcademy from "./pages/student/StudentAcademy";
-import StudentHomework from "./pages/student/StudentHomework";
-import StudentAssignments from "./pages/student/StudentAssignments";
-import StudentResults from "./pages/student/StudentResults";
-import StudentAnnouncements from "./pages/student/StudentAnnouncements";
-import StudentEvents from "./pages/student/StudentEvents";
-import StudentComplaints from "./pages/student/StudentComplaints";
-import StudentStore from "./pages/student/StudentStore";
-import StudentCertificates from "./pages/student/StudentCertificates";
-import StudentAchievements from "./pages/student/StudentAchievements";
-import TeacherLayout from "./layouts/TeacherLayout";
-import TeacherDashboard from "./pages/teacher/TeacherDashboard";
-import TeacherClasses from "./pages/teacher/TeacherClasses";
-import TeacherCurriculum from "./pages/teacher/TeacherCurriculum";
-import Canteen from "./pages/school/Canteen";
-import StudentCanteen from "./pages/student/StudentCanteen";
-import TeacherTimetable from "./pages/teacher/TeacherTimetable";
-import TeacherQuizzes from "./pages/teacher/TeacherQuizzes";
-import TeacherCourses from "./pages/teacher/TeacherCourses";
-import TeacherAcademy from "./pages/teacher/TeacherAcademy";
-import TeacherAttendance from "./pages/teacher/TeacherAttendance";
-import TeacherHomework from "./pages/teacher/TeacherHomework";
-import TeacherAssignments from "./pages/teacher/TeacherAssignments";
-import TeacherMarks from "./pages/teacher/TeacherMarks";
-import TeacherAnnouncements from "./pages/teacher/TeacherAnnouncements";
-import TeacherEvents from "./pages/teacher/TeacherEvents";
-import TeacherComplaints from "./pages/teacher/TeacherComplaints";
-import TeacherMessages from "./pages/teacher/TeacherMessages";
-import TeacherPTM from "./pages/teacher/TeacherPTM";
-import TeacherStudyMaterial from "./pages/teacher/TeacherStudyMaterial";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import PlatformProtectedRoute from "./components/PlatformProtectedRoute";
-import PlatformLayout from "./layouts/PlatformLayout";
-import PlatformLogin from "./pages/platform/PlatformLogin";
-import PlatformDashboard from "./pages/platform/PlatformDashboard";
-import PlatformOrganizations from "./pages/platform/PlatformOrganizations";
 import { useAuthStore } from "./store/authStore";
+
+// Every page is loaded on demand (its own small file) instead of shipping
+// the whole app - admin, teacher, parent, student, platform - in one 1.6 MB
+// bundle that had to download before the login page could even appear.
+const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ChangePasswordRequired = lazy(() => import("./pages/auth/ChangePasswordRequired"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const AcceptInvite = lazy(() => import("./pages/auth/AcceptInvite"));
+const Onboarding = lazy(() => import("./pages/onboarding/Onboarding"));
+const Dashboard = lazy(() => import("./pages/school/Dashboard"));
+const Students = lazy(() => import("./pages/school/Students"));
+const Teachers = lazy(() => import("./pages/school/Teachers"));
+const Parents = lazy(() => import("./pages/school/Parents"));
+const Academics = lazy(() => import("./pages/school/Academics"));
+const Timetable = lazy(() => import("./pages/school/Timetable"));
+const Documents = lazy(() => import("./pages/school/Documents"));
+const Library = lazy(() => import("./pages/school/Library"));
+const Transport = lazy(() => import("./pages/school/Transport"));
+const Automation = lazy(() => import("./pages/school/Automation"));
+const WebsiteCMS = lazy(() => import("./pages/school/WebsiteCMS"));
+const PublicSite = lazy(() => import("./pages/public/PublicSite"));
+const Fees = lazy(() => import("./pages/school/Fees"));
+const Announcements = lazy(() => import("./pages/school/Announcements"));
+const Attendance = lazy(() => import("./pages/school/Attendance"));
+const Homework = lazy(() => import("./pages/school/Homework"));
+const Assignments = lazy(() => import("./pages/school/Assignments"));
+const Exams = lazy(() => import("./pages/school/Exams"));
+const Admissions = lazy(() => import("./pages/school/Admissions"));
+const Academy = lazy(() => import("./pages/school/Academy"));
+const Operations = lazy(() => import("./pages/school/Operations"));
+const AuditLogs = lazy(() => import("./pages/school/AuditLogs"));
+const LeaveRequests = lazy(() => import("./pages/school/LeaveRequests"));
+const Surveys = lazy(() => import("./pages/school/Surveys"));
+const Settings = lazy(() => import("./pages/school/Settings"));
+const CRM = lazy(() => import("./pages/school/CRM"));
+const Certificates = lazy(() => import("./pages/school/Certificates"));
+const Discipline = lazy(() => import("./pages/school/Discipline"));
+const Achievements = lazy(() => import("./pages/school/Achievements"));
+const IDCards = lazy(() => import("./pages/school/IDCards"));
+const CalendarPage = lazy(() => import("./pages/school/CalendarPage"));
+const ReportCards = lazy(() => import("./pages/school/ReportCards"));
+const Reports = lazy(() => import("./pages/school/Reports"));
+const Accounting = lazy(() => import("./pages/school/Accounting"));
+const HRManagement = lazy(() => import("./pages/school/HRManagement"));
+const StaffAttendance = lazy(() => import("./pages/school/StaffAttendance"));
+const Payroll = lazy(() => import("./pages/school/Payroll"));
+const Hostel = lazy(() => import("./pages/school/Hostel"));
+const InventoryAssets = lazy(() => import("./pages/school/InventoryAssets"));
+const Maintenance = lazy(() => import("./pages/school/Maintenance"));
+const Visitors = lazy(() => import("./pages/school/Visitors"));
+const Health = lazy(() => import("./pages/school/Health"));
+const RolesPermissions = lazy(() => import("./pages/school/RolesPermissions"));
+const Invitations = lazy(() => import("./pages/school/Invitations"));
+const LMSOverview = lazy(() => import("./pages/school/LMSOverview"));
+const OnlineExamsOverview = lazy(() => import("./pages/school/OnlineExamsOverview"));
+const CommunicationLog = lazy(() => import("./pages/school/CommunicationLog"));
+const DashboardLayout = lazy(() => import("./layouts/DashboardLayout"));
+const ParentLayout = lazy(() => import("./layouts/ParentLayout"));
+const ParentDashboard = lazy(() => import("./pages/parent/ParentDashboard"));
+const ParentAttendance = lazy(() => import("./pages/parent/ParentAttendance"));
+const ParentHomework = lazy(() => import("./pages/parent/ParentHomework"));
+const ParentResults = lazy(() => import("./pages/parent/ParentResults"));
+const ParentFees = lazy(() => import("./pages/parent/ParentFees"));
+const ParentAnnouncements = lazy(() => import("./pages/parent/ParentAnnouncements"));
+const ParentHealth = lazy(() => import("./pages/parent/ParentHealth"));
+const ParentDiscipline = lazy(() => import("./pages/parent/ParentDiscipline"));
+const ParentAchievements = lazy(() => import("./pages/parent/ParentAchievements"));
+const ParentEvents = lazy(() => import("./pages/parent/ParentEvents"));
+const ParentComplaints = lazy(() => import("./pages/parent/ParentComplaints"));
+const ParentMessages = lazy(() => import("./pages/parent/ParentMessages"));
+const ParentPTM = lazy(() => import("./pages/parent/ParentPTM"));
+const ParentLeave = lazy(() => import("./pages/parent/ParentLeave"));
+const StudentLayout = lazy(() => import("./layouts/StudentLayout"));
+const StudentDashboard = lazy(() => import("./pages/student/StudentDashboard"));
+const StudentAttendance = lazy(() => import("./pages/student/StudentAttendance"));
+const StudentTimetable = lazy(() => import("./pages/student/StudentTimetable"));
+const StudentQuizzes = lazy(() => import("./pages/student/StudentQuizzes"));
+const StudentCourses = lazy(() => import("./pages/student/StudentCourses"));
+const StudentAcademy = lazy(() => import("./pages/student/StudentAcademy"));
+const StudentHomework = lazy(() => import("./pages/student/StudentHomework"));
+const StudentAssignments = lazy(() => import("./pages/student/StudentAssignments"));
+const StudentResults = lazy(() => import("./pages/student/StudentResults"));
+const StudentAnnouncements = lazy(() => import("./pages/student/StudentAnnouncements"));
+const StudentEvents = lazy(() => import("./pages/student/StudentEvents"));
+const StudentComplaints = lazy(() => import("./pages/student/StudentComplaints"));
+const StudentStore = lazy(() => import("./pages/student/StudentStore"));
+const StudentCertificates = lazy(() => import("./pages/student/StudentCertificates"));
+const StudentAchievements = lazy(() => import("./pages/student/StudentAchievements"));
+const TeacherLayout = lazy(() => import("./layouts/TeacherLayout"));
+const TeacherDashboard = lazy(() => import("./pages/teacher/TeacherDashboard"));
+const TeacherClasses = lazy(() => import("./pages/teacher/TeacherClasses"));
+const TeacherCurriculum = lazy(() => import("./pages/teacher/TeacherCurriculum"));
+const Canteen = lazy(() => import("./pages/school/Canteen"));
+const StudentCanteen = lazy(() => import("./pages/student/StudentCanteen"));
+const TeacherTimetable = lazy(() => import("./pages/teacher/TeacherTimetable"));
+const TeacherQuizzes = lazy(() => import("./pages/teacher/TeacherQuizzes"));
+const TeacherCourses = lazy(() => import("./pages/teacher/TeacherCourses"));
+const TeacherAcademy = lazy(() => import("./pages/teacher/TeacherAcademy"));
+const TeacherAttendance = lazy(() => import("./pages/teacher/TeacherAttendance"));
+const TeacherHomework = lazy(() => import("./pages/teacher/TeacherHomework"));
+const TeacherAssignments = lazy(() => import("./pages/teacher/TeacherAssignments"));
+const TeacherMarks = lazy(() => import("./pages/teacher/TeacherMarks"));
+const TeacherAnnouncements = lazy(() => import("./pages/teacher/TeacherAnnouncements"));
+const TeacherEvents = lazy(() => import("./pages/teacher/TeacherEvents"));
+const TeacherComplaints = lazy(() => import("./pages/teacher/TeacherComplaints"));
+const TeacherMessages = lazy(() => import("./pages/teacher/TeacherMessages"));
+const TeacherPTM = lazy(() => import("./pages/teacher/TeacherPTM"));
+const TeacherStudyMaterial = lazy(() => import("./pages/teacher/TeacherStudyMaterial"));
+const PlatformLayout = lazy(() => import("./layouts/PlatformLayout"));
+const PlatformLogin = lazy(() => import("./pages/platform/PlatformLogin"));
+const PlatformDashboard = lazy(() => import("./pages/platform/PlatformDashboard"));
+const PlatformOrganizations = lazy(() => import("./pages/platform/PlatformOrganizations"));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center text-sm text-muted">
+      Loading...
+    </div>
+  );
+}
 
 const ADMIN_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ADMISSION_STAFF", "ACADEMIC_COORDINATOR", "ACCOUNTANT", "RECEPTIONIST", "LIBRARIAN", "TRANSPORT_MANAGER", "HOSTEL_WARDEN", "NURSE"];
 const TEACHER_ROLES = ["TEACHER", "ACADEMY_TEACHER"];
@@ -128,6 +141,7 @@ function HomeRedirect() {
 function App() {
   return (
     <BrowserRouter>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/site/:slug" element={<PublicSite />} />
@@ -252,18 +266,9 @@ function App() {
 
         <Route path="/" element={<HomeRedirect />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-

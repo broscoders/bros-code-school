@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IDiscount extends Document {
@@ -27,5 +27,8 @@ const discountSchema = new Schema<IDiscount>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+discountSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IDiscount>("Discount", discountSchema);

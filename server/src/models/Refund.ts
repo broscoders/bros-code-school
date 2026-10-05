@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IRefund extends Document {
@@ -26,5 +26,8 @@ const refundSchema = new Schema<IRefund>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+refundSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IRefund>("Refund", refundSchema);

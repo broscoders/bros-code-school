@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export type MedicalIncidentSeverity = "MINOR" | "MODERATE" | "SEVERE" | "EMERGENCY";
@@ -34,5 +34,8 @@ const medicalIncidentSchema = new Schema<IMedicalIncident>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+medicalIncidentSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IMedicalIncident>("MedicalIncident", medicalIncidentSchema);

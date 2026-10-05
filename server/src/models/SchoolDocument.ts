@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document as MongooseDocument } from "mongoose";
 
 export type DocumentCategory = "STUDENT" | "PARENT" | "TEACHER" | "STAFF" | "SCHOOL" | "CONTRACT" | "CERTIFICATE" | "REPORT";
@@ -35,5 +35,8 @@ const schoolDocumentSchema = new Schema<ISchoolDocument>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+schoolDocumentSchema.index({ schoolId: 1 });
 
 export default mongoose.model<ISchoolDocument>("SchoolDocument", schoolDocumentSchema);

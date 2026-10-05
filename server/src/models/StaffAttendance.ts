@@ -28,4 +28,7 @@ const staffAttendanceSchema = new Schema<IStaffAttendance>(
 
 staffAttendanceSchema.index({ userId: 1, date: 1 }, { unique: true });
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+staffAttendanceSchema.index({ schoolId: 1 });
+
 export default mongoose.model<IStaffAttendance>("StaffAttendance", staffAttendanceSchema);

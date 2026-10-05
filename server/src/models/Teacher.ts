@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export type TeacherEmploymentStatus = "ACTIVE" | "ON_LEAVE" | "TRANSFERRED" | "RESIGNED" | "TERMINATED";
@@ -33,5 +33,9 @@ const teacherSchema = new Schema<ITeacher>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+teacherSchema.index({ schoolId: 1 });
+teacherSchema.index({ userId: 1 });
 
 export default mongoose.model<ITeacher>("Teacher", teacherSchema);

@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IAchievement extends Document {
@@ -23,5 +23,8 @@ const achievementSchema = new Schema<IAchievement>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+achievementSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IAchievement>("Achievement", achievementSchema);

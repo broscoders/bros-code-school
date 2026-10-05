@@ -34,4 +34,7 @@ const canteenOrderSchema = new Schema<ICanteenOrder>(
   { timestamps: true }
 );
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+canteenOrderSchema.index({ schoolId: 1 });
+
 export default mongoose.model<ICanteenOrder>("CanteenOrder", canteenOrderSchema);

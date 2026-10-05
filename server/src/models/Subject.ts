@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface ISubject extends Document {
@@ -17,5 +17,8 @@ const subjectSchema = new Schema<ISubject>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+subjectSchema.index({ schoolId: 1 });
 
 export default mongoose.model<ISubject>("Subject", subjectSchema);

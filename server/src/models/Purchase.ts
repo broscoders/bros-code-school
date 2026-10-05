@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IPurchase extends Document {
@@ -19,5 +19,8 @@ const purchaseSchema = new Schema<IPurchase>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+purchaseSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IPurchase>("Purchase", purchaseSchema);

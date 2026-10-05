@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IAuditLog extends Document {
@@ -28,5 +28,9 @@ const auditLogSchema = new Schema<IAuditLog>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+auditLogSchema.index({ schoolId: 1 });
+auditLogSchema.index({ schoolId: 1, createdAt: -1 });
 
 export default mongoose.model<IAuditLog>("AuditLog", auditLogSchema);

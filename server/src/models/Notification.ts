@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface INotification extends Document {
@@ -21,5 +21,8 @@ const notificationSchema = new Schema<INotification>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+notificationSchema.index({ schoolId: 1 });
 
 export default mongoose.model<INotification>("Notification", notificationSchema);

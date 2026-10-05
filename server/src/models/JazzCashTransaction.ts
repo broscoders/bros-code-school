@@ -45,4 +45,7 @@ const jazzCashTransactionSchema = new Schema<IJazzCashTransaction>(
 
 jazzCashTransactionSchema.index({ invoiceId: 1, createdAt: -1 });
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+jazzCashTransactionSchema.index({ schoolId: 1 });
+
 export default mongoose.model<IJazzCashTransaction>("JazzCashTransaction", jazzCashTransactionSchema);

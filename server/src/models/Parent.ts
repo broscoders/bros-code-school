@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IParent extends Document {
@@ -17,5 +17,9 @@ const parentSchema = new Schema<IParent>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+parentSchema.index({ schoolId: 1 });
+parentSchema.index({ userId: 1 });
 
 export default mongoose.model<IParent>("Parent", parentSchema);

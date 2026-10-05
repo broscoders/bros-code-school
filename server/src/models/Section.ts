@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface ISection extends Document {
@@ -17,5 +17,8 @@ const sectionSchema = new Schema<ISection>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+sectionSchema.index({ schoolId: 1 });
 
 export default mongoose.model<ISection>("Section", sectionSchema);
