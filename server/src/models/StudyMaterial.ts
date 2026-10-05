@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IStudyMaterial extends Document {
@@ -23,5 +23,9 @@ const studyMaterialSchema = new Schema<IStudyMaterial>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+studyMaterialSchema.index({ schoolId: 1 });
+studyMaterialSchema.index({ schoolId: 1, classId: 1 });
 
 export default mongoose.model<IStudyMaterial>("StudyMaterial", studyMaterialSchema);

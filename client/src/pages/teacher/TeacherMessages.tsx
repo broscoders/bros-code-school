@@ -9,9 +9,10 @@ export default function TeacherMessages() {
   const [selected, setSelected] = useState<any>(null);
   const [thread, setThread] = useState<any[]>([]);
   const [text, setText] = useState("");
+  const [sendError, setSendError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.get(`/comm/messages/inbox?userId=${user?.id}`).then((res) => {
+    api.get(`/comm/messages/inbox`).then((res) => {
       const unique: any[] = [];
       const seen = new Set();
       res.data.forEach((m: any) => {
@@ -21,20 +22,29 @@ export default function TeacherMessages() {
         }
       });
       setInbox(unique);
-    });
+    }).catch(() => setInbox([]));
   }, [user]);
 
   const openThread = async (fromUser: any) => {
     setSelected(fromUser);
-    const res = await api.get(`/comm/messages/thread?userA=${user?.id}&userB=${fromUser._id}`);
-    setThread(res.data);
+    try {
+      const res = await api.get(`/comm/messages/thread?userA=${user?.id}&userB=${fromUser._id}`);
+      setThread(res.data);
+    } catch {
+      setThread([]);
+    }
   };
 
   const reply = async () => {
     if (!text.trim() || !selected) return;
-    await api.post("/comm/messages", { schoolId: user?.schoolId, fromUserId: user?.id, toUserId: selected._id, content: text });
-    setText("");
-    openThread(selected);
+    try {
+      await api.post("/comm/messages", { toUserId: selected._id, content: text.trim() });
+      setText("");
+      setSendError(null);
+      openThread(selected);
+    } catch (err: any) {
+      setSendError(err?.response?.data?.message || "Message could not be sent.");
+    }
   };
 
   return (
@@ -71,6 +81,7 @@ export default function TeacherMessages() {
                   </div>
                 ))}
               </div>
+              {sendError && <p className="text-danger text-xs mb-2">{sendError}</p>}
               <div className="flex gap-2">
                 <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && reply()} placeholder="Reply..." className="flex-1 border border-border rounded-md px-3 py-2 text-sm" />
                 <button onClick={reply} className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium">Send</button>

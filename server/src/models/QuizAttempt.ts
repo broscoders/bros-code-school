@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IQuizAttempt extends Document {
@@ -44,5 +44,9 @@ const quizAttemptSchema = new Schema<IQuizAttempt>(
 );
 
 quizAttemptSchema.index({ quizId: 1, studentId: 1, attemptNumber: 1 }, { unique: true });
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+quizAttemptSchema.index({ schoolId: 1 });
+quizAttemptSchema.index({ studentId: 1 });
 
 export default mongoose.model<IQuizAttempt>("QuizAttempt", quizAttemptSchema);

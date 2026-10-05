@@ -1,5 +1,6 @@
-﻿import express from "express";
+import express from "express";
 import cors from "cors";
+import compression from "compression";
 import authRoutes from "./routes/authRoutes";
 import schoolRoutes from "./routes/schoolRoutes";
 import academicRoutes from "./routes/academicRoutes";
@@ -50,6 +51,8 @@ const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(","
 // exposedHeaders lets the browser read X-Total-Count (used for paging the
 // invoices list) - without this the header is sent but JS can't see it.
 app.use(cors({ origin: allowedOrigins, exposedHeaders: ["X-Total-Count"] }));
+// gzip every JSON response - list endpoints were being sent uncompressed
+app.use(compression());
 app.use(express.json());
 
 app.get("/", (req, res) => {

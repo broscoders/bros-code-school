@@ -23,7 +23,7 @@ export default function TeacherEvents() {
     if (user?.schoolId) {
       api.get(`/events?schoolId=${user.schoolId}`).then((res) => {
         setEvents([...res.data].sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-      });
+      }).catch(() => setEvents([]));
     }
   }, [user]);
 

@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IMaintenanceTicket extends Document {
@@ -27,5 +27,8 @@ const maintenanceTicketSchema = new Schema<IMaintenanceTicket>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+maintenanceTicketSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IMaintenanceTicket>("MaintenanceTicket", maintenanceTicketSchema);

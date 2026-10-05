@@ -12,66 +12,51 @@ import {
 } from "recharts";
 import StatCard from "../../components/StatCard";
 
-const enrollmentTrend = [
-  { month: "Jan", students: 1120 },
-  { month: "Feb", students: 1145 },
-  { month: "Mar", students: 1160 },
-  { month: "Apr", students: 1190 },
-  { month: "May", students: 1210 },
-  { month: "Jun", students: 1248 },
-];
+const FEE_COLORS = { Collected: "#22c55e", Pending: "#f59e0b", Overdue: "#ef4444" } as const;
 
-const feeBreakdown = [
-  { name: "Collected", value: 65, color: "#22c55e" },
-  { name: "Pending", value: 22, color: "#f59e0b" },
-  { name: "Overdue", value: 13, color: "#ef4444" },
-];
-
-const admissionFunnel = [
-  { stage: "Leads", count: 512 },
-  { stage: "Applications", count: 256 },
-  { stage: "Interviews", count: 128 },
-  { stage: "Approved", count: 64 },
-  { stage: "Admitted", count: 24 },
-];
+type Summary = {
+  counts: { students: number; teachers: number; pendingAdmissions: number; announcements: number };
+  admissionFunnel: { stage: string; count: number }[];
+  enrollmentTrend: { month: string; students: number }[];
+  fees: { collected: number; pending: number; overdue: number } | null;
+  upcoming: { id: string; title: string; date: string; type: string }[];
+  activity: any[];
+};
 
 export default function Dashboard() {
   const user = useAuthStore((s) => s.user);
   const navigate = useNavigate();
-  const [counts, setCounts] = useState({ students: 0, teachers: 0, admissions: 0, announcements: 0 });
-  const [events, setEvents] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
+  const [data, setData] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
+  // One request (counts/aggregates computed by the database) instead of six
+  // requests that downloaded every student, teacher and admission record.
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [students, teachers, admissions, announcements, calendar, activityFeed] = await Promise.all([
-          api.get("/people/students"),
-          api.get("/people/teachers"),
-          api.get("/admissions"),
-          api.get("/announcements"),
-          api.get("/dashboard/calendar"),
-          api.get("/dashboard/activity"),
-        ]);
-        setCounts({
-          students: students.data.length,
-          teachers: teachers.data.length,
-          admissions: admissions.data.filter((a: any) => a.status === "APPLICATION" || a.status === "REVIEW").length,
-          announcements: announcements.data.length,
-        });
-        setEvents(calendar.data.slice(0, 4));
-        setActivity(activityFeed.data.slice(0, 5));
-      } catch {
-        // widgets below handle their own empty states
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    let cancelled = false;
+    api
+      .get("/dashboard/summary")
+      .then((res) => { if (!cancelled) setData(res.data); })
+      .catch(() => { if (!cancelled) setFailed(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
-  const maxFunnel = admissionFunnel[0]?.count || 1;
+  const counts = data?.counts || { students: 0, teachers: 0, pendingAdmissions: 0, announcements: 0 };
+  const enrollmentTrend = data?.enrollmentTrend || [];
+  const admissionFunnel = data?.admissionFunnel || [];
+  const events = data?.upcoming || [];
+  const activity = data?.activity || [];
+  const feeTotal = data?.fees ? data.fees.collected + data.fees.pending + data.fees.overdue : 0;
+  const feeBreakdown = data?.fees && feeTotal > 0
+    ? [
+        { name: "Collected", value: Math.round((data.fees.collected / feeTotal) * 100), color: FEE_COLORS.Collected },
+        { name: "Pending", value: Math.round((data.fees.pending / feeTotal) * 100), color: FEE_COLORS.Pending },
+        { name: "Overdue", value: Math.round((data.fees.overdue / feeTotal) * 100), color: FEE_COLORS.Overdue },
+      ]
+    : [];
+
+  const maxFunnel = Math.max(1, ...admissionFunnel.map((f) => f.count));
   const today = new Date();
   const dateLabel = today.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
 
@@ -83,16 +68,14 @@ export default function Dashboard() {
           <h1 className="font-display text-2xl font-bold text-ink">Welcome, {user?.name}</h1>
           <p className="text-muted mt-1 text-sm">Here is what is happening in your school today.</p>
         </div>
-        <div className="flex items-center gap-2 bg-surface border border-border rounded-lg px-3 py-2">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span className="text-xs text-ink-soft">All systems normal</span>
-        </div>
       </div>
+
+      {failed && <p className="text-danger text-sm mt-4">Dashboard numbers could not be loaded. Please refresh the page.</p>}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         <StatCard label="Total Students" value={loading ? "..." : counts.students} icon={Users} tone="primary" />
         <StatCard label="Total Teachers" value={loading ? "..." : counts.teachers} icon={GraduationCap} tone="teal" />
-        <StatCard label="Pending Admissions" value={loading ? "..." : counts.admissions} icon={ClipboardList} tone="accent" />
+        <StatCard label="Pending Admissions" value={loading ? "..." : counts.pendingAdmissions} icon={ClipboardList} tone="accent" />
         <StatCard label="Announcements" value={loading ? "..." : counts.announcements} icon={Bell} tone="steel" />
       </div>
 
@@ -103,7 +86,7 @@ export default function Dashboard() {
               <TrendingUp size={15} className="text-primary" />
               Student Enrollment Trend
             </h2>
-            <span className="text-[11px] text-muted">This Year</span>
+            <span className="text-[11px] text-muted">Last 6 months</span>
           </div>
           <div className="p-5">
           <ResponsiveContainer width="100%" height={220}>
@@ -126,29 +109,35 @@ export default function Dashboard() {
             <h2 className="font-display font-semibold text-ink text-sm">Fee Collection</h2>
           </div>
           <div className="p-5">
-          <ResponsiveContainer width="100%" height={160}>
-            <PieChart>
-              <Pie data={feeBreakdown} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={3}>
-                {feeBreakdown.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{ background: "#141830", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12 }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-1.5 mt-2">
-            {feeBreakdown.map((f) => (
-              <div key={f.name} className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 text-ink-soft">
-                  <span className="w-2 h-2 rounded-full" style={{ background: f.color }} />
-                  {f.name}
-                </span>
-                <span className="text-ink font-medium">{f.value}%</span>
-              </div>
-            ))}
-          </div>
+            {!data?.fees ? (
+              <p className="text-sm text-muted">Fee figures are visible to the Head and Accountant.</p>
+            ) : feeBreakdown.length === 0 ? (
+              <p className="text-sm text-muted">No invoices yet.</p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie data={feeBreakdown} dataKey="value" innerRadius={45} outerRadius={65} paddingAngle={3}>
+                      {feeBreakdown.map((entry) => (
+                        <Cell key={entry.name} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "#141830", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="space-y-1.5 mt-2">
+                  {feeBreakdown.map((f) => (
+                    <div key={f.name} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-1.5 text-ink-soft">
+                        <span className="w-2 h-2 rounded-full" style={{ background: f.color }} />
+                        {f.name}
+                      </span>
+                      <span className="text-ink font-medium">{f.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -159,6 +148,7 @@ export default function Dashboard() {
             <h2 className="font-display font-semibold text-ink text-sm">Admission Funnel</h2>
           </div>
           <div className="p-5 space-y-2.5">
+            {admissionFunnel.every((f) => f.count === 0) && <p className="text-sm text-muted">No admission applications yet.</p>}
             {admissionFunnel.map((f) => (
               <div key={f.stage}>
                 <div className="flex items-center justify-between text-xs mb-1">

@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IQuizQuestion {
@@ -61,5 +61,10 @@ const quizSchema = new Schema<IQuiz>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+quizSchema.index({ schoolId: 1 });
+quizSchema.index({ schoolId: 1, createdBy: 1 });
+quizSchema.index({ schoolId: 1, classId: 1, isPublished: 1 });
 
 export default mongoose.model<IQuiz>("Quiz", quizSchema);

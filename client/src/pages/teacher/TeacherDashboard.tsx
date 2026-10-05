@@ -14,7 +14,7 @@ export default function TeacherDashboard() {
       </div>
 
       {teacher ? (
-        <div className="grid grid-cols-3 gap-4 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
           <div className="bg-surface rounded-xl border border-border shadow-sm p-5">
             <p className="text-xs text-muted">Employee ID</p>
             <p className="text-xl font-display font-bold text-primary-dark mt-1">{teacher.employeeId}</p>

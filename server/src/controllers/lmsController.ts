@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
-import { canAccessStudent, isAssignedToClass } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass, isOwnClass } from "../utils/accessControl";
+import Subject from "../models/Subject";
 import Course from "../models/Course";
 import Lesson from "../models/Lesson";
 import LessonProgress from "../models/LessonProgress";
@@ -8,15 +9,42 @@ import Student from "../models/Student";
 import Teacher from "../models/Teacher";
 import Certificate from "../models/Certificate";
 
+const ADMIN_ROLES = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"];
+
+// A course can be changed only by the teacher who created it, or by admins.
+async function canManageCourse(req: AuthRequest, course: { createdBy?: any }) {
+  if (ADMIN_ROLES.includes(req.user!.role)) return true;
+  const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+  return !!me && me._id.toString() === course.createdBy?.toString();
+}
+
 export const createCourse = async (req: AuthRequest, res: Response) => {
   try {
-    // classId is optional here (a course can target "any class"), but if
-    // one is given, a plain TEACHER must actually be assigned to it -
-    // same reasoning as the homework/assignment/exam checks.
-    if (req.body.classId && !(await isAssignedToClass(req, req.body.classId))) {
+    const schoolId = req.user!.schoolId;
+    const { title, description, classId, subjectId } = req.body;
+    if (!title || !String(title).trim()) return res.status(400).json({ message: "Course title is required" });
+    // classId is optional (a course can target "any class"), but if one is
+    // given a plain TEACHER must be assigned to it and the subject must
+    // belong to that class.
+    if (classId && !(await isAssignedToClass(req, classId))) {
       return res.status(403).json({ message: "You are not assigned to this class" });
     }
-    const course = await Course.create({ ...req.body, schoolId: req.user!.schoolId });
+    if (subjectId) {
+      const subject = await Subject.findOne({ _id: subjectId, schoolId, ...(classId ? { classId } : {}) });
+      if (!subject) return res.status(404).json({ message: "Subject not found" });
+    }
+    // createdBy comes from the login, never from the request body
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+    if (!teacher) return res.status(403).json({ message: "Only users with a teacher profile can create courses" });
+
+    const course = await Course.create({
+      schoolId,
+      title: String(title).trim(),
+      description,
+      classId: classId || undefined,
+      subjectId: subjectId || undefined,
+      createdBy: teacher._id,
+    });
     res.status(201).json(course);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -68,6 +96,14 @@ export const getCoursesForTeacher = async (req: AuthRequest, res: Response) => {
 
 export const getCoursesForClass = async (req: AuthRequest, res: Response) => {
   try {
+    const classIdParam = req.query.classId as string | undefined;
+    if (!classIdParam) return res.status(400).json({ message: "classId is required" });
+    if (req.user!.role === "STUDENT" && !(await isOwnClass(req, classIdParam))) {
+      return res.status(403).json({ message: "You can only view courses of your own class" });
+    }
+    if (!(await isAssignedToClass(req, classIdParam))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const courses = await Course.find({
       schoolId: req.user!.schoolId,
       classId: req.query.classId as string,
@@ -81,12 +117,12 @@ export const getCoursesForClass = async (req: AuthRequest, res: Response) => {
 
 export const togglePublishCourse = async (req: AuthRequest, res: Response) => {
   try {
-    const course = await Course.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
-      { isPublished: req.body.isPublished },
-      { new: true }
-    );
+    if (typeof req.body.isPublished !== "boolean") return res.status(400).json({ message: "isPublished must be true or false" });
+    const course = await Course.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!course) return res.status(404).json({ message: "Course not found" });
+    if (!(await canManageCourse(req, course))) return res.status(403).json({ message: "You can only publish your own courses" });
+    course.isPublished = req.body.isPublished;
+    await course.save();
     res.json(course);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -95,11 +131,31 @@ export const togglePublishCourse = async (req: AuthRequest, res: Response) => {
 
 export const addLesson = async (req: AuthRequest, res: Response) => {
   try {
-    const course = await Course.findOne({ _id: req.body.courseId, schoolId: req.user!.schoolId });
+    const { courseId, moduleName, title, contentType, contentUrl, textContent } = req.body;
+    const course = await Course.findOne({ _id: courseId, schoolId: req.user!.schoolId });
     if (!course) return res.status(404).json({ message: "Course not found" });
+    if (!(await canManageCourse(req, course))) return res.status(403).json({ message: "You can only add lessons to your own courses" });
 
-    const lessonCount = await Lesson.countDocuments({ courseId: req.body.courseId });
-    const lesson = await Lesson.create({ ...req.body, schoolId: req.user!.schoolId, order: lessonCount });
+    if (!title || !String(title).trim()) return res.status(400).json({ message: "Lesson title is required" });
+    const type = contentType || "TEXT";
+    if (!["TEXT", "VIDEO", "PDF", "LINK"].includes(type)) return res.status(400).json({ message: "Invalid content type" });
+    if (type === "TEXT" && !String(textContent || "").trim()) return res.status(400).json({ message: "Lesson content is required" });
+    if (type !== "TEXT") {
+      if (!contentUrl) return res.status(400).json({ message: type === "PDF" ? "Please upload a file" : "Please enter a URL" });
+      if (!/^https?:\/\//i.test(String(contentUrl))) return res.status(400).json({ message: "URL must start with http:// or https://" });
+    }
+
+    const last = await Lesson.findOne({ courseId }).sort({ order: -1 }).select("order");
+    const lesson = await Lesson.create({
+      schoolId: req.user!.schoolId,
+      courseId,
+      moduleName,
+      title: String(title).trim(),
+      contentType: type,
+      contentUrl: type === "TEXT" ? undefined : contentUrl,
+      textContent: type === "TEXT" ? textContent : undefined,
+      order: last ? (last.order ?? 0) + 1 : 0,
+    });
     res.status(201).json(lesson);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -110,6 +166,16 @@ export const getLessons = async (req: AuthRequest, res: Response) => {
   try {
     const course = await Course.findOne({ _id: req.query.courseId as string, schoolId: req.user!.schoolId });
     if (!course) return res.status(404).json({ message: "Course not found" });
+
+    if (req.user!.role === "STUDENT") {
+      // students only see published courses of their own class
+      if (!course.isPublished) return res.status(404).json({ message: "Course not found" });
+      if (course.classId && !(await isOwnClass(req, course.classId.toString()))) {
+        return res.status(403).json({ message: "This course is not for your class" });
+      }
+    } else if (!(await canManageCourse(req, course))) {
+      return res.status(403).json({ message: "You can only view lessons of your own courses" });
+    }
 
     const lessons = await Lesson.find({ courseId: req.query.courseId as string }).sort({ order: 1 });
 
@@ -134,8 +200,15 @@ export const getLessons = async (req: AuthRequest, res: Response) => {
 
 export const deleteLesson = async (req: AuthRequest, res: Response) => {
   try {
-    const lesson = await Lesson.findOneAndDelete({ _id: req.params.id, schoolId: req.user!.schoolId });
+    const lesson = await Lesson.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+    const course = await Course.findOne({ _id: lesson.courseId, schoolId: req.user!.schoolId });
+    if (!course || !(await canManageCourse(req, course))) {
+      return res.status(403).json({ message: "You can only delete lessons of your own courses" });
+    }
+    await lesson.deleteOne();
+    // progress rows for a deleted lesson would otherwise inflate completion counts
+    await LessonProgress.deleteMany({ lessonId: lesson._id });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

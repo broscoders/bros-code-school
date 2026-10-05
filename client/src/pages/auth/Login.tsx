@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 import { User, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, KeyRound } from "lucide-react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
@@ -239,13 +239,16 @@ export default function Login() {
           </div>
 
           <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setError("Google sign-in failed")}
-              theme="filled_black"
-              shape="pill"
-              width="280"
-            />
+            {/* The Google script is now only loaded on this page, not on every screen of the app */}
+            <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setError("Google sign-in failed")}
+                theme="filled_black"
+                shape="pill"
+                width="280"
+              />
+            </GoogleOAuthProvider>
           </div>
 
           <p className="flex items-center justify-center gap-1.5 text-white/35 text-[11px] mt-6">

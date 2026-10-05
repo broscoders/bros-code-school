@@ -102,4 +102,8 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+userSchema.index({ schoolId: 1 });
+userSchema.index({ schoolId: 1, role: 1 });
+
 export default mongoose.model<IUser>("User", userSchema);

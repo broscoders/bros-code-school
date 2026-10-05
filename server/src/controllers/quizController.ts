@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
-import { canAccessStudent, isAssignedToClass } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass, isOwnClass } from "../utils/accessControl";
+import Subject from "../models/Subject";
 import Quiz from "../models/Quiz";
 import QuizAttempt from "../models/QuizAttempt";
 import Student from "../models/Student";
@@ -8,10 +9,66 @@ import Teacher from "../models/Teacher";
 
 export const createQuiz = async (req: AuthRequest, res: Response) => {
   try {
-    if (req.body.classId && !(await isAssignedToClass(req, req.body.classId))) {
+    const schoolId = req.user!.schoolId;
+    const { classId, sectionId, subjectId, title, description, timeLimitMinutes, allowRetake, maxAttempts, questions } = req.body;
+
+    if (!classId || !subjectId || !title || !String(title).trim()) {
+      return res.status(400).json({ message: "Class, subject and title are required" });
+    }
+    if (!(await isAssignedToClass(req, classId))) {
       return res.status(403).json({ message: "You are not assigned to this class" });
     }
-    const quiz = await Quiz.create({ ...req.body, schoolId: req.user!.schoolId });
+    const subject = await Subject.findOne({ _id: subjectId, classId, schoolId });
+    if (!subject) return res.status(404).json({ message: "Subject not found in this class" });
+
+    const limit = Number(timeLimitMinutes);
+    if (!Number.isFinite(limit) || limit < 1 || limit > 300) {
+      return res.status(400).json({ message: "Time limit must be between 1 and 300 minutes" });
+    }
+    if (maxAttempts !== undefined && maxAttempts !== null && (!Number.isInteger(Number(maxAttempts)) || Number(maxAttempts) < 1)) {
+      return res.status(400).json({ message: "Max attempts must be a whole number of 1 or more" });
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ message: "Add at least one question" });
+    }
+    const cleanQuestions: any[] = [];
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i] || {};
+      const text = String(q.questionText || "").trim();
+      if (!text) return res.status(400).json({ message: `Question ${i + 1} is empty` });
+      if (q.questionType === "SHORT_ANSWER") {
+        cleanQuestions.push({ questionType: "SHORT_ANSWER", questionText: text, options: [], correctAnswerText: String(q.correctAnswerText || "").trim() });
+      } else {
+        const options = (Array.isArray(q.options) ? q.options : []).map((o: any) => String(o || "").trim());
+        if (options.length < 2 || options.some((o: string) => !o)) {
+          return res.status(400).json({ message: `Question ${i + 1} needs at least 2 non-empty options` });
+        }
+        const idx = Number(q.correctOptionIndex);
+        if (!Number.isInteger(idx) || idx < 0 || idx >= options.length) {
+          return res.status(400).json({ message: `Question ${i + 1} has no valid correct answer selected` });
+        }
+        cleanQuestions.push({ questionType: "MCQ", questionText: text, options, correctOptionIndex: idx });
+      }
+    }
+
+    // createdBy comes from the login, never from the request body
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+    if (!teacher) return res.status(403).json({ message: "Only users with a teacher profile can create quizzes" });
+
+    const quiz = await Quiz.create({
+      schoolId,
+      classId,
+      sectionId: sectionId || undefined,
+      subjectId,
+      title: String(title).trim(),
+      description,
+      timeLimitMinutes: limit,
+      allowRetake: !!allowRetake,
+      maxAttempts: maxAttempts === undefined || maxAttempts === null || maxAttempts === "" ? undefined : Number(maxAttempts),
+      questions: cleanQuestions,
+      createdBy: teacher._id,
+    });
     res.status(201).json(quiz);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -75,6 +132,14 @@ export const getQuizzesForTeacher = async (req: AuthRequest, res: Response) => {
 
 export const getQuizzesForClass = async (req: AuthRequest, res: Response) => {
   try {
+    const classIdParam = req.query.classId as string | undefined;
+    if (!classIdParam) return res.status(400).json({ message: "classId is required" });
+    if (req.user!.role === "STUDENT" && !(await isOwnClass(req, classIdParam))) {
+      return res.status(403).json({ message: "You can only view quizzes of your own class" });
+    }
+    if (!(await isAssignedToClass(req, classIdParam))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
     const quizzes = await Quiz.find({
       schoolId: req.user!.schoolId,
       classId: req.query.classId as string,
@@ -122,13 +187,22 @@ export const getQuizzesForClass = async (req: AuthRequest, res: Response) => {
 
 export const togglePublish = async (req: AuthRequest, res: Response) => {
   try {
-    const quiz = await Quiz.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
-      { isPublished: req.body.isPublished },
-      { new: true }
-    );
-    if (!quiz) return res.status(404).json({ message: "Quiz not found" });
-    res.json(quiz);
+    if (typeof req.body.isPublished !== "boolean") return res.status(400).json({ message: "isPublished must be true or false" });
+    const existing = await Quiz.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!existing) return res.status(404).json({ message: "Quiz not found" });
+
+    // A teacher can only publish/unpublish their own quizzes (admins any).
+    const myTeacher = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+    const isOwner = myTeacher && myTeacher._id.toString() === existing.createdBy?.toString();
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isOwner && !isAdmin) return res.status(403).json({ message: "You can only publish your own quizzes" });
+    if (req.body.isPublished && (!existing.questions || existing.questions.length === 0)) {
+      return res.status(400).json({ message: "A quiz with no questions cannot be published" });
+    }
+
+    existing.isPublished = req.body.isPublished;
+    await existing.save();
+    res.json(existing);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -252,7 +326,8 @@ export const submitAttempt = async (req: AuthRequest, res: Response) => {
 // short-answer questions that auto-grading couldn't confidently mark.
 export const overrideAttemptScore = async (req: AuthRequest, res: Response) => {
   try {
-    const { score } = req.body;
+    const score = Number(req.body.score);
+    if (!Number.isFinite(score)) return res.status(400).json({ message: "Score must be a number" });
     const attempt = await QuizAttempt.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!attempt) return res.status(404).json({ message: "Attempt not found" });
 

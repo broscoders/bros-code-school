@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IPurchaseOrderItem {
@@ -44,5 +44,8 @@ const purchaseOrderSchema = new Schema<IPurchaseOrder>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+purchaseOrderSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IPurchaseOrder>("PurchaseOrder", purchaseOrderSchema);

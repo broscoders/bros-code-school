@@ -5,7 +5,8 @@ import User from "../models/User";
 import Teacher from "../models/Teacher";
 import PTMSlot from "../models/PTMSlot";
 import Parent from "../models/Parent";
-import { canAccessStudent } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass, isOwnClass } from "../utils/accessControl";
+import Subject from "../models/Subject";
 import LeaveRequest from "../models/LeaveRequest";
 import StudyMaterial from "../models/StudyMaterial";
 
@@ -74,9 +75,20 @@ export const getInbox = async (req: AuthRequest, res: Response) => {
 // Teacher communication hours
 export const setCommunicationHours = async (req: AuthRequest, res: Response) => {
   try {
+    const hours = req.body.communicationHours;
+    if (typeof hours !== "string" || hours.length > 200) {
+      return res.status(400).json({ message: "Communication hours must be text (max 200 characters)" });
+    }
+    // A teacher can only change their own hours (admins can change any).
+    if (req.user!.role === "TEACHER" || req.user!.role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!me || me._id.toString() !== req.params.id) {
+        return res.status(403).json({ message: "You can only change your own communication hours" });
+      }
+    }
     const teacher = await Teacher.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
-      { communicationHours: req.body.communicationHours },
+      { communicationHours: hours.trim() },
       { new: true }
     );
     if (!teacher) return res.status(404).json({ message: "Teacher not found" });
@@ -89,7 +101,28 @@ export const setCommunicationHours = async (req: AuthRequest, res: Response) => 
 // PTM
 export const createPTMSlot = async (req: AuthRequest, res: Response) => {
   try {
-    const slot = await PTMSlot.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { date, time } = req.body;
+    if (!date || !time || !String(time).trim()) return res.status(400).json({ message: "Date and time are required" });
+    const when = new Date(date);
+    if (Number.isNaN(when.getTime())) return res.status(400).json({ message: "Invalid date" });
+
+    // Teachers always create slots for themselves; admins must say which teacher.
+    let teacherId: string | undefined = req.body.teacherId;
+    if (req.user!.role === "TEACHER" || req.user!.role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+      if (!me) return res.status(403).json({ message: "Teacher profile not found" });
+      teacherId = me._id.toString();
+    } else {
+      if (!teacherId) return res.status(400).json({ message: "teacherId is required" });
+      if (!(await Teacher.exists({ _id: teacherId, schoolId }))) return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const duplicate = await PTMSlot.findOne({ schoolId, teacherId, date: when, time: String(time).trim() });
+    if (duplicate) return res.status(409).json({ message: "You already have a slot at this date and time" });
+
+    // isBooked / parentId / studentId can no longer be pre-set by the client
+    const slot = await PTMSlot.create({ schoolId, teacherId, date: when, time: String(time).trim() });
     res.status(201).json(slot);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -219,8 +252,42 @@ export const updateLeaveStatus = async (req: AuthRequest, res: Response) => {
 // Study Material
 export const addStudyMaterial = async (req: AuthRequest, res: Response) => {
   try {
-    const material = await StudyMaterial.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { classId, subjectId, title, chapter, fileUrl } = req.body;
+    if (!classId || !subjectId || !title || !fileUrl) {
+      return res.status(400).json({ message: "Class, subject, title and file are required" });
+    }
+    if (!/^https?:\/\//i.test(String(fileUrl))) return res.status(400).json({ message: "Invalid file link" });
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
+    const subject = await Subject.findOne({ _id: subjectId, classId, schoolId });
+    if (!subject) return res.status(404).json({ message: "Subject not found in this class" });
+    // teacherId comes from the login, never from the request body
+    const teacher = await Teacher.findOne({ userId: req.user!.userId, schoolId });
+    if (!teacher) return res.status(403).json({ message: "Only users with a teacher profile can upload study material" });
+
+    const material = await StudyMaterial.create({ schoolId, classId, subjectId, teacherId: teacher._id, title, chapter, fileUrl });
     res.status(201).json(material);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const deleteStudyMaterial = async (req: AuthRequest, res: Response) => {
+  try {
+    const material = await StudyMaterial.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
+    if (!material) return res.status(404).json({ message: "Study material not found" });
+    // only the teacher who uploaded it (or an admin) can remove it
+    const isAdmin = ["SCHOOL_ADMIN", "PRINCIPAL", "HEAD", "ACADEMIC_COORDINATOR"].includes(req.user!.role);
+    if (!isAdmin) {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!me || me._id.toString() !== material.teacherId.toString()) {
+        return res.status(403).json({ message: "You can only delete your own uploads" });
+      }
+    }
+    await material.deleteOne();
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -228,7 +295,16 @@ export const addStudyMaterial = async (req: AuthRequest, res: Response) => {
 
 export const getStudyMaterial = async (req: AuthRequest, res: Response) => {
   try {
-    const list = await StudyMaterial.find({ schoolId: req.user!.schoolId, classId: req.query.classId as string }).populate("subjectId");
+    const classId = req.query.classId as string | undefined;
+    if (!classId) return res.status(400).json({ message: "classId is required" });
+    const role = req.user!.role;
+    if ((role === "STUDENT" || role === "PARENT") && !(await isOwnClass(req, classId))) {
+      return res.status(403).json({ message: "You can only view study material of your own class" });
+    }
+    if (!(await isAssignedToClass(req, classId))) {
+      return res.status(403).json({ message: "You are not assigned to this class" });
+    }
+    const list = await StudyMaterial.find({ schoolId: req.user!.schoolId, classId }).populate("subjectId").sort({ createdAt: -1 });
     res.json(list);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });

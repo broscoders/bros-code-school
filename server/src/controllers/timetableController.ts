@@ -1,5 +1,6 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
+import Teacher from "../models/Teacher";
 import TimetableSlot from "../models/TimetableSlot";
 
 export const upsertSlot = async (req: AuthRequest, res: Response) => {
@@ -83,9 +84,17 @@ export const getClassTimetable = async (req: AuthRequest, res: Response) => {
 
 export const getTeacherTimetable = async (req: AuthRequest, res: Response) => {
   try {
+    // A teacher always gets their own timetable; staff can pass ?teacherId=
+    let teacherId = req.query.teacherId as string | undefined;
+    if (req.user!.role === "TEACHER" || req.user!.role === "ACADEMY_TEACHER") {
+      const me = await Teacher.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
+      if (!me) return res.json([]);
+      teacherId = me._id.toString();
+    }
+    if (!teacherId) return res.status(400).json({ message: "teacherId is required" });
     const slots = await TimetableSlot.find({
       schoolId: req.user!.schoolId,
-      teacherId: req.query.teacherId as string,
+      teacherId,
     })
       .populate("subjectId classId sectionId")
       .sort({ dayOfWeek: 1, periodNumber: 1 });

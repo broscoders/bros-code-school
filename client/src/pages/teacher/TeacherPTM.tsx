@@ -8,11 +8,16 @@ export default function TeacherPTM() {
   const [slots, setSlots] = useState<any[]>([]);
   const [form, setForm] = useState({ date: "", time: "" });
   const [hours, setHours] = useState("");
+  const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   const load = async () => {
     if (teacher?._id) {
-      const res = await api.get(`/comm/ptm-slots/by-teacher?teacherId=${teacher._id}`);
-      setSlots(res.data);
+      try {
+        const res = await api.get(`/comm/ptm-slots/by-teacher?teacherId=${teacher._id}`);
+        setSlots(res.data);
+      } catch {
+        setSlots([]);
+      }
     }
   };
 
@@ -23,13 +28,25 @@ export default function TeacherPTM() {
 
   const addSlot = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/comm/ptm-slots", { schoolId: teacher.schoolId, teacherId: teacher._id, ...form });
-    setForm({ date: "", time: "" });
-    load();
+    setMsg(null);
+    try {
+      await api.post("/comm/ptm-slots", form);
+      setForm({ date: "", time: "" });
+      setMsg({ type: "ok", text: "Slot added." });
+      load();
+    } catch (err: any) {
+      setMsg({ type: "err", text: err?.response?.data?.message || "Could not add the slot." });
+    }
   };
 
   const saveHours = async () => {
-    await api.put(`/comm/teachers/${teacher._id}/communication-hours`, { communicationHours: hours });
+    setMsg(null);
+    try {
+      await api.put(`/comm/teachers/${teacher._id}/communication-hours`, { communicationHours: hours });
+      setMsg({ type: "ok", text: "Communication hours saved." });
+    } catch (err: any) {
+      setMsg({ type: "err", text: err?.response?.data?.message || "Could not save communication hours." });
+    }
   };
 
   return (
@@ -53,6 +70,7 @@ export default function TeacherPTM() {
 
       <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-4">
         <h2 className="font-display font-semibold text-ink mb-3">Add PTM Slot</h2>
+        {msg && <p className={`${msg.type === "ok" ? "text-success" : "text-danger"} text-sm mb-3`}>{msg.text}</p>}
         <form onSubmit={addSlot} className="flex gap-2 mb-4">
           <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} required />
           <input placeholder="Time e.g. 10:00 AM" value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} required />

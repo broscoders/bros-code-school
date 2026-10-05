@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export type AcademyBatchStatus = "UPCOMING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
@@ -37,5 +37,8 @@ const academyBatchSchema = new Schema<IAcademyBatch>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+academyBatchSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IAcademyBatch>("AcademyBatch", academyBatchSchema);

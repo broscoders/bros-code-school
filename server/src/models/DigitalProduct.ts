@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IDigitalProduct extends Document {
@@ -29,5 +29,8 @@ const digitalProductSchema = new Schema<IDigitalProduct>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+digitalProductSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IDigitalProduct>("DigitalProduct", digitalProductSchema);

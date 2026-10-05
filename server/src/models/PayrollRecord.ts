@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IPayrollRecord extends Document {
@@ -31,5 +31,8 @@ const payrollSchema = new Schema<IPayrollRecord>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+payrollSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IPayrollRecord>("PayrollRecord", payrollSchema);

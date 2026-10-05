@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IMessage extends Document {
@@ -21,5 +21,9 @@ const messageSchema = new Schema<IMessage>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+messageSchema.index({ schoolId: 1 });
+messageSchema.index({ fromUserId: 1, toUserId: 1 });
 
 export default mongoose.model<IMessage>("Message", messageSchema);

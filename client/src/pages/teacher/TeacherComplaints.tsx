@@ -13,7 +13,9 @@ export default function TeacherComplaints() {
   const [form, setForm] = useState({ category: "GENERAL", subject: "", description: "" });
   const [submitting, setSubmitting] = useState(false);
 
-  const load = () => api.get("/complaints/mine").then((res) => setTickets(res.data));
+  const [error, setError] = useState<string | null>(null);
+
+  const load = () => api.get("/complaints/mine").then((res) => setTickets(res.data)).catch(() => setTickets([]));
 
   useEffect(() => {
     load();
@@ -22,10 +24,13 @@ export default function TeacherComplaints() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
     try {
       await api.post("/complaints", form);
       setForm({ category: "GENERAL", subject: "", description: "" });
       load();
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Could not submit the complaint. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -42,6 +47,7 @@ export default function TeacherComplaints() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mb-6 space-y-3">
+        {error && <p className="text-danger text-sm">{error}</p>}
         <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm w-full">
           <option value="GENERAL">General</option>
           <option value="ACADEMIC">Academic</option>

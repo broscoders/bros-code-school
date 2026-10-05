@@ -1,6 +1,6 @@
-﻿import Notification from "../models/Notification";
+import Notification from "../models/Notification";
 
-interface NotifyParams {
+export interface NotifyParams {
   schoolId: string;
   userId: string;
   title: string;
@@ -13,5 +13,17 @@ export const notify = async (params: NotifyParams) => {
     await Notification.create(params);
   } catch (err) {
     console.error("Notification failed:", err);
+  }
+};
+
+// Sends many notifications with ONE database call instead of one per person
+// (a class-wide fee run or a result publish used to do hundreds of
+// sequential inserts).
+export const notifyMany = async (list: NotifyParams[]) => {
+  if (list.length === 0) return;
+  try {
+    await Notification.insertMany(list, { ordered: false });
+  } catch (err) {
+    console.error("Bulk notification failed:", err);
   }
 };

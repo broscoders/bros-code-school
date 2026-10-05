@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IAnnouncement extends Document {
@@ -29,5 +29,9 @@ const announcementSchema = new Schema<IAnnouncement>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+announcementSchema.index({ schoolId: 1 });
+announcementSchema.index({ schoolId: 1, publishAt: -1 });
 
 export default mongoose.model<IAnnouncement>("Announcement", announcementSchema);

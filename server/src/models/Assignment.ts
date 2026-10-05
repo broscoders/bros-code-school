@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IAssignment extends Document {
@@ -29,5 +29,9 @@ const assignmentSchema = new Schema<IAssignment>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+assignmentSchema.index({ schoolId: 1 });
+assignmentSchema.index({ schoolId: 1, classId: 1, sectionId: 1 });
 
 export default mongoose.model<IAssignment>("Assignment", assignmentSchema);

@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export type DayOfWeek = "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY";
@@ -43,5 +43,8 @@ const timetableSlotSchema = new Schema<ITimetableSlot>(
 // One slot per section/day/period - this is what makes "upsert" safe and prevents
 // the same section from accidentally getting two different subjects at once.
 timetableSlotSchema.index({ sectionId: 1, dayOfWeek: 1, periodNumber: 1 }, { unique: true });
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+timetableSlotSchema.index({ schoolId: 1 });
 
 export default mongoose.model<ITimetableSlot>("TimetableSlot", timetableSlotSchema);

@@ -28,4 +28,7 @@ const staffLoanSchema = new Schema<IStaffLoan>(
   { timestamps: true }
 );
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+staffLoanSchema.index({ schoolId: 1 });
+
 export default mongoose.model<IStaffLoan>("StaffLoan", staffLoanSchema);

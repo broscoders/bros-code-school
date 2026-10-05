@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IPTMSlot extends Document {
@@ -23,5 +23,9 @@ const ptmSlotSchema = new Schema<IPTMSlot>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+ptmSlotSchema.index({ schoolId: 1 });
+ptmSlotSchema.index({ schoolId: 1, teacherId: 1, date: 1 });
 
 export default mongoose.model<IPTMSlot>("PTMSlot", ptmSlotSchema);

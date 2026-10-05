@@ -83,4 +83,9 @@ const studentSchema = new Schema<IStudent>(
   { timestamps: true }
 );
 
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+studentSchema.index({ schoolId: 1 });
+studentSchema.index({ schoolId: 1, classId: 1, sectionId: 1 });
+studentSchema.index({ userId: 1 });
+
 export default mongoose.model<IStudent>("Student", studentSchema);

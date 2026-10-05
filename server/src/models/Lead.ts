@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface ILead extends Document {
@@ -27,5 +27,8 @@ const leadSchema = new Schema<ILead>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+leadSchema.index({ schoolId: 1 });
 
 export default mongoose.model<ILead>("Lead", leadSchema);

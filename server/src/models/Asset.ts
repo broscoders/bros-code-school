@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IAsset extends Document {
@@ -27,5 +27,8 @@ const assetSchema = new Schema<IAsset>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+assetSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IAsset>("Asset", assetSchema);

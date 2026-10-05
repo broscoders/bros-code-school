@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IEvent extends Document {
@@ -19,5 +19,8 @@ const eventSchema = new Schema<IEvent>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+eventSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IEvent>("Event", eventSchema);

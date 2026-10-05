@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IExam extends Document {
@@ -25,5 +25,9 @@ const examSchema = new Schema<IExam>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+examSchema.index({ schoolId: 1 });
+examSchema.index({ schoolId: 1, classId: 1 });
 
 export default mongoose.model<IExam>("Exam", examSchema);

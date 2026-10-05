@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IVehicle extends Document {
@@ -30,5 +30,8 @@ const vehicleSchema = new Schema<IVehicle>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+vehicleSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IVehicle>("Vehicle", vehicleSchema);

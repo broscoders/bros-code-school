@@ -1,4 +1,4 @@
-﻿import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 import type { Document } from "mongoose";
 
 export interface IInventoryItem extends Document {
@@ -23,5 +23,8 @@ const inventoryItemSchema = new Schema<IInventoryItem>(
   },
   { timestamps: true }
 );
+
+// Performance: speeds up the most common lookups (every list/detail screen filters by these).
+inventoryItemSchema.index({ schoolId: 1 });
 
 export default mongoose.model<IInventoryItem>("InventoryItem", inventoryItemSchema);

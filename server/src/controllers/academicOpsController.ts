@@ -17,7 +17,7 @@ import Discount from "../models/Discount";
 import User from "../models/User";
 import { canAccessStudent, isOwnClass, isAssignedToClass } from "../utils/accessControl";
 import { logAudit } from "../utils/auditLogger";
-import { notify } from "../utils/notifier";
+import { notify, notifyMany } from "../utils/notifier";
 import type { AuthRequest } from "../middleware/authMiddleware";
 
 export const markAttendance = async (req: AuthRequest, res: Response) => {
@@ -145,18 +145,26 @@ export const bulkMarkAttendance = async (req: AuthRequest, res: Response) => {
     const toNotify = validRecords.filter(
       (r: any) => (r.status === "ABSENT" || r.status === "LATE") && prevStatus.get(String(r.studentId)) !== r.status
     );
-    for (const rec of toNotify) {
-      const student = await Student.findById(rec.studentId).populate("userId");
-      const parent = await Parent.findOne({ children: rec.studentId, schoolId });
-      if (parent) {
-        await notify({
-          schoolId,
-          userId: parent.userId.toString(),
-          title: rec.status === "ABSENT" ? "Child marked absent" : "Child marked late",
-          message: `${(student?.userId as any)?.name || "Your child"} was marked ${rec.status.toLowerCase()} ${isToday ? "today" : "on " + attDate.toISOString().slice(0, 10)}.`,
-          category: "ATTENDANCE",
-        });
-      }
+    if (toNotify.length > 0) {
+      const ids = toNotify.map((r: any) => r.studentId);
+      const [studs, parents] = await Promise.all([
+        Student.find({ _id: { $in: ids } }).populate("userId", "name"),
+        Parent.find({ schoolId, children: { $in: ids } }).select("userId children"),
+      ]);
+      const nameOf = new Map(studs.map((st) => [st._id.toString(), (st.userId as any)?.name || "Your child"]));
+      const parentOf = new Map<string, string>();
+      parents.forEach((pa) => pa.children.forEach((c) => { if (!parentOf.has(c.toString())) parentOf.set(c.toString(), pa.userId.toString()); }));
+      await notifyMany(
+        toNotify
+          .filter((r: any) => parentOf.has(String(r.studentId)))
+          .map((r: any) => ({
+            schoolId,
+            userId: parentOf.get(String(r.studentId))!,
+            title: r.status === "ABSENT" ? "Child marked absent" : "Child marked late",
+            message: `${nameOf.get(String(r.studentId))} was marked ${r.status.toLowerCase()} ${isToday ? "today" : "on " + attDate.toISOString().slice(0, 10)}.`,
+            category: "ATTENDANCE" as const,
+          }))
+      );
     }
 
     res.json({ marked: ops.length, skipped: records.length - validRecords.length, parentsNotified: toNotify.length });
@@ -503,20 +511,20 @@ export const publishResults = async (req: AuthRequest, res: Response) => {
 
     await Result.updateMany({ examId: req.params.examId }, { isPublished: true, publishedAt: new Date() });
 
-    const results = await Result.find({ examId: req.params.examId });
-    for (const result of results) {
-      const student = await Student.findById(result.studentId);
-      const parent = await Parent.findOne({ children: result.studentId }).populate("userId");
-      if (parent && (parent.userId as any)?._id && student) {
-        await notify({
-          schoolId: student.schoolId.toString(),
-          userId: (parent.userId as any)._id.toString(),
-          title: "Result published",
-          message: `${exam.name} results have been published.`,
-          category: "ACADEMIC",
-        });
+    const results = await Result.find({ examId: req.params.examId }).select("studentId");
+    const studentIds = results.map((r) => r.studentId);
+    const parents = await Parent.find({ schoolId: req.user!.schoolId, children: { $in: studentIds } }).select("userId children");
+    const notified = new Set<string>();
+    const toSend: any[] = [];
+    parents.forEach((pa) => {
+      const uid = pa.userId.toString();
+      if (notified.has(uid)) return; // one notice per parent even with several children in the exam
+      if (pa.children.some((c) => studentIds.some((sid) => sid.toString() === c.toString()))) {
+        notified.add(uid);
+        toSend.push({ schoolId: req.user!.schoolId, userId: uid, title: "Result published", message: `${exam.name} results have been published.`, category: "ACADEMIC" as const });
       }
-    }
+    });
+    await notifyMany(toSend);
 
     if (req.user) {
       await logAudit({
@@ -660,26 +668,31 @@ export const bulkCreateInvoices = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "No active students found for this class/section" });
     }
 
-    let created = 0;
-    let skipped = 0;
-    for (const student of students) {
-      const existing = await Invoice.findOne({ schoolId, studentId: student._id, feeType, status: { $ne: "CANCELLED" } });
-      if (existing) {
-        skipped++;
-        continue;
-      }
-      await Invoice.create({ schoolId, studentId: student._id, feeType, amount, dueDate });
-      const parent = await Parent.findOne({ children: student._id }).populate("userId");
-      if (parent && (parent.userId as any)?._id) {
-        await notify({
-          schoolId,
-          userId: (parent.userId as any)._id.toString(),
-          title: "New fee invoice",
-          message: `A new ${feeType} invoice of Rs. ${amount} has been generated.`,
-          category: "FINANCE",
-        });
-      }
-      created++;
+    // Batch version: 4 database calls in total, instead of ~4 per student
+    // (a class of 50 used to take 200+ sequential round trips).
+    const studentIds = students.map((st) => st._id);
+    const already = await Invoice.find({ schoolId, studentId: { $in: studentIds }, feeType, status: { $ne: "CANCELLED" } }).select("studentId");
+    const haveInvoice = new Set(already.map((i) => i.studentId.toString()));
+    const toCreate = students.filter((st) => !haveInvoice.has(st._id.toString()));
+    const skipped = students.length - toCreate.length;
+    const created = toCreate.length;
+
+    if (toCreate.length > 0) {
+      await Invoice.insertMany(toCreate.map((st) => ({ schoolId, studentId: st._id, feeType, amount, dueDate })));
+      const parents = await Parent.find({ schoolId, children: { $in: toCreate.map((st) => st._id) } }).select("userId children");
+      const parentOfChild = new Map<string, string>();
+      parents.forEach((pa) => pa.children.forEach((c) => { if (!parentOfChild.has(c.toString())) parentOfChild.set(c.toString(), pa.userId.toString()); }));
+      await notifyMany(
+        toCreate
+          .filter((st) => parentOfChild.has(st._id.toString()))
+          .map((st) => ({
+            schoolId,
+            userId: parentOfChild.get(st._id.toString())!,
+            title: "New fee invoice",
+            message: `A new ${feeType} invoice of Rs. ${amount} has been generated.`,
+            category: "FINANCE" as const,
+          }))
+      );
     }
 
     res.status(201).json({ message: `Created ${created} invoice(s). ${skipped} student(s) already had this fee type invoiced.`, created, skipped });

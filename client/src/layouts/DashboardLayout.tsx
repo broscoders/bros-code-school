@@ -7,7 +7,7 @@ import {
   LogOut, ClipboardCheck, FileText, Award, ClipboardList, Boxes, ShieldCheck, Mail,
   FileWarning, MessageSquareText, Settings as SettingsIcon, Phone, BadgeCheck,
   AlertTriangle, IdCard, Lock, Calendar, FolderOpen, Zap, FileBarChart, Trophy, UserCheck,
-  Library as LibraryIcon, Bus, MonitorCheck, Globe, Plug, Smartphone,
+  Library as LibraryIcon, Bus, MonitorCheck, Globe,
   Menu, X, Search, ChevronDown,
 } from "lucide-react";
 import AIChatWidget from "../components/AIChatWidget";
@@ -143,11 +143,6 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-const comingSoonItems = [
-  { label: "Integrations", icon: Plug },
-  { label: "Mobile Apps", icon: Smartphone },
-];
-
 export default function DashboardLayout() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -208,8 +203,6 @@ export default function DashboardLayout() {
       items: group.items.filter((item) => isVisibleForRole(item) && item.label.toLowerCase().includes(query)),
     }))
     .filter((group) => group.items.length > 0);
-
-  const filteredComingSoon = comingSoonItems.filter((item) => item.label.toLowerCase().includes(query));
 
   const currentLabel =
     navGroups.flatMap((g) => g.items).find((item) => location.pathname.startsWith(item.to))?.label ?? "Dashboard";
@@ -300,27 +293,8 @@ export default function DashboardLayout() {
             );
           })}
 
-          {filteredGroups.length === 0 && filteredComingSoon.length === 0 && (
+          {filteredGroups.length === 0 && (
             <p className="text-xs text-muted text-center py-4">No menu items match "{sidebarSearch}"</p>
-          )}
-
-          {filteredComingSoon.length > 0 && (
-            <div className="pt-3 mt-2 border-t border-border">
-              <p className="px-3 section-label mb-1.5">Coming Soon</p>
-              {filteredComingSoon.map((item) => (
-                <div
-                  key={item.label}
-                  title="Coming soon"
-                  className="flex items-center gap-3 pl-4 pr-3 py-2 text-sm text-muted/50 cursor-not-allowed select-none border-l-2 border-l-transparent"
-                >
-                  <item.icon size={16} />
-                  <span className="flex-1">{item.label}</span>
-                  <span className="text-[9px] uppercase tracking-wide bg-white/5 border border-border rounded-full px-1.5 py-0.5">
-                    Soon
-                  </span>
-                </div>
-              ))}
-            </div>
           )}
         </nav>
         <div className="p-3 border-t border-border space-y-1">
