@@ -5,7 +5,6 @@ import { Users } from "lucide-react";
 
 export default function HRManagement() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
-  const user = useAuthStore((s) => s.user);
   const [departments, setDepartments] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [deptForm, setDeptForm] = useState({ name: "" });
