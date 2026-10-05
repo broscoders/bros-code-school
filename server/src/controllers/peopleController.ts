@@ -4,6 +4,8 @@ import Student from "../models/Student";
 import { canAccessStudent } from "../utils/accessControl";
 import Parent from "../models/Parent";
 import Teacher from "../models/Teacher";
+import Subject from "../models/Subject";
+import ClassModel from "../models/ClassModel";
 import Section from "../models/Section";
 import User from "../models/User";
 import Session from "../models/Session";
@@ -12,23 +14,47 @@ import { syncLinkedAccountStatus, accountStatusForLifecycleStatus } from "../uti
 
 export const createStudent = async (req: AuthRequest, res: Response) => {
   try {
-    if (req.body.sectionId) {
-      const section = await Section.findOne({ _id: req.body.sectionId, schoolId: req.user!.schoolId });
-      if (!section) return res.status(404).json({ message: "Section not found" });
-      if (section.capacity) {
-        const currentCount = await Student.countDocuments({ sectionId: req.body.sectionId, schoolId: req.user!.schoolId, status: "ACTIVE" });
-        if (currentCount >= section.capacity) {
-          return res.status(400).json({ message: `Section "${section.name}" is at full capacity (${section.capacity} students).` });
-        }
+    const schoolId = req.user!.schoolId;
+    const { userId, admissionNumber, classId, sectionId, parentId, dateOfBirth, gender, address, admissionDate } = req.body;
+
+    if (!userId || !admissionNumber || !String(admissionNumber).trim() || !classId || !sectionId) {
+      return res.status(400).json({ message: "Account, admission number, class and section are required" });
+    }
+
+    // the login account must be a STUDENT account of this school and must not
+    // already have a student profile
+    const account = await User.findOne({ _id: userId, schoolId, role: "STUDENT" });
+    if (!account) return res.status(404).json({ message: "Student login account not found" });
+    if (await Student.exists({ userId, schoolId })) {
+      return res.status(409).json({ message: "This account already has a student profile" });
+    }
+    if (await Student.exists({ schoolId, admissionNumber: String(admissionNumber).trim() })) {
+      return res.status(409).json({ message: `Admission number ${String(admissionNumber).trim()} is already used by another student` });
+    }
+
+    // the section must belong to the chosen class (both in this school)
+    const section = await Section.findOne({ _id: sectionId, classId, schoolId });
+    if (!section) return res.status(404).json({ message: "Section not found in this class" });
+    if (section.capacity) {
+      const currentCount = await Student.countDocuments({ sectionId, schoolId, status: "ACTIVE" });
+      if (currentCount >= section.capacity) {
+        return res.status(400).json({ message: `Section "${section.name}" is at full capacity (${section.capacity} students).` });
       }
     }
 
+    // status / classHistory / schoolId are decided here, never by the client
     const student = await Student.create({
-      ...req.body,
-      schoolId: req.user!.schoolId,
-      classHistory: req.body.classId && req.body.sectionId
-        ? [{ classId: req.body.classId, sectionId: req.body.sectionId, fromDate: new Date() }]
-        : [],
+      schoolId,
+      userId,
+      admissionNumber: String(admissionNumber).trim(),
+      classId,
+      sectionId,
+      parentId: parentId || undefined,
+      dateOfBirth: dateOfBirth || undefined,
+      gender,
+      address,
+      admissionDate: admissionDate || undefined,
+      classHistory: [{ classId, sectionId, fromDate: new Date() }],
     });
     res.status(201).json(student);
   } catch (err) {
@@ -243,25 +269,36 @@ export const updateUserAccountStatus = async (req: AuthRequest, res: Response) =
 
 export const createParent = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId, children, relationship } = req.body;
+    const schoolId = req.user!.schoolId;
+    const { userId, relationship } = req.body;
+    const children: string[] = Array.isArray(req.body.children) ? req.body.children : [];
 
-    // A parent account is meant to support multiple children - if this
-    // userId already has a Parent profile (they were already linked to
-    // one child and are now being linked to another, or a previous attempt
-    // partially failed after the User account was created but before this
-    // profile was), merge the new children into the existing record
-    // instead of trying to create a second Parent document for the same
-    // person, which the frontend has no way to recover from.
-    const existing = await Parent.findOne({ userId, schoolId: req.user!.schoolId });
+    if (!userId) return res.status(400).json({ message: "Parent account is required" });
+    const account = await User.findOne({ _id: userId, schoolId, role: "PARENT" });
+    if (!account) return res.status(404).json({ message: "Parent login account not found" });
+
+    // Every child must be a real student of THIS school. Before, any student
+    // id (even from another school) could be attached, which instantly gave
+    // that parent access to the student's fees, results and attendance.
+    if (children.length > 0) {
+      const found = await Student.countDocuments({ _id: { $in: children }, schoolId });
+      if (found !== new Set(children.map(String)).size) {
+        return res.status(400).json({ message: "One or more selected students were not found in your school" });
+      }
+    }
+
+    // A parent account can have several children - merge into the existing
+    // profile instead of creating a second one for the same person.
+    const existing = await Parent.findOne({ userId, schoolId });
     if (existing) {
-      const merged = Array.from(new Set([...existing.children.map((c) => c.toString()), ...(children || [])]));
+      const merged = Array.from(new Set([...existing.children.map((c) => c.toString()), ...children.map(String)]));
       existing.children = merged as any;
       if (relationship) existing.relationship = relationship;
       await existing.save();
       return res.json(existing);
     }
 
-    const parent = await Parent.create({ ...req.body, schoolId: req.user!.schoolId });
+    const parent = await Parent.create({ schoolId, userId, children, relationship });
     res.status(201).json(parent);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -274,7 +311,7 @@ export const createParent = async (req: AuthRequest, res: Response) => {
 // any) and link the new child to it instead.
 export const findParentByEmail = async (req: AuthRequest, res: Response) => {
   try {
-    const email = req.query.email as string;
+    const email = String(req.query.email || "").trim().toLowerCase();
     const user = await User.findOne({ email, schoolId: req.user!.schoolId, role: "PARENT" });
     if (!user) return res.status(404).json({ message: "No parent account found with this email" });
 
@@ -296,7 +333,33 @@ export const getParents = async (req: AuthRequest, res: Response) => {
 
 export const createTeacher = async (req: AuthRequest, res: Response) => {
   try {
-    const teacher = await Teacher.create({ ...req.body, schoolId: req.user!.schoolId });
+    const schoolId = req.user!.schoolId;
+    const { userId, employeeId, qualification, joiningDate } = req.body;
+    const subjects: string[] = Array.isArray(req.body.subjects) ? req.body.subjects : [];
+    const assignedClasses: string[] = Array.isArray(req.body.assignedClasses) ? req.body.assignedClasses : [];
+
+    if (!userId || !employeeId || !String(employeeId).trim()) {
+      return res.status(400).json({ message: "Account and employee ID are required" });
+    }
+    const account = await User.findOne({ _id: userId, schoolId, role: { $in: ["TEACHER", "ACADEMY_TEACHER"] } });
+    if (!account) return res.status(404).json({ message: "Teacher login account not found" });
+    if (await Teacher.exists({ userId, schoolId })) return res.status(409).json({ message: "This account already has a teacher profile" });
+    if (await Teacher.exists({ schoolId, employeeId: String(employeeId).trim() })) {
+      return res.status(409).json({ message: `Employee ID ${String(employeeId).trim()} is already used by another teacher` });
+    }
+
+    // classes and subjects must belong to this school
+    if (assignedClasses.length && (await ClassModel.countDocuments({ _id: { $in: assignedClasses }, schoolId })) !== new Set(assignedClasses.map(String)).size) {
+      return res.status(400).json({ message: "One or more selected classes were not found in your school" });
+    }
+    if (subjects.length && (await Subject.countDocuments({ _id: { $in: subjects }, schoolId })) !== new Set(subjects.map(String)).size) {
+      return res.status(400).json({ message: "One or more selected subjects were not found in your school" });
+    }
+
+    // employmentStatus / communicationHours / leavingDate can't be set at creation by the client
+    const teacher = await Teacher.create({
+      schoolId, userId, employeeId: String(employeeId).trim(), qualification, subjects, assignedClasses, joiningDate: joiningDate || undefined,
+    });
     res.status(201).json(teacher);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
