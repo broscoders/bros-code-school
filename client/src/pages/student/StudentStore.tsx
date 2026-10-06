@@ -11,7 +11,7 @@ export default function StudentStore() {
   const [purchases, setPurchases] = useState<any[]>([]);
 
   const load = async () => {
-    const res = await api.get(`/store/store/products?schoolId=${schoolId}`);
+    const res = await api.get(`/store/store/products?schoolId=${schoolId}&studentId=${student?._id || ""}`);
     setProducts(res.data);
     if (student?._id) {
       const p = await api.get(`/store/store/my-purchases?studentId=${student._id}`);
@@ -53,7 +53,7 @@ export default function StudentStore() {
                 <span className="text-xs font-semibold text-accent">{p.isFree ? "Free" : `Rs. ${p.price}`}</span>
               </div>
               <p className="text-xs text-muted mt-1">{p.subjectName} {p.className && `Â· ${p.className}`}</p>
-              {owned ? (
+              {owned && p.fileUrl ? (
                 <a href={p.fileUrl} target="_blank" rel="noreferrer" className="text-primary text-xs underline mt-3 inline-block">Open Material</a>
               ) : (
                 <button onClick={() => buy(p._id)} className="bg-primary text-white text-xs px-3 py-1.5 rounded-md mt-3 hover:bg-primary-light transition-colors">

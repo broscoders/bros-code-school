@@ -25,15 +25,40 @@ export const saveWebsitePage = async (req: AuthRequest, res: Response) => {
     if (!VALID_PAGE_TYPES.includes(pageType)) {
       return res.status(400).json({ message: "Invalid page type" });
     }
-    if (!title) {
+    const cleanTitle = String(title || "").trim();
+    if (!cleanTitle) {
       return res.status(400).json({ message: "Title is required" });
+    }
+    if (cleanTitle.length > 150) return res.status(400).json({ message: "Title is too long (max 150 characters)" });
+
+    // This page is shown to the PUBLIC with no login. Sections used to be
+    // stored exactly as the browser sent them (any shape, any size, any image
+    // address). Now only heading/body/image/order are kept, with length caps,
+    // and an image must be an https link (no tracking pixels over http, no
+    // data:/javascript: URLs).
+    const rawSections = Array.isArray(sections) ? sections : [];
+    if (rawSections.length > 40) return res.status(400).json({ message: "A page can have at most 40 sections" });
+    const cleanSections = [];
+    for (let i = 0; i < rawSections.length; i++) {
+      const sec = rawSections[i] || {};
+      const heading = String(sec.heading || "").trim();
+      const body = String(sec.body || "").trim();
+      const imageUrl = String(sec.imageUrl || "").trim();
+      if (heading.length > 200 || body.length > 5000) {
+        return res.status(400).json({ message: `Section ${i + 1} is too long (heading max 200, text max 5000 characters)` });
+      }
+      if (imageUrl && !/^https:\/\//i.test(imageUrl)) {
+        return res.status(400).json({ message: `Section ${i + 1}: the image link must start with https://` });
+      }
+      if (!heading && !body && !imageUrl) continue; // skip empty sections
+      cleanSections.push({ heading: heading || undefined, body: body || undefined, imageUrl: imageUrl || undefined, order: i });
     }
 
     const page = await WebsitePage.findOneAndUpdate(
       { schoolId: req.user!.schoolId, pageType },
       {
-        title,
-        sections: Array.isArray(sections) ? sections : [],
+        title: cleanTitle,
+        sections: cleanSections,
         updatedBy: req.user!.userId,
       },
       { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -78,6 +103,7 @@ export const setWebsiteSlug = async (req: AuthRequest, res: Response) => {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
     if (!slug) return res.status(400).json({ message: "A valid slug is required" });
+    if (slug.length < 3 || slug.length > 50) return res.status(400).json({ message: "The web address must be 3 to 50 characters" });
 
     const clash = await School.findOne({ slug, _id: { $ne: req.user!.schoolId } });
     if (clash) return res.status(400).json({ message: "This web address is already taken. Please choose another." });

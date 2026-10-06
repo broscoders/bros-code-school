@@ -1,8 +1,9 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import type { Request, Response, NextFunction } from "express";
 import { uploadFile } from "../controllers/uploadController";
 import { upload } from "../middleware/upload";
 import { protect } from "../middleware/authMiddleware";
+import { uploadLimiter } from "../middleware/rateLimiters";
 
 const router = Router();
 
@@ -19,6 +20,6 @@ function handleUpload(req: Request, res: Response, next: NextFunction) {
   });
 }
 
-router.post("/", protect, handleUpload, uploadFile);
+router.post("/", protect, uploadLimiter, handleUpload, uploadFile);
 
 export default router;

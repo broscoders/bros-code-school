@@ -108,6 +108,7 @@ const TeacherHomework = lazy(() => import("./pages/teacher/TeacherHomework"));
 const TeacherAssignments = lazy(() => import("./pages/teacher/TeacherAssignments"));
 const TeacherMarks = lazy(() => import("./pages/teacher/TeacherMarks"));
 const TeacherAnnouncements = lazy(() => import("./pages/teacher/TeacherAnnouncements"));
+const MySurveys = lazy(() => import("./pages/shared/MySurveys"));
 const TeacherEvents = lazy(() => import("./pages/teacher/TeacherEvents"));
 const TeacherComplaints = lazy(() => import("./pages/teacher/TeacherComplaints"));
 const TeacherMessages = lazy(() => import("./pages/teacher/TeacherMessages"));
@@ -217,6 +218,7 @@ function App() {
           <Route path="/parent/ptm" element={<ParentPTM />} />
           <Route path="/parent/leave" element={<ParentLeave />} />
           <Route path="/parent/announcements" element={<ParentAnnouncements />} />
+          <Route path="/parent/surveys" element={<MySurveys />} />
           <Route path="/parent/health" element={<ParentHealth />} />
           <Route path="/parent/discipline" element={<ParentDiscipline />} />
           <Route path="/parent/achievements" element={<ParentAchievements />} />
@@ -239,6 +241,7 @@ function App() {
           <Route path="/student/certificates" element={<StudentCertificates />} />
           <Route path="/student/achievements" element={<StudentAchievements />} />
           <Route path="/student/announcements" element={<StudentAnnouncements />} />
+          <Route path="/student/surveys" element={<MySurveys />} />
           <Route path="/student/events" element={<StudentEvents />} />
           <Route path="/student/complaints" element={<StudentComplaints />} />
         </Route>
@@ -260,6 +263,7 @@ function App() {
           <Route path="/teacher/messages" element={<TeacherMessages />} />
           <Route path="/teacher/ptm" element={<TeacherPTM />} />
           <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
+          <Route path="/teacher/surveys" element={<MySurveys />} />
           <Route path="/teacher/events" element={<TeacherEvents />} />
           <Route path="/teacher/complaints" element={<TeacherComplaints />} />
         </Route>

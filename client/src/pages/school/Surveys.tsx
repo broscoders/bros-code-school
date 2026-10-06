@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { MessageSquareText } from "lucide-react";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Surveys() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
@@ -12,9 +13,15 @@ export default function Surveys() {
   const [responses, setResponses] = useState<any[]>([]);
   const [viewingId, setViewingId] = useState("");
 
+  const { error: actionError, run } = useApiAction();
+
   const load = async () => {
-    const res = await api.get(`/store/surveys?schoolId=${schoolId}`);
-    setList(res.data);
+    try {
+      const res = await api.get(`/store/surveys?schoolId=${schoolId}`);
+      setList(res.data);
+    } catch {
+      setList([]);
+    }
   };
 
   useEffect(() => {
@@ -30,16 +37,21 @@ export default function Surveys() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/store/surveys", { schoolId, title, targetAudience: audience, questions: questions.filter((q) => q.trim()) });
-    setTitle("");
-    setQuestions([""]);
-    load();
+    await run(async () => {
+      await api.post("/store/surveys", { title, targetAudience: audience, questions: questions.filter((q) => q.trim()) });
+      setTitle("");
+      setQuestions([""]);
+      load();
+    }, "Could not create the survey");
   };
 
   const viewResponses = async (id: string) => {
     setViewingId(id);
-    const res = await api.get(`/store/surveys/${id}/responses`);
-    setResponses(res.data);
+    setResponses([]);
+    await run(async () => {
+      const res = await api.get(`/store/surveys/${id}/responses`);
+      setResponses(res.data);
+    }, "Could not load the responses");
   };
 
   return (
@@ -48,6 +60,8 @@ export default function Surveys() {
         <p className="section-label">Feedback</p>
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><MessageSquareText size={22} className="text-primary" />Surveys &amp; Feedback</h1>
       </div>
+
+      {actionError && <p className="text-danger text-sm mt-4">{actionError}</p>}
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 space-y-3">
         <input placeholder="Survey Title" value={title} onChange={(e) => setTitle(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />

@@ -38,3 +38,16 @@ export const bulkEmailActionLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many invitations sent. Please wait a few minutes before sending more." },
 });
+
+// Uploads go to paid cloud storage and any logged-in role (parents and
+// students included) could push 10 MB files without limit. Keyed by the
+// logged-in user (falls back to IP) so one account can't run up the bill.
+export const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: any) => req.user?.userId || req.ip,
+  validate: { keyGeneratorIpFallback: false } as any,
+  message: { message: "Too many uploads. Please wait a while before uploading more files." },
+});
