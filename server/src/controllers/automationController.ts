@@ -45,6 +45,12 @@ export const getRules = async (req: AuthRequest, res: Response) => {
 export const updateRule = async (req: AuthRequest, res: Response) => {
   try {
     const { isActive, messageTemplate } = req.body;
+    if (isActive !== undefined && typeof isActive !== "boolean") return res.status(400).json({ message: "isActive must be true or false" });
+    // this text is sent to parents by SMS/WhatsApp (billed per message), so
+    // keep it to a sensible length
+    if (messageTemplate !== undefined && (typeof messageTemplate !== "string" || !messageTemplate.trim() || messageTemplate.length > 500)) {
+      return res.status(400).json({ message: "Message must be 1 to 500 characters" });
+    }
     const rule = await AutomationRule.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
       { ...(isActive !== undefined && { isActive }), ...(messageTemplate && { messageTemplate }) },

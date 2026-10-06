@@ -1,4 +1,5 @@
 import type { Response } from "express";
+import mongoose from "mongoose";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
 import Result from "../models/Result";
@@ -17,7 +18,13 @@ export const getReportCardData = async (req: AuthRequest, res: Response) => {
     if (!student) return res.status(404).json({ message: "Student not found" });
 
     const school = await School.findById(student.schoolId);
-    const results = await Result.find({ studentId: student._id }).populate("examId");
+    // Parents and students only ever see PUBLISHED marks (GET /ops/results
+    // already did this). The report card did not, so marks still being
+    // corrected - or not yet released - were visible, and the pass/fail
+    // status was computed from them.
+    const resultFilter: Record<string, any> = { studentId: student._id };
+    if (["PARENT", "STUDENT"].includes(req.user!.role)) resultFilter.isPublished = true;
+    const results = await Result.find(resultFilter).populate("examId");
     const attendanceRecords = await Attendance.find({ studentId: student._id });
 
     const presentCount = attendanceRecords.filter((a) => a.status === "PRESENT").length;
@@ -65,65 +72,96 @@ export const getReportCardData = async (req: AuthRequest, res: Response) => {
 export const getReportsSummary = async (req: AuthRequest, res: Response) => {
   try {
     const schoolId = req.user!.schoolId;
-    const students = await Student.find({ schoolId }).populate("classId");
-    const studentIds = students.map((s) => s._id);
-    const totalResultsRecorded = await Result.countDocuments({ studentId: { $in: studentIds } });
+    const oid = new mongoose.Types.ObjectId(schoolId);
+
+    // Every figure below is computed by the database. This used to load EVERY
+    // student and EVERY published result (with two levels of populate) into
+    // memory and add them up in Node, which got slower with every exam and
+    // was the main reason the Reports page took so long to open.
+    const [classCountRows, totalStudents, totalResultsRecorded, perfRows, admissionRows, teacherRows] = await Promise.all([
+      Student.aggregate([
+        { $match: { schoolId: oid } },
+        { $group: { _id: "$classId", n: { $sum: 1 } } },
+        { $lookup: { from: "classmodels", localField: "_id", foreignField: "_id", as: "cls" } },
+        { $project: { n: 1, name: { $ifNull: [{ $arrayElemAt: ["$cls.name", 0] }, "Unassigned"] } } },
+      ]),
+      Student.countDocuments({ schoolId }),
+      // Result has no schoolId of its own, so it is counted through this school's students
+      Result.aggregate([
+        { $lookup: { from: "students", localField: "studentId", foreignField: "_id", as: "stu" } },
+        { $match: { "stu.schoolId": oid } },
+        { $count: "n" },
+      ]).then((rows: any[]) => rows[0]?.n || 0),
+      Result.aggregate([
+        { $match: { isPublished: true } },
+        { $lookup: { from: "students", localField: "studentId", foreignField: "_id", as: "stu" } },
+        { $unwind: "$stu" },
+        { $match: { "stu.schoolId": oid } },
+        { $lookup: { from: "exams", localField: "examId", foreignField: "_id", as: "exam" } },
+        { $unwind: "$exam" },
+        { $match: { "exam.totalMarks": { $gt: 0 } } },
+        { $addFields: { pct: { $multiply: [{ $divide: ["$marksObtained", "$exam.totalMarks"] }, 100] } } },
+        {
+          $facet: {
+            byClass: [
+              { $group: { _id: "$stu.classId", avg: { $avg: "$pct" } } },
+              { $lookup: { from: "classmodels", localField: "_id", foreignField: "_id", as: "cls" } },
+              { $project: { avg: 1, name: { $ifNull: [{ $arrayElemAt: ["$cls.name", 0] }, "Unassigned"] } } },
+            ],
+            bySubject: [
+              { $group: { _id: "$exam.subjectId", avg: { $avg: "$pct" } } },
+              { $lookup: { from: "subjects", localField: "_id", foreignField: "_id", as: "sub" } },
+              { $project: { avg: 1, name: { $ifNull: [{ $arrayElemAt: ["$sub.name", 0] }, "Unknown"] } } },
+            ],
+            grades: [
+              {
+                $group: {
+                  _id: {
+                    $switch: {
+                      branches: [
+                        { case: { $gte: ["$pct", 80] }, then: "A" },
+                        { case: { $gte: ["$pct", 65] }, then: "B" },
+                        { case: { $gte: ["$pct", 50] }, then: "C" },
+                        { case: { $gte: ["$pct", 40] }, then: "D" },
+                      ],
+                      default: "F",
+                    },
+                  },
+                  n: { $sum: 1 },
+                },
+              },
+            ],
+          },
+        },
+      ]),
+      Admission.aggregate([{ $match: { schoolId: oid } }, { $group: { _id: "$status", n: { $sum: 1 } } }]),
+      Teacher.aggregate([{ $match: { schoolId: oid } }, { $group: { _id: "$employmentStatus", n: { $sum: 1 } } }]),
+    ]);
 
     const classCounts: Record<string, number> = {};
-    students.forEach((s: any) => {
-      const className = s.classId?.name || "Unassigned";
-      classCounts[className] = (classCounts[className] || 0) + 1;
-    });
+    classCountRows.forEach((r: any) => (classCounts[r.name] = (classCounts[r.name] || 0) + r.n));
 
-    // Class performance: average result % per class. Blueprint's Reports
-    // section explicitly calls for "class performance, subject performance,
-    // grade distribution" - a headcount table alone doesn't show any of that.
-    const results = await Result.find({ studentId: { $in: studentIds }, isPublished: true })
-      .populate({ path: "examId", populate: { path: "subjectId" } })
-      .populate({ path: "studentId", populate: { path: "classId" } });
-    const classPerf: Record<string, { total: number; count: number }> = {};
-    const subjectPerf: Record<string, { total: number; count: number }> = {};
+    const facet = perfRows[0] || { byClass: [], bySubject: [], grades: [] };
+    const merge = (rows: any[]) => {
+      const m: Record<string, { t: number; c: number }> = {};
+      rows.forEach((r) => { m[r.name] = m[r.name] || { t: 0, c: 0 }; m[r.name].t += r.avg; m[r.name].c += 1; });
+      return Object.entries(m).map(([name, v]) => ({ name, averagePercent: Math.round(v.t / v.c) }));
+    };
+    const classPerformance = merge(facet.byClass);
+    const subjectPerformance = merge(facet.bySubject);
     const gradeDistribution: Record<string, number> = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+    facet.grades.forEach((g: any) => (gradeDistribution[g._id] = g.n));
 
-    for (const r of results as any[]) {
-      const totalMarks = r.examId?.totalMarks;
-      if (!totalMarks) continue;
-      const pct = (r.marksObtained / totalMarks) * 100;
-      const className = r.studentId?.classId?.name || "Unassigned";
-      if (!classPerf[className]) classPerf[className] = { total: 0, count: 0 };
-      classPerf[className].total += pct;
-      classPerf[className].count += 1;
-
-      const subjectName = r.examId?.subjectId?.name || "Unknown";
-      if (!subjectPerf[subjectName]) subjectPerf[subjectName] = { total: 0, count: 0 };
-      subjectPerf[subjectName].total += pct;
-      subjectPerf[subjectName].count += 1;
-
-      if (pct >= 80) gradeDistribution.A++;
-      else if (pct >= 65) gradeDistribution.B++;
-      else if (pct >= 50) gradeDistribution.C++;
-      else if (pct >= 40) gradeDistribution.D++;
-      else gradeDistribution.F++;
-    }
-    const classPerformance = Object.entries(classPerf).map(([name, v]) => ({ name, averagePercent: Math.round(v.total / v.count) }));
-    const subjectPerformance = Object.entries(subjectPerf).map(([name, v]) => ({ name, averagePercent: Math.round(v.total / v.count) }));
-
-    // Admissions funnel: counts by status, so the CRM/admissions pipeline
-    // has an at-a-glance conversion view instead of only a raw list.
+    const stageCount: Record<string, number> = {};
+    admissionRows.forEach((r: any) => (stageCount[r._id] = r.n));
     const admissionStatuses = ["APPLICATION", "REVIEW", "INTERVIEW", "APPROVED", "REJECTED", "CONVERTED"] as const;
-    const admissionCounts = await Promise.all(admissionStatuses.map((s) => Admission.countDocuments({ schoolId, status: s })));
-    const admissionFunnel = admissionStatuses.map((status, i) => ({ status, count: admissionCounts[i] }));
+    const admissionFunnel = admissionStatuses.map((status) => ({ status, count: stageCount[status] || 0 }));
 
-    // Staff attendance: teachers currently on leave / active, as a coarse
-    // staff-side stat until dedicated staff-attendance tracking exists.
     const teacherStatusCounts: Record<string, number> = {};
-    const teachers = await Teacher.find({ schoolId });
-    for (const t of teachers) {
-      teacherStatusCounts[t.employmentStatus] = (teacherStatusCounts[t.employmentStatus] || 0) + 1;
-    }
+    teacherRows.forEach((r: any) => (teacherStatusCounts[r._id] = r.n));
 
     res.json({
-      totalStudents: students.length,
+      totalStudents,
       classCounts,
       totalResultsRecorded,
       classPerformance,

@@ -11,7 +11,7 @@ export default function PlatformOrganizations() {
   const [planModalOrg, setPlanModalOrg] = useState<any>(null);
   const [usage, setUsage] = useState<any>(null);
   const [planForm, setPlanForm] = useState({ planName: "Trial", subscriptionStatus: "TRIAL", subscriptionExpiresAt: "" });
-  const [transferForm, setTransferForm] = useState({ personType: "STUDENT", personId: "", toSchoolId: "" });
+  const [transferForm, setTransferForm] = useState({ personType: "STUDENT", personId: "", toSchoolId: "", toClassId: "", toSectionId: "" });
   const [transferMsg, setTransferMsg] = useState("");
   const [form, setForm] = useState({
     name: "", type: "SCHOOL", ownerName: "", ownerEmail: "", ownerPhone: "",
@@ -196,14 +196,20 @@ export default function PlatformOrganizations() {
           <option value="TEACHER">Teacher</option>
         </select>
         <input placeholder="Person ID (Student or Teacher document ID)" value={transferForm.personId} onChange={(e) => setTransferForm({ ...transferForm, personId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-2" />
-        <input placeholder="Destination School ID" value={transferForm.toSchoolId} onChange={(e) => setTransferForm({ ...transferForm, toSchoolId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-3" />
+        <input placeholder="Destination School ID" value={transferForm.toSchoolId} onChange={(e) => setTransferForm({ ...transferForm, toSchoolId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-2" />
+        {transferForm.personType === "STUDENT" && (
+          <>
+            <input placeholder="Destination Class ID (in the new school)" value={transferForm.toClassId} onChange={(e) => setTransferForm({ ...transferForm, toClassId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-2" />
+            <input placeholder="Destination Section ID" value={transferForm.toSectionId} onChange={(e) => setTransferForm({ ...transferForm, toSectionId: e.target.value })} className="bg-surface-soft border border-slate-700 text-white rounded-lg px-3 py-2 text-sm w-full mb-3" />
+          </>
+        )}
         <button
           onClick={async () => {
             setTransferMsg("");
             try {
               await platformApi.post("/transfer-branch", transferForm);
               setTransferMsg("Transfer complete.");
-              setTransferForm({ personType: "STUDENT", personId: "", toSchoolId: "" });
+              setTransferForm({ personType: "STUDENT", personId: "", toSchoolId: "", toClassId: "", toSectionId: "" });
             } catch (err: any) {
               setTransferMsg(err.response?.data?.message || "Transfer failed");
             }

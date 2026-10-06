@@ -51,3 +51,15 @@ export const uploadLimiter = rateLimit({
   validate: { keyGeneratorIpFallback: false } as any,
   message: { message: "Too many uploads. Please wait a while before uploading more files." },
 });
+
+// The AI assistant calls a paid third-party model. Any logged-in user could
+// send unlimited, arbitrarily long questions - cap both per account.
+export const aiLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: any) => req.user?.userId || req.ip,
+  validate: { keyGeneratorIpFallback: false } as any,
+  message: { message: "You have reached the hourly limit for the assistant. Please try again later." },
+});

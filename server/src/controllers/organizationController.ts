@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import bcrypt from "bcryptjs";
 import type { PlatformAuthRequest } from "../middleware/platformAuthMiddleware";
 import Organization from "../models/Organization";
@@ -6,24 +6,49 @@ import School from "../models/School";
 import User from "../models/User";
 import Student from "../models/Student";
 import Teacher from "../models/Teacher";
+import Section from "../models/Section";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const s = (v: unknown) => (v === undefined || v === null ? "" : String(v).trim());
+// profile fields a Super Admin may set - plan/limits/status have their own endpoints
+const ORG_PROFILE_FIELDS = ["name", "type", "ownerName", "ownerEmail", "ownerPhone", "address", "country", "city", "logoUrl", "approxStudents"] as const;
 
 export const createOrganization = async (req: PlatformAuthRequest, res: Response) => {
+  let org: any = null;
+  let school: any = null;
   try {
-    const { adminName, adminEmail, adminPassword, ...orgFields } = req.body;
-    const org = await Organization.create({ ...orgFields, status: "PENDING" });
+    const { adminName, adminPassword } = req.body;
+    const adminEmail = s(req.body.adminEmail).toLowerCase();
+    const name = s(req.body.name);
+    const ownerName = s(req.body.ownerName);
+    const ownerEmail = s(req.body.ownerEmail);
+    if (!name || !ownerName || !ownerEmail) return res.status(400).json({ message: "Organization name, owner name and owner email are required" });
+    if (!EMAIL_RE.test(ownerEmail)) return res.status(400).json({ message: "Owner email is not valid" });
+    if (adminEmail || adminPassword) {
+      if (!adminEmail || !adminPassword) return res.status(400).json({ message: "Provide both the admin email and password, or neither" });
+      if (!EMAIL_RE.test(adminEmail)) return res.status(400).json({ message: "Admin email is not valid" });
+      if (String(adminPassword).length < 8) return res.status(400).json({ message: "Admin password must be at least 8 characters" });
+      // checked BEFORE anything is created: a taken email used to fail at the
+      // last step and leave an organization and school with no admin behind
+      if (await User.exists({ email: adminEmail })) return res.status(409).json({ message: "A user with this admin email already exists" });
+    }
 
-    const school = await School.create({
+    const fields: Record<string, unknown> = {};
+    for (const f of ORG_PROFILE_FIELDS) if (req.body[f] !== undefined) fields[f] = typeof req.body[f] === "string" ? req.body[f].trim() : req.body[f];
+    org = await Organization.create({ ...fields, status: "PENDING" });
+
+    school = await School.create({
       organizationId: org._id,
-      name: orgFields.name,
-      contactEmail: orgFields.ownerEmail,
-      contactPhone: orgFields.ownerPhone,
+      name,
+      contactEmail: ownerEmail,
+      contactPhone: s(req.body.ownerPhone) || undefined,
     });
 
     let adminUser = null;
     if (adminEmail && adminPassword) {
-      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      const hashedPassword = await bcrypt.hash(String(adminPassword), 10);
       adminUser = await User.create({
-        name: adminName || orgFields.ownerName,
+        name: s(adminName) || ownerName,
         email: adminEmail,
         password: hashedPassword,
         role: "SCHOOL_ADMIN",
@@ -34,6 +59,9 @@ export const createOrganization = async (req: PlatformAuthRequest, res: Response
 
     res.status(201).json({ organization: org, mainBranch: school, adminUser });
   } catch (err) {
+    // don't leave a half-created organization behind
+    if (school) await School.deleteOne({ _id: school._id }).catch(() => {});
+    if (org) await Organization.deleteOne({ _id: org._id }).catch(() => {});
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
 };
@@ -60,7 +88,14 @@ export const getOrganizationById = async (req: PlatformAuthRequest, res: Respons
 
 export const updateOrganization = async (req: PlatformAuthRequest, res: Response) => {
   try {
-    const org = await Organization.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    // Only profile details. The whole body used to be applied, so this
+    // endpoint could also flip status (skipping the school activate/deactivate
+    // step in setOrganizationStatus) or raise plan limits.
+    const update: Record<string, unknown> = {};
+    for (const f of ORG_PROFILE_FIELDS) if (req.body[f] !== undefined) update[f] = typeof req.body[f] === "string" ? req.body[f].trim() : req.body[f];
+    if (update.ownerEmail !== undefined && !EMAIL_RE.test(String(update.ownerEmail))) return res.status(400).json({ message: "Owner email is not valid" });
+    if (Object.keys(update).length === 0) return res.status(400).json({ message: "Nothing to update" });
+    const org = await Organization.findByIdAndUpdate(req.params.id, update, { new: true, runValidators: true });
     if (!org) return res.status(404).json({ message: "Organization not found" });
     res.json(org);
   } catch (err) {
@@ -98,21 +133,51 @@ const PLAN_PRESETS: Record<string, { studentLimit?: number; staffLimit?: number;
 
 export const setOrganizationPlan = async (req: PlatformAuthRequest, res: Response) => {
   try {
-    const { planName, subscriptionStatus, subscriptionExpiresAt, studentLimit, staffLimit, branchLimit } = req.body;
+    const { planName, subscriptionStatus, subscriptionExpiresAt } = req.body;
+    if (planName && !PLAN_PRESETS[planName] && planName !== "Custom") return res.status(400).json({ message: "Unknown plan" });
+    if (subscriptionStatus && !["ACTIVE", "TRIAL", "EXPIRED", "CANCELLED"].includes(subscriptionStatus)) {
+      // keep in step with the model's own list
+      const allowed = (Organization.schema.path("subscriptionStatus") as any)?.enumValues as string[] | undefined;
+      if (!allowed || !allowed.includes(subscriptionStatus)) return res.status(400).json({ message: "Invalid subscription status" });
+    }
+    const num = (v: unknown) => (v === "" || v === null ? null : Number(v));
+    for (const [label, v] of [["Student limit", req.body.studentLimit], ["Staff limit", req.body.staffLimit], ["Branch limit", req.body.branchLimit]] as const) {
+      if (v !== undefined && num(v) !== null && (!Number.isInteger(num(v)) || (num(v) as number) < 0)) {
+        return res.status(400).json({ message: `${label} must be a whole number of 0 or more` });
+      }
+    }
+    let expires: Date | null | undefined;
+    if (subscriptionExpiresAt !== undefined) {
+      expires = subscriptionExpiresAt ? new Date(subscriptionExpiresAt) : null;
+      if (expires && Number.isNaN(expires.getTime())) return res.status(400).json({ message: "Invalid expiry date" });
+    }
 
     const preset = planName && PLAN_PRESETS[planName];
-    const update: Record<string, any> = {};
-    if (planName) update.planName = planName;
-    if (subscriptionStatus) update.subscriptionStatus = subscriptionStatus;
-    if (subscriptionExpiresAt !== undefined) update.subscriptionExpiresAt = subscriptionExpiresAt || undefined;
-    // Explicit custom limits in the body always win over a preset's
-    // defaults, so a Super Admin can pick "Pro" and then still bump the
-    // student limit for one specific customer.
-    update.studentLimit = studentLimit !== undefined ? studentLimit : preset?.studentLimit;
-    update.staffLimit = staffLimit !== undefined ? staffLimit : preset?.staffLimit;
-    update.branchLimit = branchLimit !== undefined ? branchLimit : preset?.branchLimit;
+    const $set: Record<string, any> = {};
+    const $unset: Record<string, 1> = {};
+    if (planName) $set.planName = planName;
+    if (subscriptionStatus) $set.subscriptionStatus = subscriptionStatus;
+    if (expires === null) $unset.subscriptionExpiresAt = 1;
+    else if (expires) $set.subscriptionExpiresAt = expires;
 
-    const org = await Organization.findByIdAndUpdate(req.params.id, update, { new: true });
+    // explicit limits win over a preset; an "unlimited" preset (Enterprise)
+    // really removes the limit. Setting the field to `undefined` (what this
+    // used to do) is not a reliable way to clear it.
+    for (const key of ["studentLimit", "staffLimit", "branchLimit"] as const) {
+      const explicit = req.body[key];
+      if (explicit !== undefined) {
+        const n = num(explicit);
+        if (n === null) $unset[key] = 1; else $set[key] = n;
+      } else if (preset) {
+        const pv = (preset as any)[key];
+        if (pv === undefined) $unset[key] = 1; else $set[key] = pv;
+      }
+    }
+    const org = await Organization.findByIdAndUpdate(
+      req.params.id,
+      { ...(Object.keys($set).length ? { $set } : {}), ...(Object.keys($unset).length ? { $unset } : {}) },
+      { new: true }
+    );
     if (!org) return res.status(404).json({ message: "Organization not found" });
     res.json(org);
   } catch (err) {
@@ -161,7 +226,16 @@ export const addBranch = async (req: PlatformAuthRequest, res: Response) => {
       return res.status(400).json({ message: `Branch limit (${org.branchLimit}) reached for this organization's plan.` });
     }
 
-    const school = await School.create({ ...req.body, organizationId: org._id });
+    const branchName = String(req.body.name || "").trim();
+    if (!branchName) return res.status(400).json({ message: "Branch name is required" });
+    // only these fields - organizationId/isActive/slug are not client-controlled
+    const school = await School.create({
+      organizationId: org._id,
+      name: branchName,
+      contactEmail: String(req.body.contactEmail || "").trim() || undefined,
+      contactPhone: String(req.body.contactPhone || "").trim() || undefined,
+      address: String(req.body.address || "").trim() || undefined,
+    });
     res.status(201).json(school);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -226,6 +300,23 @@ export const transferPersonBranch = async (req: PlatformAuthRequest, res: Respon
     }
 
     const previousSchoolId = person.schoolId;
+    if (previousSchoolId.toString() === String(toSchoolId)) {
+      return res.status(400).json({ message: "The person is already in that school" });
+    }
+
+    // A student's class and section belong to the OLD school. Moving only the
+    // school id left the student pointing at a class that doesn't exist in the
+    // new school, so they vanished from every class list. The destination
+    // class and section are now required and must belong to the target school.
+    if (personType === "STUDENT") {
+      const { toClassId, toSectionId } = req.body;
+      if (!toClassId || !toSectionId) {
+        return res.status(400).json({ message: "Choose the destination class and section for the student" });
+      }
+      if (!(await Section.exists({ _id: toSectionId, classId: toClassId, schoolId: toSchoolId }))) {
+        return res.status(400).json({ message: "That class/section does not exist in the destination school" });
+      }
+    }
 
     if (personType === "STUDENT") {
       const student = person as any;
@@ -234,8 +325,18 @@ export const transferPersonBranch = async (req: PlatformAuthRequest, res: Respon
       if (lastEntry && !lastEntry.toDate) lastEntry.toDate = new Date();
       student.schoolHistory.push({ schoolId: toSchoolId, fromDate: new Date() });
       student.schoolId = toSchoolId;
+      student.classId = req.body.toClassId;
+      student.sectionId = req.body.toSectionId;
+      student.classHistory = student.classHistory || [];
+      const lastClass = student.classHistory[student.classHistory.length - 1];
+      if (lastClass && !lastClass.toDate) lastClass.toDate = new Date();
+      student.classHistory.push({ classId: req.body.toClassId, sectionId: req.body.toSectionId, fromDate: new Date() });
       await student.save();
     } else {
+      // the teacher's classes and subjects belong to the old school too -
+      // clear them so nothing points across schools; the new school assigns afresh
+      (person as any).assignedClasses = [];
+      (person as any).subjects = [];
       person.schoolId = toSchoolId as any;
       await person.save();
     }

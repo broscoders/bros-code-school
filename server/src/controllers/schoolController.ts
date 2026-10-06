@@ -1,4 +1,4 @@
-﻿import type { Request, Response } from "express";
+import type { Request, Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import School from "../models/School";
 
@@ -70,6 +70,20 @@ export const updateSchool = async (req: AuthRequest, res: Response) => {
     // platform-controlled field - is deliberately excluded here even though
     // the model allows it.
     const { name, logoUrl, primaryColor, secondaryColor, address, contactEmail, contactPhone } = req.body;
+
+    // Branding values end up in styles and <img> tags on every page (login
+    // screen included), so they are checked rather than stored as typed.
+    if (name !== undefined && !String(name).trim()) return res.status(400).json({ message: "School name cannot be empty" });
+    const HEX = /^#[0-9a-fA-F]{6}$/;
+    for (const [label, v] of [["Primary colour", primaryColor], ["Secondary colour", secondaryColor]] as const) {
+      if (v !== undefined && v !== "" && !HEX.test(String(v))) return res.status(400).json({ message: `${label} must look like #1a2b3c` });
+    }
+    if (logoUrl !== undefined && logoUrl !== "" && !/^https:\/\//i.test(String(logoUrl))) {
+      return res.status(400).json({ message: "The logo link must start with https://" });
+    }
+    if (contactEmail !== undefined && contactEmail !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(contactEmail))) {
+      return res.status(400).json({ message: "Contact email is not valid" });
+    }
     const updatePayload = {
       ...(name !== undefined ? { name } : {}),
       ...(logoUrl !== undefined ? { logoUrl } : {}),

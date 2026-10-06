@@ -1,4 +1,4 @@
-﻿import type { Response } from "express";
+import type { Response } from "express";
 import type { AuthRequest } from "../middleware/authMiddleware";
 import Student from "../models/Student";
 import Teacher from "../models/Teacher";
@@ -19,7 +19,7 @@ async function buildContext(req: AuthRequest, studentIdParam?: string): Promise<
     const homework = await Homework.find({ classId: student.classId }).limit(10);
     const assignments = await Assignment.find({ classId: student.classId }).limit(10);
     const attendance = await Attendance.find({ studentId: student._id }).sort({ date: -1 }).limit(10);
-    const results = await Result.find({ studentId: student._id }).populate("examId").limit(10);
+    const results = await Result.find({ studentId: student._id, isPublished: true }).populate("examId").limit(10);
     return `Student admission number: ${student.admissionNumber}, Class: ${(student.classId as any)?.name}.
 Homework: ${JSON.stringify(homework.map((h) => ({ title: h.title, due: h.dueDate })))}
 Assignments: ${JSON.stringify(assignments.map((a) => ({ title: a.title, due: a.dueDate })))}
@@ -39,7 +39,7 @@ Results: ${JSON.stringify(results.map((r) => ({ exam: (r.examId as any)?.name, m
     if (!student) return "Child record not found.";
     const homework = await Homework.find({ classId: student.classId }).limit(10);
     const attendance = await Attendance.find({ studentId: student._id }).sort({ date: -1 }).limit(10);
-    const results = await Result.find({ studentId: student._id }).populate("examId").limit(10);
+    const results = await Result.find({ studentId: student._id, isPublished: true }).populate("examId").limit(10);
     const invoices = await Invoice.find({ studentId: student._id }).limit(10);
     return `Child: ${(student.userId as any)?.name}, Class: ${(student.classId as any)?.name}.
 Homework: ${JSON.stringify(homework.map((h) => ({ title: h.title, due: h.dueDate })))}
@@ -137,7 +137,8 @@ Academic trend: average result score across recent published exams is ${avgPerce
 export const chatWithAI = async (req: AuthRequest, res: Response) => {
   try {
     const { message, studentId } = req.body;
-    if (!message) return res.status(400).json({ message: "Message is required" });
+    if (typeof message !== "string" || !message.trim()) return res.status(400).json({ message: "Message is required" });
+    if (message.length > 1000) return res.status(400).json({ message: "Please keep your question under 1000 characters" });
 
     const context = await buildContext(req, studentId);
 
@@ -162,12 +163,15 @@ export const chatWithAI = async (req: AuthRequest, res: Response) => {
           { role: "user", content: message },
         ],
         temperature: 0.3,
+        max_tokens: 600,
       }),
     });
 
     const data: any = await response.json();
     if (!response.ok) {
-      return res.status(500).json({ message: "AI service error", error: data });
+      // the provider's raw error body is logged, not sent to the browser
+      console.error("AI provider error:", JSON.stringify(data).slice(0, 500));
+      return res.status(502).json({ message: "The assistant is unavailable right now. Please try again shortly." });
     }
 
     const reply = data.choices?.[0]?.message?.content || "Sorry, I could not generate a response.";
