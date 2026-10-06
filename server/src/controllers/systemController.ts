@@ -3,7 +3,7 @@ import type { AuthRequest } from "../middleware/authMiddleware";
 import Notification from "../models/Notification";
 import DisciplineIncident from "../models/DisciplineIncident";
 import CommunicationLog from "../models/CommunicationLog";
-import { canAccessStudent } from "../utils/accessControl";
+import { canAccessStudent, isAssignedToClass } from "../utils/accessControl";
 import { notify } from "../utils/notifier";
 import Parent from "../models/Parent";
 import Student from "../models/Student";
@@ -37,20 +37,35 @@ export const markAllRead = async (req: AuthRequest, res: Response) => {
 
 export const createIncident = async (req: AuthRequest, res: Response) => {
   try {
-    const belongsToSchool = await Student.findOne({ _id: req.body.studentId, schoolId: req.user!.schoolId });
-    if (!belongsToSchool) return res.status(404).json({ message: "Student not found in your school" });
+    const schoolId = req.user!.schoolId;
+    const description = String(req.body.description || "").trim();
+    if (!description) return res.status(400).json({ message: "A description is required" });
+    if (!["WARNING", "MINOR", "MAJOR"].includes(req.body.incidentType)) return res.status(400).json({ message: "Invalid incident type" });
+    const student = await Student.findOne({ _id: req.body.studentId, schoolId });
+    if (!student) return res.status(404).json({ message: "Student not found in your school" });
 
-    // A reporting teacher can create the incident but only admin staff can
-    // mark it resolved/add action-taken notes (see updateIncidentStatus) -
-    // stripping these keeps a teacher from closing out their own report.
-    const { status, actionTaken, ...safeBody } = req.body;
-    const incident = await DisciplineIncident.create({ ...safeBody, schoolId: req.user!.schoolId });
+    // A plain teacher can only report students of the classes they teach
+    if (student.classId && !(await isAssignedToClass(req, student.classId.toString()))) {
+      return res.status(403).json({ message: "You can only report students of your assigned classes" });
+    }
+
+    // reportedBy always comes from the login (the browser used to send it, so
+    // a report could be filed in someone else's name). status/actionTaken are
+    // admin-only (see updateIncidentStatus).
+    const incident = await DisciplineIncident.create({
+      schoolId,
+      studentId: student._id,
+      reportedBy: req.user!.userId,
+      incidentType: req.body.incidentType,
+      description,
+      parentNotified: !!req.body.parentNotified,
+    });
 
     if (req.body.parentNotified) {
-      const parent = await Parent.findOne({ children: req.body.studentId }).populate("userId");
+      const parent = await Parent.findOne({ children: student._id, schoolId }).populate("userId");
       if (parent && (parent.userId as any)?._id) {
         await notify({
-          schoolId: req.user!.schoolId,
+          schoolId,
           userId: (parent.userId as any)._id.toString(),
           title: "Discipline notice",
           message: `A discipline incident has been recorded for your child. Please check the portal for details.`,
@@ -76,9 +91,19 @@ export const getIncidents = async (req: AuthRequest, res: Response) => {
 
 export const updateIncidentStatus = async (req: AuthRequest, res: Response) => {
   try {
+    // Only status and actionTaken can change. The whole request body used to
+    // be applied as the update, which let a request rewrite schoolId,
+    // studentId or reportedBy of an existing incident.
+    const update: Record<string, unknown> = {};
+    if (req.body.status !== undefined) {
+      if (!["OPEN", "RESOLVED"].includes(req.body.status)) return res.status(400).json({ message: "Invalid status" });
+      update.status = req.body.status;
+    }
+    if (req.body.actionTaken !== undefined) update.actionTaken = String(req.body.actionTaken).trim();
+    if (Object.keys(update).length === 0) return res.status(400).json({ message: "Nothing to update" });
     const incident = await DisciplineIncident.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
-      req.body,
+      update,
       { new: true }
     );
     if (!incident) return res.status(404).json({ message: "Incident not found" });

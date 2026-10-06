@@ -57,6 +57,21 @@ export const createInvitation = async (req: AuthRequest, res: Response) => {
     }
     const validRole = role as UserRole;
     const normalizedEmail = email.toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
+    }
+
+    // Same rule as creating an account directly: an invitation is a way to
+    // create an account, so it can't be used to hand out a higher role than
+    // the inviter is allowed to. Before, ADMISSION_STAFF (or any staff who
+    // could open Invitations) could invite someone as SCHOOL_ADMIN/PRINCIPAL/HEAD.
+    const callerRole = req.user!.role;
+    if (["SCHOOL_ADMIN", "PRINCIPAL", "HEAD"].includes(validRole) && callerRole !== "SCHOOL_ADMIN") {
+      return res.status(403).json({ message: "Only the School Admin can invite admin-level accounts" });
+    }
+    if (callerRole === "ADMISSION_STAFF" && !["STUDENT", "PARENT"].includes(validRole)) {
+      return res.status(403).json({ message: "Admission staff can only invite students and parents" });
+    }
 
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
@@ -239,30 +254,37 @@ export const acceptInvitation = async (req: Request, res: Response) => {
     }
 
     await expireStaleInvitations({ token });
-    const invitation = await Invitation.findOne({ token });
-    if (!invitation) return res.status(404).json({ message: "Invitation not found" });
-    if (invitation.status !== "PENDING") {
+    const peek = await Invitation.findOne({ token });
+    if (!peek) return res.status(404).json({ message: "Invitation not found" });
+    if (peek.status !== "PENDING") {
       return res.status(400).json({ message: "This invitation is no longer valid" });
     }
+    // Claim the token atomically so two simultaneous clicks on the same link
+    // can't both create an account; if creating the account fails below, the
+    // claim is released again.
+    const invitation = await Invitation.findOneAndUpdate({ token, status: "PENDING" }, { status: "ACCEPTED", acceptedAt: new Date() }, { new: true });
+    if (!invitation) return res.status(400).json({ message: "This invitation was just used" });
+    const release = () => Invitation.updateOne({ _id: invitation._id }, { status: "PENDING", $unset: { acceptedAt: 1 } }).catch(() => {});
 
     // Someone could have registered this email a different way while the
     // invite was outstanding - don't silently create a second account.
     const existingUser = await User.findOne({ email: invitation.email });
     if (existingUser) {
-      invitation.status = "ACCEPTED";
-      await invitation.save();
       return res.status(400).json({ message: "An account with this email already exists. Try logging in instead." });
     }
 
     if (invitation.role === "STUDENT" || invitation.role === "TEACHER") {
       const limitCheck = await checkOrgLimit(invitation.schoolId.toString(), invitation.role);
       if (!limitCheck.allowed) {
+        await release();
         return res.status(403).json({ message: limitCheck.message });
       }
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
+    let user;
+    try {
+      user = await User.create({
       name: invitation.name,
       email: invitation.email,
       password: hashedPassword,
@@ -272,11 +294,11 @@ export const acceptInvitation = async (req: Request, res: Response) => {
       // verification step here - no separate email code needed.
       isEmailVerified: true,
       mustChangePassword: false,
-    });
-
-    invitation.status = "ACCEPTED";
-    invitation.acceptedAt = new Date();
-    await invitation.save();
+      });
+    } catch (createErr) {
+      await release();
+      throw createErr;
+    }
 
     await logAudit({
       schoolId: invitation.schoolId.toString(),

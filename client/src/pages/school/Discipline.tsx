@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { ShieldAlert } from "lucide-react";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Discipline() {
+  const { error: actionError, run } = useApiAction();
   const schoolId = useAuthStore((s) => s.user?.schoolId);
-  const userId = useAuthStore((s) => s.user?.id);
   const [students, setStudents] = useState<any[]>([]);
   const [list, setList] = useState<any[]>([]);
   const [form, setForm] = useState({ studentId: "", incidentType: "WARNING", description: "", parentNotified: true });
@@ -17,21 +18,25 @@ export default function Discipline() {
 
   useEffect(() => {
     if (schoolId) {
-      api.get(`/people/students?schoolId=${schoolId}`).then((res) => setStudents(res.data));
+      api.get(`/people/students?schoolId=${schoolId}`).then((res) => setStudents(res.data)).catch(() => setStudents([]));
       load();
     }
   }, [schoolId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/system/discipline", { ...form, schoolId, reportedBy: userId });
-    setForm({ studentId: "", incidentType: "WARNING", description: "", parentNotified: true });
-    load();
+    await run(async () => {
+      await api.post("/system/discipline", form);
+      setForm({ studentId: "", incidentType: "WARNING", description: "", parentNotified: true });
+      load();
+    }, "Could not record the incident");
   };
 
   const resolve = async (id: string) => {
-    await api.put(`/system/discipline/${id}`, { status: "RESOLVED" });
-    load();
+    await run(async () => {
+      await api.put(`/system/discipline/${id}`, { status: "RESOLVED" });
+      load();
+    }, "Could not resolve the incident");
   };
 
   return (
@@ -41,6 +46,7 @@ export default function Discipline() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><ShieldAlert size={22} className="text-primary" />Discipline Management</h1>
         <p className="text-muted mt-1 text-sm">Record and track student discipline incidents.</p>
       </div>
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-lg px-3 py-2 text-sm col-span-2" required>

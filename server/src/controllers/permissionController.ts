@@ -6,6 +6,17 @@ import { logAudit } from "../utils/auditLogger";
 
 const MODULES = ["Students", "Teachers", "Attendance", "Homework", "Exams", "Fees", "Admissions", "Academy", "Announcements", "Reports", "Discipline", "Invitations"];
 
+// Only these module/action pairs are actually checked by the server today
+// (checkPermission() in the routes). The other modules in the matrix are
+// stored but do not block anything yet - the screen now says so, instead of
+// implying that unticking "Students: delete" protects something.
+export const ENFORCED: Record<string, string[]> = {
+  Invitations: ["view", "create", "edit", "delete"],
+  Fees: ["edit"],
+  Exams: ["edit"],
+  Discipline: ["edit"],
+};
+
 const DEFAULT_ROLES: Record<string, Record<string, boolean>> = {
   SCHOOL_ADMIN: { view: true, create: true, edit: true, delete: true },
   PRINCIPAL: { view: true, create: false, edit: false, delete: false },
@@ -20,14 +31,14 @@ export const getPermissions = async (req: AuthRequest, res: Response) => {
     const existing = await Permission.find({ schoolId });
     if (existing.length > 0) return res.json(existing);
 
-    const seeded = [];
+    // two requests opening the page at once used to seed every role twice;
+    // upsert makes seeding idempotent
     for (const [roleName, defaultAccess] of Object.entries(DEFAULT_ROLES)) {
       const modules: Record<string, any> = {};
       MODULES.forEach((m) => (modules[m] = defaultAccess));
-      const perm = await Permission.create({ schoolId, roleName, isCustom: false, modules });
-      seeded.push(perm);
+      await Permission.updateOne({ schoolId, roleName }, { $setOnInsert: { schoolId, roleName, isCustom: false, modules } }, { upsert: true });
     }
-    res.json(seeded);
+    res.json(await Permission.find({ schoolId }));
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -38,9 +49,27 @@ export const updatePermission = async (req: AuthRequest, res: Response) => {
     const before = await Permission.findOne({ _id: req.params.id, schoolId: req.user!.schoolId });
     if (!before) return res.status(404).json({ message: "Permission not found" });
 
+    // The School Admin must always keep full access - otherwise the Principal
+    // (who can open this screen too) could lock the owner out of the system.
+    if (before.roleName === "SCHOOL_ADMIN") {
+      return res.status(403).json({ message: "The School Admin role always has full access and cannot be changed" });
+    }
+
+    // Only known modules and the four boolean actions are accepted. Before,
+    // whatever JSON the browser sent was stored as-is.
+    const incoming = req.body.modules;
+    if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) {
+      return res.status(400).json({ message: "modules must be an object" });
+    }
+    const cleaned: Record<string, Record<string, boolean>> = {};
+    for (const m of MODULES) {
+      const row = (incoming as any)[m] || {};
+      cleaned[m] = { view: !!row.view, create: !!row.create, edit: !!row.edit, delete: !!row.delete };
+    }
+
     const perm = await Permission.findOneAndUpdate(
       { _id: req.params.id, schoolId: req.user!.schoolId },
-      { modules: req.body.modules },
+      { modules: cleaned },
       { new: true }
     );
 
@@ -68,9 +97,14 @@ export const updatePermission = async (req: AuthRequest, res: Response) => {
 
 export const createCustomRole = async (req: AuthRequest, res: Response) => {
   try {
+    const roleName = String(req.body.roleName || "").trim();
+    if (!roleName || roleName.length > 60) return res.status(400).json({ message: "Role name is required (max 60 characters)" });
+    if (await Permission.exists({ schoolId: req.user!.schoolId, roleName: new RegExp(`^${roleName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") })) {
+      return res.status(409).json({ message: `A role named "${roleName}" already exists` });
+    }
     const modules: Record<string, any> = {};
     MODULES.forEach((m) => (modules[m] = { view: false, create: false, edit: false, delete: false }));
-    const perm = await Permission.create({ schoolId: req.user!.schoolId, roleName: req.body.roleName, isCustom: true, modules });
+    const perm = await Permission.create({ schoolId: req.user!.schoolId, roleName, isCustom: true, modules });
     res.status(201).json(perm);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -78,5 +112,5 @@ export const createCustomRole = async (req: AuthRequest, res: Response) => {
 };
 
 export const getModuleList = async (req: AuthRequest, res: Response) => {
-  res.json(MODULES);
+  res.json({ modules: MODULES, enforced: ENFORCED });
 };

@@ -7,6 +7,7 @@ import Student from "../models/Student";
 import Teacher from "../models/Teacher";
 import School from "../models/School";
 import { checkOrgLimit } from "../utils/orgLimits";
+import Section from "../models/Section";
 import { sendMail, bulkAccountCreatedEmailHtml } from "../utils/mailer";
 
 interface RowInput {
@@ -33,6 +34,11 @@ function generateTempPassword(): string {
   return crypto.randomBytes(6).toString("base64").replace(/[+/=]/g, "").slice(0, 8) + "!1";
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// CSV cells can arrive as numbers (e.g. an admission number 1042) or with
+// stray spaces - normalise to trimmed strings before comparing/saving.
+const str = (v: unknown) => (v === undefined || v === null ? "" : String(v).trim());
+
 export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
   try {
     const { rows, dryRun } = req.body as { rows: RowInput[]; dryRun?: boolean };
@@ -54,7 +60,26 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
     const seenEmailsInBatch = new Set<string>();
     const seenAdmissionNumbersInBatch = new Set<string>();
 
-    for (const row of rows) {
+    // Every class/section id in the file must really exist in THIS school and
+    // the section must belong to the class. It used to trust the CSV blindly,
+    // so a typo (or another school's id) created a student with a dangling
+    // or foreign class that then never appeared anywhere.
+    const schoolSections = await Section.find({ schoolId }).select("_id classId capacity");
+    const sectionInfo = new Map(schoolSections.map((sec) => [sec._id.toString(), sec]));
+    const seatsTaken = new Map<string, number>();
+    const seatsFor = async (sectionId: string) => {
+      if (!seatsTaken.has(sectionId)) seatsTaken.set(sectionId, await Student.countDocuments({ schoolId, sectionId, status: "ACTIVE" }));
+      return seatsTaken.get(sectionId)!;
+    };
+
+    for (const raw of rows) {
+      const row: RowInput = {
+        name: str(raw?.name),
+        email: str(raw?.email),
+        admissionNumber: str(raw?.admissionNumber),
+        classId: str(raw?.classId),
+        sectionId: str(raw?.sectionId),
+      };
       try {
         if (!row.name || !row.email || !row.admissionNumber || !row.classId || !row.sectionId) {
           results.skipped++;
@@ -62,7 +87,23 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
           continue;
         }
 
-        const email = row.email.toLowerCase().trim();
+        const email = row.email.toLowerCase();
+        if (!EMAIL_RE.test(email)) {
+          results.skipped++;
+          results.errors.push(`Skipped ${email}: not a valid email address`);
+          continue;
+        }
+        const sec = sectionInfo.get(row.sectionId);
+        if (!sec || sec.classId.toString() !== row.classId) {
+          results.skipped++;
+          results.errors.push(`Skipped ${email}: class/section not found in your school (or the section is not in that class)`);
+          continue;
+        }
+        if (sec.capacity && (await seatsFor(row.sectionId)) >= sec.capacity) {
+          results.skipped++;
+          results.errors.push(`Skipped ${email}: section is full (${sec.capacity} students)`);
+          continue;
+        }
 
         // Catches duplicates *within the same file* (e.g. the same row
         // pasted twice) - the DB checks below only catch collisions with
@@ -104,6 +145,7 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
 
         seenEmailsInBatch.add(email);
         seenAdmissionNumbersInBatch.add(row.admissionNumber);
+        seatsTaken.set(row.sectionId, (await seatsFor(row.sectionId)) + 1);
 
         // Dry run validates everything above (duplicates, limits, missing
         // fields) without writing anything - the client shows this as a
@@ -125,14 +167,21 @@ export const bulkImportStudents = async (req: AuthRequest, res: Response) => {
           mustChangePassword: true,
         });
 
-        await Student.create({
-          schoolId,
-          userId: user._id,
-          admissionNumber: row.admissionNumber,
-          classId: row.classId,
-          sectionId: row.sectionId,
-          classHistory: [{ classId: row.classId, sectionId: row.sectionId, fromDate: new Date() }],
-        });
+        try {
+          await Student.create({
+            schoolId,
+            userId: user._id,
+            admissionNumber: row.admissionNumber,
+            classId: row.classId,
+            sectionId: row.sectionId,
+            classHistory: [{ classId: row.classId, sectionId: row.sectionId, fromDate: new Date() }],
+          });
+        } catch (profileErr) {
+          // don't leave a login account without a student profile - its email
+          // would block this row on every retry ("email already exists")
+          await User.deleteOne({ _id: user._id }).catch(() => {});
+          throw profileErr;
+        }
 
         results.created++;
         results.accounts.push({ email, tempPassword });
@@ -167,7 +216,13 @@ export const bulkImportTeachers = async (req: AuthRequest, res: Response) => {
     const seenEmailsInBatch = new Set<string>();
     const seenEmployeeIdsInBatch = new Set<string>();
 
-    for (const row of rows) {
+    for (const raw of rows) {
+      const row: TeacherRowInput = {
+        name: str(raw?.name),
+        email: str(raw?.email),
+        employeeId: str(raw?.employeeId),
+        qualification: str(raw?.qualification) || undefined,
+      };
       try {
         if (!row.name || !row.email || !row.employeeId) {
           results.skipped++;
@@ -175,7 +230,12 @@ export const bulkImportTeachers = async (req: AuthRequest, res: Response) => {
           continue;
         }
 
-        const email = row.email.toLowerCase().trim();
+        const email = row.email.toLowerCase();
+        if (!EMAIL_RE.test(email)) {
+          results.skipped++;
+          results.errors.push(`Skipped ${email}: not a valid email address`);
+          continue;
+        }
 
         if (seenEmailsInBatch.has(email)) {
           results.skipped++;
@@ -229,16 +289,21 @@ export const bulkImportTeachers = async (req: AuthRequest, res: Response) => {
           mustChangePassword: true,
         });
 
-        await Teacher.create({
-          schoolId,
-          userId: user._id,
-          employeeId: row.employeeId,
-          qualification: row.qualification,
-          subjects: [],
-          assignedClasses: [],
-          joiningDate: new Date(),
-          employmentStatus: "ACTIVE",
-        });
+        try {
+          await Teacher.create({
+            schoolId,
+            userId: user._id,
+            employeeId: row.employeeId,
+            qualification: row.qualification,
+            subjects: [],
+            assignedClasses: [],
+            joiningDate: new Date(),
+            employmentStatus: "ACTIVE",
+          });
+        } catch (profileErr) {
+          await User.deleteOne({ _id: user._id }).catch(() => {});
+          throw profileErr;
+        }
 
         results.created++;
         results.accounts.push({ email, tempPassword });

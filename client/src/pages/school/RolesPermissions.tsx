@@ -9,13 +9,18 @@ export default function RolesPermissions() {
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const [permissions, setPermissions] = useState<any[]>([]);
   const [modules, setModules] = useState<string[]>([]);
-  const [newRole, setNewRole] = useState("");
+  const [enforced, setEnforced] = useState<Record<string, string[]>>({});
+  const [error, setError] = useState("");
 
   const load = async () => {
-    const res = await api.get(`/permissions?schoolId=${schoolId}`);
-    setPermissions(res.data);
-    const mod = await api.get("/permissions/modules");
-    setModules(mod.data);
+    try {
+      const [res, mod] = await Promise.all([api.get(`/permissions?schoolId=${schoolId}`), api.get("/permissions/modules")]);
+      setPermissions(res.data);
+      setModules(mod.data.modules);
+      setEnforced(mod.data.enforced || {});
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not load permissions");
+    }
   };
 
   useEffect(() => {
@@ -27,14 +32,12 @@ export default function RolesPermissions() {
       ...perm.modules,
       [moduleName]: { ...perm.modules[moduleName], [action]: !perm.modules[moduleName]?.[action] },
     };
-    await api.put(`/permissions/${perm._id}`, { modules: updatedModules });
-    load();
-  };
-
-  const addCustomRole = async () => {
-    if (!newRole.trim()) return;
-    await api.post("/permissions/custom-role", { schoolId, roleName: newRole });
-    setNewRole("");
+    setError("");
+    try {
+      await api.put(`/permissions/${perm._id}`, { modules: updatedModules });
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Could not save the change");
+    }
     load();
   };
 
@@ -46,10 +49,14 @@ export default function RolesPermissions() {
         <p className="text-muted mt-1 text-sm">Configure exactly what each role can view, create, edit, or delete.</p>
       </div>
 
-      <div className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 flex gap-2">
-        <input placeholder="New custom role name (e.g. Campus Coordinator)" value={newRole} onChange={(e) => setNewRole(e.target.value)} className="flex-1 border border-border rounded-lg px-3 py-2 text-sm" />
-        <button onClick={addCustomRole} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">+ Create Role</button>
+      <div className="bg-surface rounded-xl border border-border shadow-sm p-4 mt-6 text-sm text-ink-soft">
+        <p>
+          Right now these switches are <span className="font-medium text-ink">enforced for:</span>{" "}
+          {Object.entries(enforced).map(([m, acts]) => `${m} (${acts.join("/")})`).join(", ")}.
+          Other modules are saved but do not block anything yet. The School Admin and Principal always have full access.
+        </p>
       </div>
+      {error && <p className="text-danger text-sm mt-3">{error}</p>}
 
       <div className="space-y-6 mt-6">
         {permissions.map((perm) => (
@@ -69,10 +76,10 @@ export default function RolesPermissions() {
               <tbody>
                 {modules.map((m) => (
                   <tr key={m} className="border-t border-border">
-                    <td className="p-2">{m}</td>
+                    <td className="p-2">{m}{enforced[m] ? <span className="ml-2 text-[10px] uppercase text-success font-semibold">enforced</span> : null}</td>
                     {ACTIONS.map((a) => (
                       <td key={a} className="p-2 text-center">
-                        <button onClick={() => toggle(perm, m, a)} className="mx-auto flex items-center justify-center">
+                        <button disabled={perm.roleName === "SCHOOL_ADMIN"} onClick={() => toggle(perm, m, a)} className="mx-auto flex items-center justify-center disabled:opacity-50">
                           {perm.modules[m]?.[a] ? <Check size={16} className="text-success" /> : <X size={16} className="text-muted/40" />}
                         </button>
                       </td>
