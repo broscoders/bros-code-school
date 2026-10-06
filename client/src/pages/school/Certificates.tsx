@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import { BadgeCheck } from "lucide-react";
+import { useApiAction } from "../../hooks/useApiAction";
 
 export default function Certificates() {
+  const { error: actionError, run } = useApiAction();
   const schoolId = useAuthStore((s) => s.user?.schoolId);
   const [students, setStudents] = useState<any[]>([]);
   const [certs, setCerts] = useState<any[]>([]);
@@ -23,9 +25,11 @@ export default function Certificates() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/crm/certificates", { ...form, schoolId });
-    setForm({ studentId: "", title: "", type: "COMPLETION" });
-    load();
+    await run(async () => {
+      await api.post("/crm/certificates", form);
+      setForm({ studentId: "", title: "", type: "COMPLETION" });
+      load();
+    }, "Could not issue the certificate");
   };
 
   return (
@@ -35,6 +39,8 @@ export default function Certificates() {
         <h1 className="font-display text-2xl font-bold text-ink mt-1 flex items-center gap-2"><BadgeCheck size={22} className="text-primary" />Certificates</h1>
         <p className="text-muted mt-1 text-sm">Issue and track certificates for students.</p>
       </div>
+
+      {actionError && <p className="text-danger text-sm mt-4">{actionError}</p>}
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm col-span-2" required>

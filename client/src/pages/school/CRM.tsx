@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
+import { useApiAction } from "../../hooks/useApiAction";
 
 const statusColors: Record<string, string> = {
   NEW: "bg-white/5 text-ink-soft",
@@ -15,25 +16,58 @@ export default function CRM() {
   const [leads, setLeads] = useState<any[]>([]);
   const [form, setForm] = useState({ name: "", contact: "", source: "", interestedIn: "" });
 
+  const { error: actionError, run } = useApiAction();
+  const [classes, setClasses] = useState<any[]>([]);
+  const [converting, setConverting] = useState<{ id: string; name: string } | null>(null);
+  const [convertClass, setConvertClass] = useState("");
+  const [notice, setNotice] = useState("");
+
   const load = async () => {
-    const res = await api.get(`/crm/leads?schoolId=${schoolId}`);
-    setLeads(res.data);
+    try {
+      const res = await api.get(`/crm/leads?schoolId=${schoolId}`);
+      setLeads(res.data);
+    } catch {
+      setLeads([]);
+    }
   };
 
   useEffect(() => {
-    if (schoolId) load();
+    if (schoolId) {
+      load();
+      api.get("/academics/classes").then((res) => setClasses(res.data)).catch(() => setClasses([]));
+    }
   }, [schoolId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/crm/leads", { ...form, schoolId });
-    setForm({ name: "", contact: "", source: "", interestedIn: "" });
-    load();
+    await run(async () => {
+      await api.post("/crm/leads", form);
+      setForm({ name: "", contact: "", source: "", interestedIn: "" });
+      load();
+    }, "Could not save the lead");
   };
 
-  const updateStatus = async (id: string, status: string) => {
-    await api.put(`/crm/leads/${id}`, { status });
-    load();
+  const updateStatus = async (lead: any, status: string) => {
+    // converting needs a class - an admission can't be created without one
+    if (status === "CONVERTED") {
+      setConverting({ id: lead._id, name: lead.name });
+      setConvertClass("");
+      return;
+    }
+    await run(async () => {
+      await api.put(`/crm/leads/${lead._id}`, { status });
+      load();
+    }, "Could not update the lead");
+  };
+
+  const confirmConvert = async () => {
+    if (!converting || !convertClass) return;
+    const ok = await run(async () => {
+      const res = await api.put(`/crm/leads/${converting.id}`, { status: "CONVERTED", desiredClassId: convertClass });
+      setNotice(res.data.admissionCreated ? `${converting.name} was converted and added to Admissions.` : `${converting.name} was converted (an admission already existed).`);
+      load();
+    }, "Could not convert the lead");
+    if (ok) setConverting(null);
   };
 
   return (
@@ -43,6 +77,19 @@ export default function CRM() {
         <h1 className="font-display text-2xl font-bold text-primary-dark mt-1">Leads & Inquiries</h1>
         <p className="text-muted mt-1 text-sm">Track inquiries from first contact to admission.</p>
       </div>
+      {actionError && <p className="text-danger text-sm mb-3">{actionError}</p>}
+      {notice && <p className="text-success text-sm mb-3">{notice}</p>}
+      {converting && (
+        <div className="bg-surface rounded-xl border border-border shadow-sm p-4 mb-4 flex flex-wrap items-center gap-3">
+          <span className="text-sm">Convert <b>{converting.name}</b> - which class is the child applying for?</span>
+          <select value={convertClass} onChange={(e) => setConvertClass(e.target.value)} className="border border-border rounded-md px-3 py-1.5 text-sm">
+            <option value="">Select class</option>
+            {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+          </select>
+          <button onClick={confirmConvert} disabled={!convertClass} className="bg-primary text-white px-3 py-1.5 rounded-md text-sm disabled:opacity-50">Convert</button>
+          <button onClick={() => setConverting(null)} className="text-xs text-muted">Cancel</button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="bg-surface rounded-xl border border-border shadow-sm p-5 mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="border border-border rounded-md px-3 py-2 text-sm" required />
@@ -79,7 +126,7 @@ export default function CRM() {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[l.status]}`}>{l.status}</span>
                   </td>
                   <td className="p-3">
-                    <select value="" onChange={(e) => e.target.value && updateStatus(l._id, e.target.value)} className="text-xs border border-border rounded-md px-2 py-1">
+                    <select value="" onChange={(e) => e.target.value && updateStatus(l, e.target.value)} className="text-xs border border-border rounded-md px-2 py-1">
                       <option value="">Update status</option>
                       <option value="CONTACTED">Contacted</option>
                       <option value="DEMO_SCHEDULED">Demo Scheduled</option>

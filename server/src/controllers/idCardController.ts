@@ -5,6 +5,32 @@ import Student from "../models/Student";
 import Teacher from "../models/Teacher";
 import StaffProfile from "../models/StaffProfile";
 
+async function personBelongsToSchool(personType: string, personId: string, schoolId: string) {
+  if (!personId) return false;
+  if (personType === "STUDENT") return !!(await Student.exists({ _id: personId, schoolId }));
+  if (personType === "TEACHER") return !!(await Teacher.exists({ _id: personId, schoolId }));
+  return !!(await StaffProfile.exists({ _id: personId, schoolId }));
+}
+
+// The card number is random, so two people can (rarely) draw the same one and
+// the unique index then throws a raw database error. Retry with a new number.
+async function createCard(schoolId: string, personType: IDCardPersonType, personId: string, issuedBy: string) {
+  const prefix = personType === "STUDENT" ? "STU" : personType === "TEACHER" ? "TCH" : "STF";
+  let lastErr: unknown;
+  for (let i = 0; i < 5; i++) {
+    try {
+      return await IDCardRecord.create({
+        schoolId, personType, personId, issuedBy,
+        cardNumber: `${prefix}-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`,
+      });
+    } catch (err: any) {
+      lastErr = err;
+      if (err?.code !== 11000) throw err;
+    }
+  }
+  throw lastErr;
+}
+
 // Issues (or returns the already-active) ID card for a person. This is what
 // makes an ID card an official, trackable document rather than just a
 // printable div - the card number is unique, permanent, and visible in the
@@ -15,29 +41,14 @@ export const issueOrGetCard = async (req: AuthRequest, res: Response) => {
     if (!["STUDENT", "TEACHER", "STAFF"].includes(personType)) {
       return res.status(400).json({ message: "Invalid person type" });
     }
-
-    // Confirm the person actually belongs to this school before issuing
-    // anything in their name - same tenant-isolation reasoning as
-    // everywhere else this pattern appears.
-    let person = null;
-    if (personType === "STUDENT") person = await Student.findOne({ _id: personId, schoolId: req.user!.schoolId });
-    else if (personType === "TEACHER") person = await Teacher.findOne({ _id: personId, schoolId: req.user!.schoolId });
-    else person = await StaffProfile.findOne({ _id: personId, schoolId: req.user!.schoolId });
-    if (!person) return res.status(404).json({ message: "Person not found in your school" });
+    if (!(await personBelongsToSchool(personType, personId, req.user!.schoolId))) {
+      return res.status(404).json({ message: "Person not found in your school" });
+    }
 
     const existing = await IDCardRecord.findOne({ schoolId: req.user!.schoolId, personType, personId, isActive: true });
     if (existing) return res.json(existing);
 
-    const prefix = personType === "STUDENT" ? "STU" : personType === "TEACHER" ? "TCH" : "STF";
-    const card = await IDCardRecord.create({
-      schoolId: req.user!.schoolId,
-      personType,
-      personId,
-      cardNumber: `${prefix}-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`,
-      issuedBy: req.user!.userId,
-    });
-
-    res.status(201).json(card);
+    res.status(201).json(await createCard(req.user!.schoolId, personType, personId, req.user!.userId));
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }
@@ -51,17 +62,16 @@ export const reissueCard = async (req: AuthRequest, res: Response) => {
     if (!["STUDENT", "TEACHER", "STAFF"].includes(personType)) {
       return res.status(400).json({ message: "Invalid person type" });
     }
+    // reissue skipped this check entirely - it would create a card record for
+    // any id, even one that is not a person in this school
+    if (!(await personBelongsToSchool(personType, personId, req.user!.schoolId))) {
+      return res.status(404).json({ message: "Person not found in your school" });
+    }
 
-    await IDCardRecord.updateMany({ schoolId: req.user!.schoolId, personType, personId, isActive: true }, { isActive: false });
-
-    const prefix = personType === "STUDENT" ? "STU" : personType === "TEACHER" ? "TCH" : "STF";
-    const card = await IDCardRecord.create({
-      schoolId: req.user!.schoolId,
-      personType,
-      personId,
-      cardNumber: `${prefix}-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`,
-      issuedBy: req.user!.userId,
-    });
+    // create the new card FIRST, then retire the old ones: if creating failed
+    // after the old card was deactivated the person ended up with no valid card
+    const card = await createCard(req.user!.schoolId, personType, personId, req.user!.userId);
+    await IDCardRecord.updateMany({ schoolId: req.user!.schoolId, personType, personId, isActive: true, _id: { $ne: card._id } }, { isActive: false });
 
     res.status(201).json(card);
   } catch (err) {

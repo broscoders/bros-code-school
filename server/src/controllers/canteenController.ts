@@ -6,7 +6,17 @@ import { canAccessStudent } from "../utils/accessControl";
 
 export const createItem = async (req: AuthRequest, res: Response) => {
   try {
-    const item = await CanteenItem.create({ ...req.body, schoolId: req.user!.schoolId });
+    const name = String(req.body.name || "").trim();
+    const price = Number(req.body.price);
+    if (!name) return res.status(400).json({ message: "Item name is required" });
+    // a negative price would REDUCE an order's total
+    if (!Number.isFinite(price) || price < 0 || price > 100000) return res.status(400).json({ message: "Price must be a number between 0 and 100000" });
+    const item = await CanteenItem.create({
+      schoolId: req.user!.schoolId,
+      name,
+      price,
+      category: ["MEAL", "SNACK", "BEVERAGE", "OTHER"].includes(req.body.category) ? req.body.category : "OTHER",
+    });
     res.status(201).json(item);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -15,7 +25,12 @@ export const createItem = async (req: AuthRequest, res: Response) => {
 
 export const getItems = async (req: AuthRequest, res: Response) => {
   try {
-    const items = await CanteenItem.find({ schoolId: req.user!.schoolId, isAvailable: true });
+    // Staff see every item. Before, an item switched off disappeared from the
+    // list for everyone, so there was no way to switch it back on again.
+    const isStaff = !["PARENT", "STUDENT"].includes(req.user!.role);
+    const filter: Record<string, any> = { schoolId: req.user!.schoolId };
+    if (!isStaff) filter.isAvailable = true;
+    const items = await CanteenItem.find(filter).sort({ name: 1 });
     res.json(items);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -45,12 +60,16 @@ export const placeOrder = async (req: AuthRequest, res: Response) => {
 
     if (!items || items.length === 0) return res.status(400).json({ message: "Order must contain at least one item" });
 
+    if (items.length > 30) return res.status(400).json({ message: "Too many items in one order" });
     const orderLines = [];
     let totalAmount = 0;
     for (const line of items) {
       const item = await CanteenItem.findOne({ _id: line.itemId, schoolId: req.user!.schoolId, isAvailable: true });
       if (!item) return res.status(400).json({ message: `Item not available` });
-      const quantity = Math.max(1, Number(line.quantity) || 1);
+      const quantity = Math.floor(Number(line.quantity));
+      if (!Number.isFinite(quantity) || quantity < 1 || quantity > 20) {
+        return res.status(400).json({ message: `Quantity for ${item.name} must be between 1 and 20` });
+      }
       orderLines.push({ itemId: item._id, itemName: item.name, price: item.price, quantity });
       totalAmount += item.price * quantity;
     }
@@ -99,12 +118,17 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
     if (!["PREPARING", "READY", "COLLECTED", "CANCELLED"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
+    // a collected or cancelled order is final - it used to be possible to
+    // flip a collected order back to PREPARING
     const order = await CanteenOrder.findOneAndUpdate(
-      { _id: req.params.id, schoolId: req.user!.schoolId },
+      { _id: req.params.id, schoolId: req.user!.schoolId, status: { $nin: ["COLLECTED", "CANCELLED"] } },
       { status },
       { new: true }
     );
-    if (!order) return res.status(404).json({ message: "Order not found" });
+    if (!order) {
+      const exists = await CanteenOrder.exists({ _id: req.params.id, schoolId: req.user!.schoolId });
+      return res.status(exists ? 400 : 404).json({ message: exists ? "This order is already completed or cancelled" : "Order not found" });
+    }
     res.json(order);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
