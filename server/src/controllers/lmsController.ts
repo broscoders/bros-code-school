@@ -217,10 +217,26 @@ export const deleteLesson = async (req: AuthRequest, res: Response) => {
 
 export const markLessonProgress = async (req: AuthRequest, res: Response) => {
   try {
-    const { lessonId, courseId, status } = req.body;
+    const { lessonId, status } = req.body;
+    if (!["IN_PROGRESS", "COMPLETED"].includes(status)) return res.status(400).json({ message: "Invalid status" });
     const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
     if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
     const studentId = myStudent._id.toString();
+
+    // The course is taken from the LESSON itself, not from the request.
+    // courseId and lessonId used to come straight from the browser, so a
+    // student could post COMPLETED for made-up lesson ids until the count
+    // reached the course's total and receive the completion certificate
+    // without opening a single lesson.
+    const lesson = await Lesson.findOne({ _id: lessonId, schoolId: req.user!.schoolId });
+    if (!lesson) return res.status(404).json({ message: "Lesson not found" });
+    const courseId = lesson.courseId.toString();
+    const ownCourse = await Course.findOne({ _id: courseId, schoolId: req.user!.schoolId, isPublished: true });
+    if (!ownCourse) return res.status(404).json({ message: "Course not found" });
+    if (ownCourse.classId && (!myStudent.classId || myStudent.classId.toString() !== ownCourse.classId.toString())) {
+      return res.status(403).json({ message: "This course is not for your class" });
+    }
+
     const progress = await LessonProgress.findOneAndUpdate(
       { studentId, lessonId },
       {
@@ -252,7 +268,7 @@ export const markLessonProgress = async (req: AuthRequest, res: Response) => {
           studentId,
           title: `Course Completion: ${course.title}`,
           type: "COMPLETION",
-          certificateNumber: `CERT-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          certificateNumber: "CERT-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2, 6).toUpperCase(),
           issueDate: new Date(),
           courseId,
         });

@@ -309,15 +309,33 @@ export const submitHomework = async (req: AuthRequest, res: Response) => {
     if (req.user!.role === "STUDENT") {
       const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
       if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+      // a student can only hand in work set for their own class
+      if (!myStudent.classId || myStudent.classId.toString() !== homework.classId.toString()) {
+        return res.status(403).json({ message: "This homework is not for your class" });
+      }
       studentId = myStudent._id.toString();
     } else {
       const belongs = await Student.findOne({ _id: studentId, schoolId: req.user!.schoolId });
       if (!belongs) return res.status(404).json({ message: "Student not found in your school" });
     }
 
+    const submissionUrl = String(req.body.submissionUrl || "").trim();
+    if (!submissionUrl || !/^https?:\/\//i.test(submissionUrl)) {
+      return res.status(400).json({ message: "Please attach your work before submitting" });
+    }
+
+    // Marked work can't be overwritten by resubmitting
+    const existing = await HomeworkSubmission.findOne({ homeworkId: req.body.homeworkId, studentId });
+    if (existing && ["COMPLETED"].includes(existing.status)) {
+      return res.status(400).json({ message: "This has already been marked and can no longer be changed" });
+    }
+
+    // ONLY the file link is taken from the student. The whole request body used
+    // to be saved, so a student could send marksObtained / feedback with their
+    // submission and grade their own work.
     const submission = await HomeworkSubmission.findOneAndUpdate(
       { homeworkId: req.body.homeworkId, studentId },
-      { ...req.body, studentId, status: "SUBMITTED", submittedAt: new Date() },
+      { $set: { submissionUrl, status: "SUBMITTED", submittedAt: new Date() }, $setOnInsert: { homeworkId: req.body.homeworkId, studentId } },
       { upsert: true, new: true }
     );
     res.status(201).json(submission);
@@ -386,15 +404,33 @@ export const submitAssignment = async (req: AuthRequest, res: Response) => {
     if (req.user!.role === "STUDENT") {
       const myStudent = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId });
       if (!myStudent) return res.status(403).json({ message: "Student profile not found" });
+      // a student can only hand in work set for their own class
+      if (!myStudent.classId || myStudent.classId.toString() !== assignment.classId.toString()) {
+        return res.status(403).json({ message: "This assignment is not for your class" });
+      }
       studentId = myStudent._id.toString();
     } else {
       const belongs = await Student.findOne({ _id: studentId, schoolId: req.user!.schoolId });
       if (!belongs) return res.status(404).json({ message: "Student not found in your school" });
     }
 
+    const submissionUrl = String(req.body.submissionUrl || "").trim();
+    if (!submissionUrl || !/^https?:\/\//i.test(submissionUrl)) {
+      return res.status(400).json({ message: "Please attach your work before submitting" });
+    }
+
+    // Marked work can't be overwritten by resubmitting
+    const existing = await AssignmentSubmission.findOne({ assignmentId: req.body.assignmentId, studentId });
+    if (existing && ["GRADED"].includes(existing.status)) {
+      return res.status(400).json({ message: "This has already been marked and can no longer be changed" });
+    }
+
+    // ONLY the file link is taken from the student. The whole request body used
+    // to be saved, so a student could send marksObtained / feedback with their
+    // submission and grade their own work.
     const submission = await AssignmentSubmission.findOneAndUpdate(
       { assignmentId: req.body.assignmentId, studentId },
-      { ...req.body, studentId, status: "SUBMITTED", submittedAt: new Date() },
+      { $set: { submissionUrl, status: "SUBMITTED", submittedAt: new Date() }, $setOnInsert: { assignmentId: req.body.assignmentId, studentId } },
       { upsert: true, new: true }
     );
     res.status(201).json(submission);
@@ -883,6 +919,88 @@ export const payInvoice = async (req: AuthRequest, res: Response) => {
     }
 
     res.json(invoice);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Submissions: listing for teachers, grading, and "my own" for students.
+// Before this, a student could not hand in work from the app, a teacher had no
+// way to see what was handed in, and there was nowhere to give marks/feedback.
+// ---------------------------------------------------------------------------
+const submissionStudentPopulate = { path: "studentId", select: "admissionNumber userId", populate: { path: "userId", select: "name" } };
+
+export const getHomeworkSubmissions = async (req: AuthRequest, res: Response) => {
+  try {
+    const homework = await Homework.findOne({ _id: String(req.query.homeworkId || ""), schoolId: req.user!.schoolId });
+    if (!homework) return res.status(404).json({ message: "Homework not found" });
+    if (!(await isAssignedToClass(req, homework.classId.toString()))) return res.status(403).json({ message: "You are not assigned to this class" });
+    const list = await HomeworkSubmission.find({ homeworkId: homework._id }).populate(submissionStudentPopulate).sort({ submittedAt: -1 });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const reviewHomeworkSubmission = async (req: AuthRequest, res: Response) => {
+  try {
+    const sub = await HomeworkSubmission.findById(req.params.id);
+    const homework = sub && (await Homework.findOne({ _id: sub.homeworkId, schoolId: req.user!.schoolId }));
+    if (!sub || !homework) return res.status(404).json({ message: "Submission not found" });
+    if (!(await isAssignedToClass(req, homework.classId.toString()))) return res.status(403).json({ message: "You are not assigned to this class" });
+    sub.status = "COMPLETED";
+    if (req.body.feedback !== undefined) sub.feedback = String(req.body.feedback).trim().slice(0, 1000);
+    await sub.save();
+    res.json(sub);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const getAssignmentSubmissions = async (req: AuthRequest, res: Response) => {
+  try {
+    const assignment = await Assignment.findOne({ _id: String(req.query.assignmentId || ""), schoolId: req.user!.schoolId });
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+    if (!(await isAssignedToClass(req, assignment.classId.toString()))) return res.status(403).json({ message: "You are not assigned to this class" });
+    const list = await AssignmentSubmission.find({ assignmentId: assignment._id }).populate(submissionStudentPopulate).sort({ submittedAt: -1 });
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+export const gradeAssignmentSubmission = async (req: AuthRequest, res: Response) => {
+  try {
+    const sub = await AssignmentSubmission.findById(req.params.id);
+    const assignment = sub && (await Assignment.findOne({ _id: sub.assignmentId, schoolId: req.user!.schoolId }));
+    if (!sub || !assignment) return res.status(404).json({ message: "Submission not found" });
+    if (!(await isAssignedToClass(req, assignment.classId.toString()))) return res.status(403).json({ message: "You are not assigned to this class" });
+    const marks = Number(req.body.marksObtained);
+    if (!Number.isFinite(marks) || marks < 0) return res.status(400).json({ message: "Marks must be zero or more" });
+    if (assignment.totalMarks !== undefined && assignment.totalMarks !== null && marks > assignment.totalMarks) {
+      return res.status(400).json({ message: `Marks cannot be more than ${assignment.totalMarks}` });
+    }
+    sub.marksObtained = marks;
+    sub.status = "GRADED";
+    if (req.body.feedback !== undefined) sub.feedback = String(req.body.feedback).trim().slice(0, 1000);
+    await sub.save();
+    res.json(sub);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// The logged-in student's own submissions (status, marks, feedback)
+export const getMySubmissions = async (req: AuthRequest, res: Response) => {
+  try {
+    const me = await Student.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId }).select("_id");
+    if (!me) return res.json({ homework: [], assignments: [] });
+    const [homework, assignments] = await Promise.all([
+      HomeworkSubmission.find({ studentId: me._id }),
+      AssignmentSubmission.find({ studentId: me._id }),
+    ]);
+    res.json({ homework, assignments });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

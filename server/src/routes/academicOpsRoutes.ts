@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   markAttendance, bulkMarkAttendance, getSectionAttendanceForDate, getAttendance, getAttendanceRegister,
-  createHomework, getHomework, submitHomework,
+  createHomework, getHomework, submitHomework, getHomeworkSubmissions, reviewHomeworkSubmission, getAssignmentSubmissions, gradeAssignmentSubmission, getMySubmissions,
   createAssignment, getAssignments, submitAssignment,
   createExam, getExams,
   enterResult, getResults, getResultsByExam, publishResults,
@@ -21,6 +21,11 @@ router.get("/attendance/register", protect, requireRole(...TEACHING_STAFF), getA
 
 router.post("/homework", protect, requireRole(...TEACHING_STAFF), createHomework);
 router.get("/homework", protect, requireRole(...EVERYONE), getHomework);
+router.get("/homework/submissions", protect, requireRole(...TEACHING_STAFF), getHomeworkSubmissions);
+router.put("/homework/submissions/:id", protect, requireRole(...TEACHING_STAFF), reviewHomeworkSubmission);
+router.get("/assignments/submissions", protect, requireRole(...TEACHING_STAFF), getAssignmentSubmissions);
+router.put("/assignments/submissions/:id", protect, requireRole(...TEACHING_STAFF), gradeAssignmentSubmission);
+router.get("/my-submissions", protect, requireRole(ROLES.STUDENT), getMySubmissions);
 router.post("/homework/submit", protect, requireRole(ROLES.STUDENT, ...TEACHING_STAFF), submitHomework);
 
 router.post("/assignments", protect, requireRole(...TEACHING_STAFF), createAssignment);

@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import SubmitWork from "../../components/SubmitWork";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 import { ClipboardCheck } from "lucide-react";
 
 export default function StudentHomework() {
   const student = useMyStudentRecord();
   const [list, setList] = useState<any[]>([]);
+  const [mine, setMine] = useState<any[]>([]);
 
-  useEffect(() => {
+  const load = () => {
     const classId = student?.classId?._id || student?.classId;
-    if (classId) api.get(`/ops/homework?classId=${classId}`).then((res) => setList(res.data));
-  }, [student]);
+    if (classId) api.get(`/ops/homework?classId=${classId}`).then((res) => setList(res.data)).catch(() => setList([]));
+    api.get("/ops/my-submissions").then((res) => setMine(res.data.homework)).catch(() => setMine([]));
+  };
+
+  useEffect(load, [student]);
+
 
   return (
     <div className="p-4 sm:p-8">
@@ -27,6 +33,13 @@ export default function StudentHomework() {
               <span className="text-xs text-muted">Due {new Date(h.dueDate).toLocaleDateString()}</span>
             </div>
             <p className="text-sm text-muted mt-1">{h.description}</p>
+            <SubmitWork
+              kind="homework"
+              itemId={h._id}
+              submission={mine.find((m) => (m.homeworkId?._id || m.homeworkId) === h._id)}
+              
+              onDone={load}
+            />
           </div>
         ))}
       </div>

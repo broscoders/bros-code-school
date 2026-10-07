@@ -217,6 +217,9 @@ export const startAttempt = async (req: AuthRequest, res: Response) => {
 
     const quiz = await Quiz.findOne({ _id: quizId, schoolId: req.user!.schoolId, isPublished: true });
     if (!quiz) return res.status(404).json({ message: "Quiz not found" });
+    if (!myStudent.classId || myStudent.classId.toString() !== quiz.classId.toString()) {
+      return res.status(403).json({ message: "This quiz is not for your class" });
+    }
 
     // Resume an attempt that's already open rather than starting a new one -
     // this is how "prevent accidental loss of attempts" is honored: closing

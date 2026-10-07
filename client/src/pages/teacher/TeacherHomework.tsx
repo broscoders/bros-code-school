@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import SubmissionsPanel from "../../components/SubmissionsPanel";
 import { ClipboardCheck } from "lucide-react";
 import { useMyTeacherRecord } from "../../hooks/useMyTeacherRecord";
 
@@ -78,8 +79,9 @@ export default function TeacherHomework() {
             <div className="flex justify-between items-start">
               <h3 className="font-display font-semibold text-primary-dark">{h.title}</h3>
               <span className="text-xs text-muted">Due {new Date(h.dueDate).toLocaleDateString()}</span>
-            </div>
+          </div>
             <p className="text-sm text-muted mt-1">{h.description}</p>
+            <SubmissionsPanel kind="homework" itemId={h._id} />
           </div>
         ))}
       </div>

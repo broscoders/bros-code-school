@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
+import SubmitWork from "../../components/SubmitWork";
 import { useMyStudentRecord } from "../../hooks/useMyStudentRecord";
 import { FileText } from "lucide-react";
 
 export default function StudentAssignments() {
   const student = useMyStudentRecord();
   const [list, setList] = useState<any[]>([]);
+  const [mine, setMine] = useState<any[]>([]);
 
-  useEffect(() => {
+  const load = () => {
     const classId = student?.classId?._id || student?.classId;
-    if (classId) api.get(`/ops/assignments?classId=${classId}`).then((res) => setList(res.data));
-  }, [student]);
+    if (classId) api.get(`/ops/assignments?classId=${classId}`).then((res) => setList(res.data)).catch(() => setList([]));
+    api.get("/ops/my-submissions").then((res) => setMine(res.data.assignments)).catch(() => setMine([]));
+  };
+
+  useEffect(load, [student]);
+
 
   return (
     <div className="p-4 sm:p-8">
@@ -27,6 +33,13 @@ export default function StudentAssignments() {
               <span className="text-xs text-muted">Due {new Date(a.dueDate).toLocaleDateString()}</span>
             </div>
             <p className="text-sm text-muted mt-1">{a.instructions}</p>
+            <SubmitWork
+              kind="assignment"
+              itemId={a._id}
+              submission={mine.find((m) => (m.assignmentId?._id || m.assignmentId) === a._id)}
+              totalMarks={a.totalMarks}
+              onDone={load}
+            />
           </div>
         ))}
       </div>
