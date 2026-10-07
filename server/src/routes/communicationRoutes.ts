@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   sendMessage, getThread, getInbox, setCommunicationHours,
   createPTMSlot, getPTMSlotsByTeacher, getAllTeacherSlots, bookPTMSlot,
-  createLeaveRequest, getLeaveRequests, updateLeaveStatus,
+  createLeaveRequest, getLeaveRequests, getMyLeaveRequests, updateLeaveStatus,
   addStudyMaterial, getStudyMaterial, deleteStudyMaterial,
 } from "../controllers/communicationController";
 import { protect, requireRole } from "../middleware/authMiddleware";
@@ -22,6 +22,7 @@ router.get("/ptm-slots/available", protect, requireRole(...EVERYONE), getAllTeac
 router.put("/ptm-slots/:id/book", protect, requireRole(ROLES.PARENT, ...TEACHING_STAFF), bookPTMSlot);
 
 router.post("/leave-requests", protect, requireRole(...TEACHING_STAFF, ROLES.PARENT), createLeaveRequest);
+router.get("/leave-requests/mine", protect, requireRole(...TEACHING_STAFF, ROLES.PARENT), getMyLeaveRequests);
 router.get("/leave-requests", protect, requireRole(...ACADEMIC_STAFF), getLeaveRequests);
 router.put("/leave-requests/:id/status", protect, requireRole(...ACADEMIC_STAFF), updateLeaveStatus);
 

@@ -12,10 +12,7 @@ export default function ParentAttendance() {
   const [records, setRecords] = useState<any[]>([]);
 
   useEffect(() => {
-    api.get(`/people/parents?schoolId=${user?.schoolId}`).then((res) => {
-      const me = res.data.find((p: any) => p.userId?._id === user?.id || p.userId === user?.id);
-      setChildren(me?.children || []);
-    });
+    api.get("/people/parents/me").then((res) => setChildren(res.data?.children || [])).catch(() => setChildren([]));
   }, [user]);
 
   useEffect(() => {

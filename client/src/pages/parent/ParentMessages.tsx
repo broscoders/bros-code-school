@@ -10,22 +10,32 @@ export default function ParentMessages() {
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const [thread, setThread] = useState<any[]>([]);
   const [text, setText] = useState("");
+  const [sendError, setSendError] = useState("");
 
   useEffect(() => {
-    if (schoolId) api.get(`/people/teachers?schoolId=${schoolId}`).then((res) => setTeachers(res.data));
+    if (schoolId) api.get(`/people/teachers?schoolId=${schoolId}`).then((res) => setTeachers(res.data)).catch(() => setTeachers([]));
   }, [schoolId]);
 
   const loadThread = async (teacherUserId: string) => {
     setSelectedTeacher(teacherUserId);
-    const res = await api.get(`/comm/messages/thread?userA=${user?.id}&userB=${teacherUserId}`);
-    setThread(res.data);
+    try {
+      const res = await api.get(`/comm/messages/thread?userA=${user?.id}&userB=${teacherUserId}`);
+      setThread(res.data);
+    } catch {
+      setThread([]);
+    }
   };
 
   const send = async () => {
     if (!text.trim() || !selectedTeacher) return;
-    await api.post("/comm/messages", { schoolId, fromUserId: user?.id, toUserId: selectedTeacher, content: text });
-    setText("");
-    loadThread(selectedTeacher);
+    try {
+      await api.post("/comm/messages", { toUserId: selectedTeacher, content: text.trim() });
+      setText("");
+      setSendError("");
+      loadThread(selectedTeacher);
+    } catch (err: any) {
+      setSendError(err?.response?.data?.message || "Message could not be sent.");
+    }
   };
 
   return (
@@ -67,6 +77,7 @@ export default function ParentMessages() {
                   </div>
                 ))}
               </div>
+              {sendError && <p className="text-danger text-xs mb-2">{sendError}</p>}
               <div className="flex gap-2">
                 <input
                   value={text}

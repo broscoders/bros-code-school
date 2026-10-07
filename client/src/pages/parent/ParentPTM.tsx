@@ -18,19 +18,15 @@ export default function ParentPTM() {
   };
 
   useEffect(() => {
-    api.get(`/people/parents?schoolId=${user?.schoolId}`).then((res) => {
-      const me = res.data.find((p: any) => p.userId?._id === user?.id || p.userId === user?.id);
-      setChildren(me?.children || []);
-    });
+    api.get("/people/parents/me").then((res) => setChildren(res.data?.children || [])).catch(() => setChildren([]));
     loadSlots();
   }, [user]);
 
   const book = async (slotId: string) => {
     setMsg("");
     try {
-      const parentRes = await api.get(`/people/parents?schoolId=${user?.schoolId}`);
-      const me = parentRes.data.find((p: any) => p.userId?._id === user?.id || p.userId === user?.id);
-      await api.put(`/comm/ptm-slots/${slotId}/book`, { parentId: me?._id, studentId: selectedChildId });
+      // the server works out which parent is booking from the login
+      await api.put(`/comm/ptm-slots/${slotId}/book`, { studentId: selectedChildId });
       loadSlots();
     } catch (err: any) {
       setMsg(err.response?.data?.message || "Could not book this slot");

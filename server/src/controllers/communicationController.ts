@@ -30,7 +30,12 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: "You are not authorized to message this type of user directly" });
     }
 
-    const msg = await Message.create({ ...req.body, fromUserId, schoolId });
+    const content = String(req.body.content || "").trim();
+    if (!content) return res.status(400).json({ message: "Message cannot be empty" });
+    if (content.length > 2000) return res.status(400).json({ message: "Message is too long (max 2000 characters)" });
+    // only the text and the recipient come from the client (the whole body was
+    // saved before, including fields like isRead)
+    const msg = await Message.create({ schoolId, fromUserId, toUserId, content });
     res.status(201).json(msg);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
@@ -207,6 +212,11 @@ export const createLeaveRequest = async (req: AuthRequest, res: Response) => {
     // Only these fields are taken from the client. status/requestedBy/schoolId
     // are decided here, and teacherId is only ever the logged-in teacher
     // (before, `...safeBody` let a student request carry a made-up teacherId).
+    if (req.user!.role === "PARENT") {
+      if (req.body.type !== "STUDENT" || !(await canAccessStudent(req, String(req.body.studentId || "")))) {
+        return res.status(403).json({ message: "You can only request leave for your own child" });
+      }
+    }
     const reason = String(req.body.reason || "").trim();
     const when = new Date(req.body.date);
     if (!reason) return res.status(400).json({ message: "A reason is required" });
@@ -223,6 +233,19 @@ export const createLeaveRequest = async (req: AuthRequest, res: Response) => {
       date: when,
     });
     res.status(201).json(leave);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
+// The logged-in user's own leave requests (a parent's requests for their
+// children, or a teacher's own). The list below is for staff who decide on them.
+export const getMyLeaveRequests = async (req: AuthRequest, res: Response) => {
+  try {
+    const leaves = await LeaveRequest.find({ schoolId: req.user!.schoolId, requestedBy: req.user!.userId })
+      .populate({ path: "studentId", select: "userId", populate: { path: "userId", select: "name" } })
+      .sort({ createdAt: -1 });
+    res.json(leaves);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: (err as Error).message });
   }

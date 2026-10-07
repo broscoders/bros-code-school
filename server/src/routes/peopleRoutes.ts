@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   createStudent, getStudents, getStudentById, updateStudentStatus, transferStudent,
-  createParent, getParents, findParentByEmail,
+  createParent, getParents, getMyParent, findParentByEmail,
   createTeacher, getTeachers, getMyTeacher, updateTeacherStatus,
   updateUserAccountStatus,
 } from "../controllers/peopleController";
@@ -17,6 +17,7 @@ router.put("/students/:id/status", protect, requireRole(...ACADEMIC_STAFF), upda
 router.put("/students/:id/transfer", protect, requireRole(...ACADEMIC_STAFF), transferStudent);
 
 router.post("/parents", protect, requireRole(...ADMISSIONS_STAFF), createParent);
+router.get("/parents/me", protect, requireRole(ROLES.PARENT), getMyParent);
 router.get("/parents", protect, requireRole(...ANY_ADMIN_STAFF), getParents);
 // No frontend page uses this outside the admin Parents form, and it's the
 // same lookup that only makes sense for whoever is allowed to create

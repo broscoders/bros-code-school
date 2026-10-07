@@ -12,36 +12,30 @@ export default function ParentLeave() {
   const [reason, setReason] = useState("");
   const [date, setDate] = useState("");
   const [myLeaves, setMyLeaves] = useState<any[]>([]);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    api.get(`/people/parents?schoolId=${user?.schoolId}`).then((res) => {
-      const me = res.data.find((p: any) => p.userId?._id === user?.id || p.userId === user?.id);
-      setChildren(me?.children || []);
-    });
+    api.get("/people/parents/me").then((res) => setChildren(res.data?.children || [])).catch(() => setChildren([]));
   }, [user]);
 
   useEffect(() => {
     if (user?.schoolId) {
-      api.get(`/comm/leave-requests?schoolId=${user.schoolId}`).then((res) =>
-        setMyLeaves(res.data.filter((l: any) => l.requestedBy?._id === user.id || l.requestedBy === user.id))
-      );
+      api.get("/comm/leave-requests/mine").then((res) => setMyLeaves(res.data)).catch(() => setMyLeaves([]));
     }
   }, [user]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/comm/leave-requests", {
-      schoolId: user?.schoolId,
-      requestedBy: user?.id,
-      studentId: selectedChildId,
-      reason,
-      date,
-      type: "STUDENT",
-    });
-    setReason("");
-    setDate("");
-    const res = await api.get(`/comm/leave-requests?schoolId=${user?.schoolId}`);
-    setMyLeaves(res.data.filter((l: any) => l.requestedBy?._id === user?.id || l.requestedBy === user?.id));
+    setFormError("");
+    try {
+      await api.post("/comm/leave-requests", { studentId: selectedChildId, reason, date, type: "STUDENT" });
+      setReason("");
+      setDate("");
+      const res = await api.get("/comm/leave-requests/mine");
+      setMyLeaves(res.data);
+    } catch (err: any) {
+      setFormError(err?.response?.data?.message || "Could not send the leave request.");
+    }
   };
 
   return (
@@ -52,6 +46,7 @@ export default function ParentLeave() {
         <div className="mt-6"><ChildSwitcher children={children} /></div>
       </div>
 
+      {formError && <p className="text-danger text-sm mb-3">{formError}</p>}
       <form onSubmit={submit} className="bg-surface rounded-xl border border-border shadow-sm p-5 space-y-3">
         <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" required />
         <textarea placeholder="Reason (e.g. Ahmed is sick today)" value={reason} onChange={(e) => setReason(e.target.value)} className="w-full border border-border rounded-md px-3 py-2 text-sm" rows={2} required />

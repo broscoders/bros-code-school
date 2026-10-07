@@ -323,6 +323,24 @@ export const findParentByEmail = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// The logged-in parent's own record with their children (name + class filled
+// in). The parent portal used to download the school's whole parents list and
+// look for itself in it - the list endpoint is staff-only (it exposes every
+// parent's contact details), so a real parent got a 403 and an empty portal.
+export const getMyParent = async (req: AuthRequest, res: Response) => {
+  try {
+    const parent = await Parent.findOne({ userId: req.user!.userId, schoolId: req.user!.schoolId }).populate({
+      path: "children",
+      match: { status: "ACTIVE" },
+      populate: [{ path: "userId", select: "name" }, { path: "classId", select: "name" }, { path: "sectionId", select: "name" }],
+    });
+    if (!parent) return res.status(404).json({ message: "Parent profile not found" });
+    res.json(parent);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: (err as Error).message });
+  }
+};
+
 export const getParents = async (req: AuthRequest, res: Response) => {
   try {
     const parents = await Parent.find({ schoolId: req.user!.schoolId }).populate("userId children");
@@ -386,6 +404,17 @@ export const getTeachers = async (req: AuthRequest, res: Response) => {
     if (!status || status === "ACTIVE") filter.employmentStatus = "ACTIVE";
     else if (status !== "ANY") filter.employmentStatus = status;
 
+    // Parents and students only need a teacher's name, subjects and when they
+    // may be contacted (for messaging / PTM). They used to receive every
+    // teacher's email address, phone number and employee details.
+    if (req.user!.role === "PARENT" || req.user!.role === "STUDENT") {
+      const limited = await Teacher.find(filter)
+        .select("userId subjects assignedClasses communicationHours")
+        .populate("userId", "name")
+        .populate("subjects", "name")
+        .populate("assignedClasses", "name");
+      return res.json(limited);
+    }
     const teachers = await Teacher.find(filter).populate("userId subjects assignedClasses");
     res.json(teachers);
   } catch (err) {
